@@ -7,7 +7,7 @@
 - Challenge: **Be An Earth System Trend Detective!** (pick NASA variables → time series → trend + significance: Mann-Kendall / t-test / CIs).
 - Demo for judges: **7 slides max or a 30-second video** (English, or English subtitles). Judging = Impact, Creativity, Validity, Relevance (NASA data must be core), Presentation. Target awards: Art & Technology, Best Storytelling, Best Use of Data.
 
-## The project: "Cloud Shadow"
+## The project: "Footprint Atlas" (renamed from "Cloud Shadow" on Nov 14; internal paths/IDs still say cloudshadow)
 The environmental footprint of AI data centers, measured with NASA data and shown in a cinematic 3D globe. Lead story: **xAI Colossus, South Memphis** (on-site methane gas turbines; Boxtown neighborhood ~3 km ESE). Other sites: xAI Colossus 2 (Memphis), Data Center Alley (Ashburn VA), Stargate Abilene TX, Google The Dalles OR.
 
 ## Decisions already made (don't relitigate)
@@ -80,7 +80,7 @@ Rules: projection rows extend the measured trend, not a forecast; they follow th
 5. **Weather volume**: UE Volumetric Cloud + wind-field particles / rain driven by `WS10M`, `PlumeTowardDeg`, `PrecipMMDay`, `T2M`.
 6. **Heat (Ashburn, scientific headline)**: night lighting; heat-shimmer (refraction) intensity ∝ `LST_Night_Site − LST_Night_Surround`; data sculpture = one bar per year (`series/ashburn_LST_Night.csv`, `LocalAnomaly`, blue < 0 / orange > 0); **Text3D** "+0.25 °C/decade · p = 0.001 · NASA MODIS".
 7. **Opening orbit**: activate `NASA_NightLights` (VIIRS Black Marble) for the space shot.
-8. **Sequencer film (~30 s)**: orbit + night lights → dive to Memphis → scrub slider 2015→2026 (fields → Colossus, plume grows) → push into FUTURE (stylized, band widens) → Ashburn heat sculpture + numbers → pull back to all pillars → "Cloud Shadow · Data: NASA". Render with **Movie Render Queue** (1080p30), English captions.
+8. **Sequencer film (~30 s)**: orbit + night lights → dive to Memphis → scrub slider 2015→2026 (fields → Colossus, plume grows) → push into FUTURE (stylized, band widens) → Ashburn heat sculpture + numbers → pull back to all pillars → "Footprint Atlas · Data: NASA". Render with **Movie Render Queue** (1080p30), English captions.
 9. Optional: live numbers from `npm run web` API (`/api/analysis?site=&var=`) via HttpBlueprint.
 
 ## Submission checklist

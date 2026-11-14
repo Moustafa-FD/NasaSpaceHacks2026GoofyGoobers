@@ -1,4 +1,4 @@
-# Cloud Shadow web app: team guide
+# Footprint Atlas web app: team guide
 
 **This is the project judges will open** (NASA Space Apps 2026, *Be An Earth System Trend Detective!*). A 3D globe (CesiumJS) where you pick a data center, drag a **timeline slider from 2003 to 2035**, and watch the ground, heat, air pollution and weather around it change, all from NASA data, with trend statistics and p-values. Andres is making the cinematic Unreal video separately; this app is the clickable product.
 

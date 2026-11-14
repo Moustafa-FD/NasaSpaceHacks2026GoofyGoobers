@@ -1,4 +1,4 @@
-# ◐ Cloud Shadow
+# ◐ Footprint Atlas: NASA trend findings & method
 ### The physical footprint of the digital cloud, seen from orbit.
 **NASA Space Apps 2026 · Toronto (Centennial College, Downsview) · Team Goofy Goobers**
 **Challenge:** *Be An Earth System Trend Detective!*
