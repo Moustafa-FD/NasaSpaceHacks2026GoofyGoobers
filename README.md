@@ -62,7 +62,7 @@ Environmental changes observed near a data center do not necessarily establish t
 | **Unreal project** | UE 5.8.3 + Cesium for Unreal, level with 70 yearly NASA imagery overlays and NASA data layers, built by script | `clients/unreal/CloudShadow/` |
 | **Data and backend** | Environmental Node `/v1` API, facility/emissions inventories, source adapters, cached data and background jobs; separate from the web explorer's datasets | `apps/api/`, `services/data/`, `packages/contracts/` · [Part 1 handoff](docs/data-and-backend.md) |
 | **Real wind flow (Part 2)** | NASA GEOS-FP analysis winds (+ temperature, sea-level pressure) as shared `flow-field/1.0` files: particle trails on the globe and the fluid sim/clouds follow the analysed wind of each frame, 2018 onward. Direction checked against Dulles airport observations (median ~9°). [docs/flow-fields.md](docs/flow-fields.md) | `services/models/fields/`, `apps/web/js/flowfield.js`, `data/cloudshadow/fields/` |
-| **Trend engine (Python, Part 2)** | Seasonal Mann-Kendall, Hamed-Rao correction (can only widen uncertainty), Sen's slope + CI, autocorrelation-adjusted t-test, control-region comparison and missing-data rules, run from a CLI on CSV files (not yet called by the API). Research on data access and wind/pressure sources: [docs/research/data-access-and-models.md](docs/research/data-access-and-models.md) | `services/models/trends/` |
+| **Trend engine (Python, Part 2)** | Seasonal Mann-Kendall, Hamed-Rao correction (can only widen uncertainty), Sen's slope + CI, autocorrelation-adjusted t-test, control-region comparison and missing-data rules. Runs from a CLI on CSV files **and as the `trend-analysis` job in the Node API**. Research on data access and wind/pressure sources: [docs/research/data-access-and-models.md](docs/research/data-access-and-models.md) | `services/models/trends/` |
 | **Giovanni series (Part 2)** | Giovanni area averages through NASA Harmony for each site: GPM rainfall, GLDAS topsoil moisture and evapotranspiration, GRACE-assimilated groundwater, OMI NO₂. Resumable and quota-guarded; needs `EARTHDATA_TOKEN`. Results for all 5 sites in the research doc; not yet shown in the web app | `services/models/trends/giovanni.py` → `data/raw/giovanni/` |
 
 > **Where does the detailed view work?** Only at the **5 case-study sites**: timeline, yearly imagery, 3D effects, fluid sim, detailed wind box, ledger. **Anywhere else**, a click on the globe gives a live NASA trend analysis plus global map overlays and global wind trails, but no timeline or 3D effects. See [docs/coverage.md](docs/coverage.md).
@@ -118,6 +118,23 @@ On November 14, 2026, the reference implementation passed **130 tests** and live
 
 **API behavior change:** `npm start` now serves environmental `/v1` operations, and `npm run demo` reads cached POWER series, requiring `data:sync` first. Old scenario request bodies are rejected; the accounting worker/schemas remain regression fixtures, with no economic outputs in the public environmental API. The web explorer still uses `npm run web` on port 8765 and its own `/api` contract. Give the two services distinct `PORT` values; browser integration still needs a proxy/CORS implementation.
 
-**Still needed in this Node API:** trend/significance job integration, verified facility matching, calibrated facility-impact and agricultural models, and noise propagation/prediction. Ground noise and vegetation records can be imported with provenance, but no noise dataset or numeric NDVI observations were acquired; the public ORNL vegetation service was unavailable during setup.
+**Trend jobs (Part 2):** `POST /v1/runs` with `kind: "trend-analysis"` runs the Python trend engine on a completed `series` run (`input: {runId, variable}`) or an inline series (`input: {series: {label, unit, points}}`), with an optional `control` for a target-minus-control trend. See [services/models/README.md](services/models/README.md#trend-jobs-in-the-node-api).
+
+**Still needed in this Node API:** verified facility matching, calibrated facility-impact and agricultural models, and noise propagation/prediction. Ground noise and vegetation records can be imported with provenance, but no noise dataset or numeric NDVI observations were acquired; the public ORNL vegetation service was unavailable during setup.
 
 See **[1. Data and backend — technical handoff](docs/data-and-backend.md)** for setup prerequisites, exact request/result examples, data locations, source limits and the extension points Part 2 should use.
+
+### 2. Projection engine (Part 2): status
+
+| Requirement (PDF / handoff) | Status | Where |
+|---|---|---|
+| Historical trend magnitude + significance (challenge core) | **Done**: Python engine + `trend-analysis` API job, validated vs SciPy, with autocorrelation safeguards | `services/models/trends/`, `apps/api/src/environment/trends.ts` |
+| Real NASA inputs for water and air | **Done** for 5 sites: Giovanni rainfall, soil moisture, evapotranspiration, groundwater, OMI NO₂ (local download) | `services/models/trends/giovanni.py` |
+| Shared winds/temperature/pressure for web + Unreal | **Done**: GEOS-FP flow fields 2018–2026, validated vs Dulles observations | `services/models/fields/`, `docs/flow-fields.md` |
+| Baseline vs expansion comparison | **Partial**: target-minus-control trend difference. No facility-expansion scenario model | `trend-analysis` `control` input |
+| Long-range climate scenarios | **Partial** (Part 1 backend: two HighResMIP models to 2050). NEX-GDDP-CMIP6 to 2100 not integrated | `docs/data-and-backend.md` |
+| Air-quality transport/chemistry from facility emissions | **Not implemented**: needs emissions, meteorology and ground calibration | — |
+| Watershed/groundwater balance, water quality | **Not implemented**: data available (Giovanni, USGS stations); no hydrological or water-quality model | — |
+| Crop/agriculture response, noise propagation | **Not implemented**: needs crop yields/phenology and acoustic measurements | — |
+
+What exists everywhere vs only at the 5 case-study sites: [docs/coverage.md](docs/coverage.md). UI follow-ups: issue #4.

@@ -68,6 +68,18 @@ python -m services.models.trends.giovanni                      # default variabl
 python -m services.models.trends.cli data/raw/giovanni/ashburn/GPM_3IMERGM_07_precipitation.csv --units "mm/hr"
 ```
 
+### Trend jobs in the Node API
+
+The environmental API runs the same engine as a background job (`kind: "trend-analysis"`), with the usual 202 → status/WebSocket → results flow:
+
+```json
+{ "schemaVersion": "1.0", "kind": "trend-analysis",
+  "input": { "runId": "<completed series run id>", "variable": "T2M" },
+  "cadence": "annual", "alpha": 0.05, "minYears": 10 }
+```
+
+The `input` (and optional `control`) is either a completed `series` run's variable or an inline series `{ "series": { "label", "unit", "source", "points": [{ "date": "YYYY[-MM[-DD]]", "value": number|null }] } }` of up to 20,000 points. The result carries `evidence: "statistical-analysis"`, the method and tests used, input provenance (run ID, source URL, raw and input SHA-256), and the full report. With a control, it reports target, control and target-minus-control trends. Bridge: `apps/api/src/environment/trends.ts` → `python -m services.models.trends.worker`.
+
 Rules the engine enforces:
 
 - Records shorter than `--min-years` (default 10) or with more than 20% missing steps return `status: "insufficient_data"` with reasons and **no** trend numbers.

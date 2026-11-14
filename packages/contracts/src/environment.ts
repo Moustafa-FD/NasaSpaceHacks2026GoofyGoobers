@@ -24,7 +24,16 @@ export interface ClimateRequest { schemaVersion: "1.0"; kind: "climate"; point: 
 export interface AgricultureRequest { schemaVersion: "1.0"; kind: "agriculture"; point: { latitude: number; longitude: number }; baseline: { start: string; end: string }; future: { start: string; end: string }; models?: ClimateRequest["models"]; growingMonths: number[]; baseTemperatureC: number; heatThresholdC: number; dryDayThresholdMm: number }
 export interface GroundEvidenceRequest { schemaVersion: "1.0"; kind: "ground-evidence"; records: unknown[] }
 export interface WaterQualityRequest { schemaVersion: "1.0"; kind: "water-quality"; stationId: string; start: string; end: string; parameters?: Array<"00010" | "00095" | "00400" | "00300" | "63680"> }
-export type EnvironmentRequest = MeteorologyRequest | FacilitiesRequest | EmissionsRequest | AirQualityRequest | LandWaterRequest | ClimateRequest | AgricultureRequest | GroundEvidenceRequest | WaterQualityRequest;
+/** Part 2 trend input: a completed `series` run's variable, or an inline series (e.g. Giovanni or GIBS-derived). */
+export type TrendSeriesInput =
+  | { runId: string; variable: string }
+  | { series: { label: string; unit: string; source?: string; points: Array<{ date: string; value: number | null }> } };
+export interface TrendAnalysisRequest {
+  schemaVersion: "1.0"; kind: "trend-analysis";
+  input: TrendSeriesInput; control?: TrendSeriesInput;
+  cadence?: "monthly" | "annual"; alpha?: number; minYears?: number; minCountPerMonth?: number;
+}
+export type EnvironmentRequest = MeteorologyRequest | FacilitiesRequest | EmissionsRequest | AirQualityRequest | LandWaterRequest | ClimateRequest | AgricultureRequest | GroundEvidenceRequest | WaterQualityRequest | TrendAnalysisRequest;
 
 export interface EnvironmentRun {
   id: string;
@@ -49,7 +58,7 @@ export const ENVIRONMENT_DOMAINS = [
   { id: "land-water", status: "live_model_adapter", description: "ERA5 daily rainfall, reference ET0 and soil moisture by depth; no inference of facility consumption or water chemistry" },
   { id: "water-quality", status: "live_ground_adapter", description: "USGS station temperature, conductance, pH, oxygen and turbidity where available; broader chemistry and facility-attribution models remain unsupported" },
   { id: "noise", status: "ground_import_only", description: "Imports source-referenced acoustic records; no ground noise dataset acquired or propagation/impact model implemented" },
-  { id: "trend-analysis", status: "planned_worker", description: "Part 2: slope, seasonal treatment, significance and uncertainty" },
+  { id: "trend-analysis", status: "live_statistical_worker", description: "Part 2: Sen's slope + CI, seasonal/Hamed-Rao Mann-Kendall, autocorrelation-adjusted t-test, control-region difference; for a completed series run or an inline series. Statistical change only, not attribution" },
   { id: "future-environment", status: "live_climate_scenario_adapter", description: "Two HighResMIP climate simulations through 2050-01-01; local facility-impact models and projections to 2100 remain unavailable" },
   { id: "agriculture", status: "climate_exposure_screening", description: "Growing-season heat/frost/dry-day/GDD and climatic-balance comparisons; no crop yield forecast or facility attribution" }
 ] as const;
@@ -59,6 +68,7 @@ export function validateEnvironmentRequest(input: unknown): string[] {
   const value = input as Record<string, unknown>;
   if (typeof value.kind !== "string") return ["kind must be a string"];
   if (["facilities-sync", "emissions-sync", "air-quality", "land-water", "climate", "agriculture", "ground-evidence", "water-quality"].includes(value.kind)) return validateExpandedRequest(value);
+  if (value.kind === "trend-analysis") return validateTrendRequest(value);
   const errors: string[] = [];
   const allowed = new Set(["schemaVersion", "kind", "source", "variables", "start", "end", "date", "point", "bbox", "maxCacheMiB", "refreshCatalog"]);
   if (Object.keys(value).some(key => !allowed.has(key))) errors.push("Unknown request field");
@@ -91,6 +101,53 @@ export function validateEnvironmentRequest(input: unknown): string[] {
     if (value.source !== "power-grid" || !month(value.date) || !Array.isArray(value.variables) || value.variables.length !== 1) errors.push("grid requires source power-grid, one variable and date YYYY-MM");
     if (["point", "bbox", "start", "end", "refreshCatalog", "maxCacheMiB"].some(key => value[key] !== undefined)) errors.push("grid returns a complete native global frame and does not accept spatial/sync/series fields");
   }
+  return errors;
+}
+
+const TREND_MAX_POINTS = 20_000;
+
+function validateTrendInput(input: unknown, name: string): string[] {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return [`${name} must be an object`];
+  const value = input as Record<string, unknown>;
+  const keys = Object.keys(value).sort().join(",");
+  if (keys === "runId,variable") {
+    const errors: string[] = [];
+    if (typeof value.runId !== "string" || !/^[a-zA-Z0-9_-]{1,80}$/.test(value.runId)) errors.push(`${name}.runId must be a run ID`);
+    if (typeof value.variable !== "string" || !/^[A-Za-z0-9_]{1,40}$/.test(value.variable)) errors.push(`${name}.variable must be a variable ID`);
+    return errors;
+  }
+  if (keys !== "series") return [`${name} needs either {runId, variable} or {series}`];
+  const series = value.series as Record<string, unknown>;
+  if (!series || typeof series !== "object" || Array.isArray(series) || Object.keys(series).some(key => !["label", "unit", "source", "points"].includes(key))) return [`${name}.series has unknown or missing fields`];
+  const errors: string[] = [];
+  if (typeof series.label !== "string" || !series.label.trim() || series.label.length > 120) errors.push(`${name}.series.label must be 1-120 characters`);
+  if (typeof series.unit !== "string" || series.unit.length > 40) errors.push(`${name}.series.unit must be a string up to 40 characters`);
+  if (series.source !== undefined && (typeof series.source !== "string" || series.source.length > 300)) errors.push(`${name}.series.source must be a string up to 300 characters`);
+  const points = series.points;
+  if (!Array.isArray(points) || points.length < 3 || points.length > TREND_MAX_POINTS) return [...errors, `${name}.series.points must contain 3-${TREND_MAX_POINTS} points`];
+  const dates = new Set<string>();
+  for (const point of points) {
+    if (!point || typeof point !== "object" || Array.isArray(point) || Object.keys(point).some(key => !["date", "value"].includes(key))) { errors.push(`${name}.series.points items must be {date, value}`); break; }
+    const { date, value: v } = point as Record<string, unknown>;
+    if (typeof date !== "string" || !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(date)) { errors.push(`${name}.series.points dates must be YYYY, YYYY-MM or YYYY-MM-DD`); break; }
+    if (v !== null && (typeof v !== "number" || !Number.isFinite(v))) { errors.push(`${name}.series.points values must be finite numbers or null`); break; }
+    if (dates.has(date)) { errors.push(`${name}.series.points has duplicate dates`); break; }
+    dates.add(date);
+  }
+  return errors;
+}
+
+function validateTrendRequest(value: Record<string, unknown>): string[] {
+  const errors: string[] = [];
+  if (value.schemaVersion !== "1.0") errors.push("schemaVersion must be 1.0");
+  if (Object.keys(value).some(key => !["schemaVersion", "kind", "input", "control", "cadence", "alpha", "minYears", "minCountPerMonth"].includes(key))) errors.push("Unknown request field");
+  errors.push(...validateTrendInput(value.input, "input"));
+  if (value.control !== undefined) errors.push(...validateTrendInput(value.control, "control"));
+  if (value.cadence !== undefined && !["monthly", "annual"].includes(String(value.cadence))) errors.push("cadence must be monthly or annual");
+  if (value.control !== undefined && value.cadence === "annual") errors.push("control comparisons use cadence monthly");
+  if (value.alpha !== undefined && (typeof value.alpha !== "number" || !(value.alpha > 0 && value.alpha <= 0.2))) errors.push("alpha must be in (0, 0.2]");
+  if (value.minYears !== undefined && (!Number.isInteger(value.minYears) || Number(value.minYears) < 3 || Number(value.minYears) > 100)) errors.push("minYears must be an integer 3-100");
+  if (value.minCountPerMonth !== undefined && (!Number.isInteger(value.minCountPerMonth) || Number(value.minCountPerMonth) < 1 || Number(value.minCountPerMonth) > 31)) errors.push("minCountPerMonth must be an integer 1-31");
   return errors;
 }
 

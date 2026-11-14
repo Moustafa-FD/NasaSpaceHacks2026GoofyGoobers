@@ -15,6 +15,7 @@ import { normalizeGroundEvidence } from "./ground-evidence.ts";
 import { fetchUsEmissions } from "./us-emissions.ts";
 import { fetchWaterQuality } from "./water-quality.ts";
 import { shouldReplaceNpriCanonical } from "./library.ts";
+import { runTrendAnalysis } from "./trends.ts";
 
 export type ProgressReporter = (progress: number, stage: string, details?: Record<string, unknown>) => void;
 export type EnvironmentExecutor = (request: EnvironmentRequest, signal: AbortSignal, report: ProgressReporter) => Promise<unknown>;
@@ -132,6 +133,7 @@ export function environmentExecutor(store: EnvironmentStore): EnvironmentExecuto
           data = { ...compareAgriculture(baseline, future, request), requestedPoint: request.point, sourceMetadata: { scenario: future.scenario, models: future.models.map(model => model.model), spatialResolution: future.spatialResolution, license: future.license, warnings: future.warnings } };
           break;
         }
+        case "trend-analysis": data = await runTrendAnalysis(store, request, signal, report); break;
         case "ground-evidence": {
           data = await saveSource(normalizeGroundEvidence(request));
           await store.write(store.processedDirectory, `evidence-${key}`, data);
