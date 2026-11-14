@@ -41,6 +41,36 @@ The request envelope is `{ "runId": "a-node-generated-id", "scenario": { ... } }
 
 These coordinates identify a display extent only. They do not locate a verified facility, select weather, allocate withdrawals to a watershed, or turn accounting totals into geographic predictions.
 
+## Trend engine (`trends/`)
+
+The challenge's core requirement is to visualize a regional time series and report its **rate of change** and whether the trend is **statistically significant**. `trends/` implements that analysis. It is standard-library only, works offline, and is **not yet connected to the Node API or the scenario contract**; it runs on CSV files through its own CLI until a trend-run contract is agreed with the backend track.
+
+| Module | Purpose |
+| --- | --- |
+| `stats.py` | Least-squares slope with t-test and CI (optional lag-1 effective-sample-size adjustment, Santer et al. 2000); Mann-Kendall with tie/continuity correction and optional Hamed-Rao autocorrelation correction; Sen's slope with Gilbert CI; seasonal Mann-Kendall and seasonal Sen slope (Hirsch et al. 1982); Benjamini-Hochberg FDR for many-cell maps |
+| `series.py` | CSV reading (Giovanni-style `key:,value` preamble, fill values), monthly grid with gaps kept as `None`, deseasonalized annual values, monthly anomalies, target-minus-control differences, missing-data report |
+| `analysis.py` | Monthly report (seasonal Mann-Kendall + seasonal Sen on values, adjusted t-test on anomalies), annual report (Hamed-Rao Mann-Kendall + Sen + adjusted t-test), control-region comparison, plain-language summary |
+| `catalog.json` / `catalog.py` | Candidate NASA variables with plain-language definitions and caveats; water quality and noise listed as unavailable with reasons |
+| `cli.py` | Command-line report (text or `--json`) |
+| `make_synthetic.py` | Writes the deterministic **synthetic** fixtures in `data/examples/trends/` |
+
+```sh
+python -m services.models.trends.cli data/examples/trends/synthetic-target-monthly.csv --units K
+python -m services.models.trends.cli data/examples/trends/synthetic-target-monthly.csv --control data/examples/trends/synthetic-control-monthly.csv
+python -m services.models.trends.cli data/examples/trends/synthetic-target-monthly.csv --cadence annual --json
+python -m services.models.trends.cli --list-variables
+```
+
+Rules the engine enforces:
+
+- Records shorter than `--min-years` (default 10) or with more than 20% missing steps return `status: "insufficient_data"` with reasons and **no** trend numbers.
+- Missing values are never filled with zeros. Daily input is aggregated per month only when at least `--min-count` valid observations exist.
+- Annual values are built from seasonal anomalies plus the climatology, because averaging raw months with a gap biases a seasonal series.
+- Every report carries the attribution limitation: a regional trend, or a target-minus-control divergence, is not proof that a facility caused it.
+- Pairwise methods are O(n²): aggregate daily data to monthly/annual first.
+
+Validation: hand-computed cases; agreement with `scipy.stats` `linregress`, `theilslopes`, `kendalltau` and `t` where scipy is installed (skipped otherwise); exact recovery of a noise-free trend; and a false-positive rate near alpha for trendless synthetic series. These checks verify the statistics, not any real-world finding. The catalog's collection IDs and versions are marked `checked: false` until confirmed in Earthdata Search.
+
 ## Accounting formulas and units
 
 For each calendar year, `hours = 24 * days_in_year` (including leap years):

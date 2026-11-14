@@ -55,14 +55,15 @@ flowchart LR
 |   |-- run-manager.ts        # queued -> running -> completed / failed
 |   |-- model-worker.ts       # Async Python process, timeout and output validation
 |   `-- validation.ts         # Shared JSON Schema and cross-field checks
-|-- services/models/          # Python standard-library-only accounting worker
+|-- services/models/          # Python standard-library-only model code
 |   |-- accounting.py         # Validated formulas, metadata and unavailable domains
 |   |-- worker.py             # One stdin request -> one stdout manifest
+|   |-- trends/               # Trend magnitude/significance engine and CLI (not yet wired to the API)
 |   `-- tests/                # Numerical, validation and process-protocol checks
 |-- packages/contracts/       # JSON Schemas, TypeScript types and domain registry
 |-- clients/unreal/           # Unreal/Cesium implementation track, not a .uproject
 |-- data/
-|   |-- examples/             # Small synthetic scenario fixture
+|   |-- examples/             # Small synthetic scenario and trend fixtures
 |   |-- raw/                  # Future source downloads; generated contents ignored
 |   |-- processed/            # Future normalized observations and layers; ignored
 |   `-- runs/                 # Future local artifacts; current runs are in memory
