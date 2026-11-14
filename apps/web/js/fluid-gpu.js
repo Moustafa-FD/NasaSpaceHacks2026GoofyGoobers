@@ -7,13 +7,15 @@
 // Falls back to the CPU solver (fluid.js) if WebGL2 float render targets aren't available.
 //
 // Driven by NASA data via setWeather() each year (see fx.js):
-//   wind = NASA POWER direction/speed (time-lapsed) · heat dye = night-heat local signal ·
-//   pollution dye = NO₂ local signal (on-site combustion sites only) · moisture dye = precipitation.
+//   wind = NASA POWER direction/speed (time-lapsed); muted wisps are qualitative.
+//   A local source exists only at documented combustion sites, not from heat/NO2.
 // A VISUALIZATION of those inputs, not an atmospheric model.
 import { attachFluidCPU } from "./fluid.js";
+import { getMotionSpeed } from "./motion.js";
+import { WEATHER_DYE_FRAGMENT_SHADER } from "./smoke-policy.js";
 
 const SIM = 128, DYE = 256, PRESSURE_ITERS = 20;
-const CURL = 22, VEL_DISSIPATION = 0.15, DYE_DISSIPATION = [0.5, 0.28, 0.22]; // per second (heat, pollution, moisture)
+const CURL = 10, VEL_DISSIPATION = 0.15, DYE_DISSIPATION = [0.5, 0.4, 0.3]; // per second (unused heat, source, moisture)
 
 const VERT = `#version 300 es
 precision highp float;
@@ -41,25 +43,12 @@ const FRAG = {
   gradient: `uniform sampler2D pressure, velocity;
     void main(){ float L=texture(pressure,vL).x, R=texture(pressure,vR).x, T=texture(pressure,vT).x, B=texture(pressure,vB).x;
       o = vec4(texture(velocity,vUv).xy - vec2(R-L,T-B), 0., 1.); }`,
-  display: `uniform sampler2D dye; uniform vec2 dyeTexel; uniform float projected;
-    void main(){
-      vec3 d = max(texture(dye,vUv).xyz, 0.0); float h=min(d.x,1.6), p=min(d.y,1.6), m=min(d.z,1.6);
-      float s = max(h+p+m, 1e-3);
-      vec3 col = (h*vec3(1.0,0.42,0.13) + p*vec3(1.0,0.80,0.28) + m*vec3(0.80,0.90,1.0)) / s;
-      // shading from the dye "height" for a volumetric look (as in Pavel's demo)
-      float dx = length(texture(dye,vUv+vec2(dyeTexel.x,0.)).xyz) - length(texture(dye,vUv-vec2(dyeTexel.x,0.)).xyz);
-      float dy = length(texture(dye,vUv+vec2(0.,dyeTexel.y)).xyz) - length(texture(dye,vUv-vec2(0.,dyeTexel.y)).xyz);
-      vec3 n = normalize(vec3(dx,dy,0.35)); float light = clamp(dot(n, normalize(vec3(-0.4,0.5,1.0))) + 0.55, 0.65, 1.35);
-      col *= light;
-      if (projected > 0.5) { float g = dot(col, vec3(0.333)); col = vec3(g*0.55+0.25, g*0.8+0.33, g+0.45); }
-      float a = clamp(h*0.85 + p*1.05 + m*0.5, 0.0, 0.82);
-      o = vec4(col, a);
-    }`,
+  display: WEATHER_DYE_FRAGMENT_SHADER,
 };
 
 function createGL(size) {
   const canvas = document.createElement("canvas"); canvas.width = canvas.height = size;
-  const gl = canvas.getContext("webgl2", { alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: false, depth: false });
+  const gl = canvas.getContext("webgl2", { powerPreference: "high-performance", alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: false, depth: false });
   if (!gl || !gl.getExtension("EXT_color_buffer_float")) return null;
   return { canvas, gl };
 }
@@ -139,33 +128,34 @@ export function attachFluid(viewer, site, opts = {}) {
     },
   });
 
-  const W = { windE: 0, windN: 1, speed: 3, heat: 0, pollution: 0, moisture: 0, projected: 0 };
-  let alive = true, last = performance.now(), frame = 0, t = 0;
+  const W = { windE: 0, windN: 0, speed: 0, pollution: 0, moisture: 0, projected: 0 };
+  let alive = true, visible = true, last = performance.now(), frame = 0, t = 0;
   function loop(now) {
     if (!alive) return;
     requestAnimationFrame(loop);
-    const dt = Math.min(0.033, (now - last) / 1000); last = now; frame++; t += dt;
+    const speed = getMotionSpeed();
+    const dt = Math.min(0.033, Math.max(0, (now - last) / 1000)) * speed; last = now;
+    // Hidden close-up weather does no solver work or canvas texture uploads.
+    if (!visible || dt === 0) return;
+    frame++; t += dt;
+    const stepScale = dt * 60;
     // velocity in sim texels/second (UV: +x east, +y north); NASA wind, time-lapsed
-    const sp = 6 + W.speed * 4;
+    const sp = W.speed * 1.25;
     const wind = [W.windE * sp, W.windN * sp];
     run(P.wind, vel.write, { velocity: vel.read, wind, k: Math.min(1, dt * 1.2) }); vel.swap();
     // sources (UV coordinates, site at the centre)
-    if (W.heat > 0) {
-      const a = t * 1.7;
-      splat(0.5 + Math.cos(a) * 0.022, 0.5 + Math.sin(a) * 0.022, Math.cos(a) * 30, Math.sin(a) * 30, [W.heat * 0.11, 0, 0], 0.0011);
-    }
-    if (W.pollution > 0) splat(0.5, 0.5, wind[0] * 2.5, wind[1] * 2.5, [0, W.pollution * 0.2, 0], 0.0005);
+    if (W.pollution > 0) splat(0.5, 0.5, wind[0] * 1.5 * stepScale, wind[1] * 1.5 * stepScale, [0, W.pollution * 0.2 * stepScale, 0], 0.0005);
     if (W.moisture > 0 && frame % 5 === 0) {
       const along = Math.random() - 0.5, len = Math.hypot(wind[0], wind[1]) || 1, ux = wind[0] / len, uy = wind[1] / len;
       const x = 0.5 - ux * 0.46 - uy * along * 0.9, y = 0.5 - uy * 0.46 + ux * along * 0.9;
-      splat(x, y, wind[0] * 2, wind[1] * 2, [0, 0, W.moisture * 0.45], 0.0035);
+      splat(x, y, wind[0] * stepScale, wind[1] * stepScale, [0, 0, W.moisture * 0.45 * stepScale], 0.0035);
     }
-    if (frame % 11 === 0) splat(Math.random(), Math.random(), (Math.random() - 0.5) * 220, (Math.random() - 0.5) * 220, [0, 0, 0], 0.004);
+    if (frame % 11 === 0) splat(Math.random(), Math.random(), (Math.random() - 0.5) * 75 * stepScale, (Math.random() - 0.5) * 75 * stepScale, [0, 0, 0], 0.004);
     // solver
     run(P.curl, crl, { velocity: vel.read });
     run(P.vorticity, vel.write, { velocity: vel.read, curl: crl, strength: CURL, dt }); vel.swap();
     run(P.divergence, div, { velocity: vel.read });
-    run(P.clear, prs.write, { tex: prs.read, value: 0.8 }); prs.swap();
+    run(P.clear, prs.write, { tex: prs.read, value: Math.pow(0.8, stepScale) }); prs.swap();
     for (let i = 0; i < PRESSURE_ITERS; i++) { run(P.pressure, prs.write, { pressure: prs.read, divergence: div }); prs.swap(); }
     run(P.gradient, vel.write, { pressure: prs.read, velocity: vel.read }); vel.swap();
     run(P.advect, vel.write, { velocity: vel.read, source: vel.read, simTexel, dt, dissipation: [VEL_DISSIPATION, VEL_DISSIPATION, VEL_DISSIPATION] }); vel.swap();
@@ -173,7 +163,7 @@ export function attachFluid(viewer, site, opts = {}) {
     // display → copy into the Cesium texture
     if (frame % texEvery === 0) {
       gl.clearColor(0, 0, 0, 0); gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.clear(gl.COLOR_BUFFER_BIT);
-      run(P.display, null, { dye: dye.read, dyeTexel, projected: W.projected }, dyeTexel);
+      run(P.display, null, { dye: dye.read, windDirection: [W.windE, W.windN], visualTime: t, projected: W.projected }, dyeTexel);
       const back = 1 - front, c2 = out[back].getContext("2d");
       c2.clearRect(0, 0, DYE, DYE); c2.drawImage(canvas, 0, 0);
       front = back;
@@ -184,10 +174,12 @@ export function attachFluid(viewer, site, opts = {}) {
 
   return {
     gpu: true,
+    setVisible(value) { visible = !!value; entity.show = visible; last = performance.now(); },
     setWeather({ windTowardDeg, windSpeed, heat, pollution, moisture, projected }) {
-      if (windTowardDeg != null) { const th = windTowardDeg * Math.PI / 180; W.windE = Math.sin(th); W.windN = Math.cos(th); }
+      if (Number.isFinite(windTowardDeg)) { const th = windTowardDeg * Math.PI / 180; W.windE = Math.sin(th); W.windN = Math.cos(th); }
+      else { W.windE = 0; W.windN = 0; }
       if (windSpeed != null) W.speed = windSpeed;
-      W.heat = Math.max(0, heat ?? 0); W.pollution = Math.max(0, pollution ?? 0); W.moisture = Math.max(0, moisture ?? 0);
+      W.pollution = Math.max(0, pollution ?? 0); W.moisture = Math.max(0, moisture ?? 0);
       W.projected = projected ? 1 : 0;
     },
     // wind only (time-varying GEOS-FP analysis wind); leaves the dye sources unchanged

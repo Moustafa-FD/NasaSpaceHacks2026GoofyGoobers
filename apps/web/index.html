@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Footprint Atlas</title>
-  <meta name="description" content="Footprint Atlas: the environmental footprint of data centers, measured with NASA data. NASA Space Apps 2026 · Team Goofy Goobers." />
+  <meta name="description" content="Explore places in 3D and discover environmental change with NASA data. NASA Space Apps 2026 · Goofy Goobers." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
@@ -13,119 +13,60 @@
 <body>
   <div id="globe"></div>
   <div id="split" hidden><div class="split-grip">⟷</div><span class="split-tag left" id="splitL"></span><span class="split-tag right" id="splitR"></span></div>
-
-  <!-- top bar: map controls -->
   <header id="topbar">
-    <div class="brand">
-      <span class="logo" aria-hidden="true">◐</span>
-      <div><strong>Footprint Atlas</strong><small>Mapping the environmental footprint of our digital world · Goofy Goobers</small></div>
+    <div class="brand"><span class="logo" aria-hidden="true">◐</span><div><strong>Footprint Atlas</strong><small>A closer look at a changing Earth</small></div></div>
+    <div class="map-layers" role="group" aria-label="Map layers">
+      <button class="map-layer active" data-map-layer="none" aria-pressed="true"><i class="layer-dot satellite"></i>Satellite</button>
+      <button class="map-layer" data-map-layer="LST_Day" aria-pressed="false"><i class="layer-dot heat"></i>Heat</button>
+      <button class="map-layer" data-map-layer="NDVI" aria-pressed="false"><i class="layer-dot vegetation"></i>Vegetation</button>
+      <button class="map-layer" data-map-layer="NO2_OMI" aria-pressed="false"><i class="layer-dot air"></i>Air pollution</button>
     </div>
-    <div class="controls">
-      <label>Map layer
-        <select id="layerSel">
-          <option value="none">Satellite basemap only</option>
-          <option value="LST_Day">Surface heat (day)</option>
-          <option value="LST_Night">Surface heat (night)</option>
-          <option value="NDVI">Greenness (NDVI)</option>
-          <option value="NO2">Air: NO₂ (TROPOMI)</option>
-          <option value="NO2_OMI">Air: NO₂ 20-yr (OMI)</option>
-          <option value="AOD">Air: particles (AOD)</option>
-          <option value="AirTemp">Weather: air temperature (MERRA-2)</option>
-          <option value="HLS">True color · 30 m (HLS)</option>
-          <option value="DIST">Land disturbance (OPERA)</option>
-        </select>
-      </label>
-      <label>Date <input type="date" id="dateA" /></label>
-      <label class="cmp"><input type="checkbox" id="cmpToggle" /> Before / after</label>
-      <label id="dateBWrap" hidden>After <input type="date" id="dateB" /></label>
-      <label>Opacity <input type="range" id="opacity" min="0" max="1" step="0.05" value="0.75" /></label>
-      <button id="tourBtn" class="primary">▶ Guided tour</button>
-    </div>
+    <button id="tourBtn" class="quiet-button">Take a tour <span aria-hidden="true">↗</span></button>
   </header>
-
-  <!-- left panel: the detective workflow -->
-  <aside id="panel">
-    <section class="step">
-      <h2><span class="n">1</span> Where?</h2>
-      <div id="siteChips" class="chips"></div>
-      <p class="hint">…or <b>click anywhere on the globe</b> to investigate your own spot (live NASA data, ~30 s).</p>
-    </section>
-
+  <aside id="mapLegend" class="map-legend" aria-label="Map layer legend" hidden><strong id="mapLegendTitle"></strong><span id="mapLegendDetail"></span><img id="mapLegendScale" alt="NASA layer colour scale" /></aside>
+  <aside id="panel" aria-label="Places and information">
+    <div class="panel-heading"><span class="eyebrow">EARTH, OVER TIME</span><h1>Explore places<span>.</span></h1><p>Pick a place. Zoom in to discover its neighborhood.</p></div>
+    <section class="places-section" aria-label="Choose a place"><div id="siteChips" class="chips"></div></section>
     <section id="story" class="card"></section>
-
-    <section class="step">
-      <h2><span class="n">2</span> What?</h2>
-      <div id="varTabs" class="tabs" role="tablist"></div>
-      <p id="varDefine" class="define"></p>
-    </section>
-
-    <section class="step">
-      <h2><span class="n">3</span> Is it changing, and is it significant?</h2>
-      <div id="progress" hidden><div class="bar"><i></i></div><span></span></div>
-      <div id="verdict"></div>
-      <div class="chart-wrap">
-        <div class="chart-head"><b>Site vs. surroundings</b><span class="muted" id="chartNote">12-month average</span></div>
-        <div class="legend"><span><i class="sw site"></i>Site (3×3 px)</span><span><i class="sw ref"></i>Surroundings ring</span><span><i class="sw onset"></i>Data center starts</span></div>
-        <canvas id="chartMain" height="190"></canvas>
+    <div class="navigation-hint"><span aria-hidden="true">⌁</span><p><b>Scroll</b> to zoom · <b>Drag</b> to move<br /><b>Ctrl + drag</b> to tilt the view</p></div>
+    <details class="panel-detail" id="mapSettings">
+      <summary>Map settings <span class="detail-caption" id="layerSummary">Satellite</span></summary>
+      <div class="detail-content controls">
+        <p id="layerNote" class="hint">Satellite imagery shows the real-world landscape.</p>
+        <label>All layers<select id="layerSel"><option value="none">Satellite</option><option value="LST_Day">Heat · daytime</option><option value="NDVI">Vegetation</option><option value="NO2_OMI">Air pollution · NO₂</option><option value="LST_Night">Heat · nighttime</option><option value="NO2">NO₂ · recent detailed record</option><option value="AOD">Particles / haze</option><option value="AirTemp">Regional air temperature</option><option value="HLS">High-resolution satellite (HLS)</option><option value="DIST">Land disturbance</option></select></label>
+        <label>Map date<input type="date" id="dateA" /></label>
+        <label class="cmp"><input type="checkbox" id="cmpToggle" /> Compare two dates</label>
+        <label id="dateBWrap" hidden>Second date<input type="date" id="dateB" /></label>
+        <label>Layer opacity<input type="range" id="opacity" min="0" max="1" step="0.05" value="0.75" /></label>
       </div>
-      <div class="chart-wrap">
-        <div class="chart-head"><b>Local signal: site minus surroundings</b><span class="muted">yearly, seasons removed</span></div>
-        <canvas id="chartDiff" height="150"></canvas>
+    </details>
+    <details class="panel-detail" id="analysisDetails">
+      <summary>Charts &amp; trends <span class="detail-caption">NASA data</span></summary>
+      <div class="detail-content">
+        <div id="varTabs" class="tabs" role="group" aria-label="Chart measurement"></div><p id="varDefine" class="define"></p>
+        <div id="progress" hidden><div class="bar"><i></i></div><span></span></div><div id="verdict"></div>
+        <div class="chart-wrap"><div class="chart-head"><b>Site vs. surroundings</b><span class="muted" id="chartNote">12-month average</span></div><div class="legend"><span><i class="sw site"></i>Site</span><span><i class="sw ref"></i>Surroundings</span><span><i class="sw onset"></i>Site starts</span></div><canvas id="chartMain" height="190"></canvas></div>
+        <div class="chart-wrap"><div class="chart-head"><b>Local signal</b><span class="muted">Yearly, seasons removed</span></div><canvas id="chartDiff" height="150"></canvas></div>
+        <details class="method"><summary>How the measurements are compared</summary><ol><li><b>Decode:</b> NASA GIBS tiles are colour-coded. Pixel values are colormap-class midpoints of the rendered product, not Level-2 retrievals with quality flags.</li><li><b>Compare:</b> A 3×3-pixel window over the site is compared with a surrounding ring. Nearby changes do not establish facility causation.</li><li><b>Remove seasons:</b> Each calendar month's long-run mean is subtracted, then averaged by year.</li><li><b>Trend:</b> Mann-Kendall tests consistency; Sen's slope estimates the rate per decade.</li><li><b>Before / after:</b> Welch t-test on monthly anomalies, adjusted for autocorrelation, with a 95% confidence interval.</li></ol><p class="muted">p &lt; 0.05 is marked significant. A non-significant result does not prove there is no effect. Source pixels can be larger than individual buildings.</p></details>
       </div>
-      <details class="method">
-        <summary>How we test it (method)</summary>
-        <ol>
-          <li><b>Decode:</b> NASA GIBS tiles are colour-coded. We turn each pixel back into a physical value with GIBS's official colormap. Values are colour-class midpoints of the rendered product (e.g. ±0.3 K for surface temperature), not Level-2 retrievals with quality flags.</li>
-          <li><b>Site vs. ring:</b> We average a 3×3-pixel window on the facility and a ring of pixels around it. Subtracting the ring removes regional weather and climate, which leaves the <i>local</i> signal.</li>
-          <li><b>Remove seasons:</b> We subtract each calendar month's long-run mean, then average by year.</li>
-          <li><b>Trend:</b> <b>Mann-Kendall</b> test (does it go up or down consistently?) and <b>Sen's slope</b> (how fast, per decade).</li>
-          <li><b>Before/after:</b> Welch t-test on monthly anomalies, 3 years before the start date vs. after, with sample sizes shrunk for autocorrelation. 95% confidence interval.</li>
-        </ol>
-        <p class="muted">p &lt; 0.05 = "significant". Not significant ≠ no effect. Pixels (1 km for heat, 5 km for NO₂) are bigger than most buildings, so small sites get diluted.</p>
-      </details>
-    </section>
-
-    <section class="step">
-      <h2><span class="n">4</span> Pollution &amp; environment ledger</h2>
-      <p class="hint">What NASA satellites measure, next to ground reports of emissions, noise and water. Every reported number links to its source.</p>
-      <div id="ledger"></div>
-    </section>
-
-    <footer class="credits">
-      Data: NASA GIBS · MODIS/Terra LST, NDVI &amp; aerosols · Sentinel-5P TROPOMI NO₂ · Aura OMI NO₂ · MERRA-2 · HLS · OPERA DIST · Basemap Esri World Imagery.<br />
-      NASA Space Apps 2026 · Challenge: <i>Be An Earth System Trend Detective!</i> · Toronto (Centennial College, Downsview)
-    </footer>
+    </details>
+    <details class="panel-detail" id="evidenceDetails"><summary>Evidence &amp; sources <span class="detail-caption">Read more</span></summary><div class="detail-content"><p class="hint">Satellite estimates, ground reports, and their limitations. Reported quantities link to their sources.</p><div id="ledger"></div></div></details>
+    <details class="panel-detail"><summary>Investigate another location</summary><div class="detail-content"><p class="hint">Click bare ground on the globe to sample NASA data for another location. This can take around 30 seconds. Neighborhood models are available for the listed places.</p></div></details>
+    <footer class="credits"><span>NASA Space Apps 2026</span><br />Made by Goofy Goobers<div class="source-credit">NASA GIBS · MODIS · TROPOMI · OMI · MERRA-2 · HLS · OPERA<br />Satellite basemap: Esri World Imagery</div></footer>
   </aside>
-
-  <!-- timeline slider: past → present → future (js/timeline.js) -->
   <div id="tlFutureTint" aria-hidden="true"></div>
-  <section id="timeline" aria-label="Timeline">
-    <button id="tlPlay" class="primary" title="Play through the years">▶</button>
+  <section id="timeline" aria-label="Timeline and animation speed">
+    <button id="tlPlay" class="primary" title="Play through the years" aria-label="Play timeline">▶</button>
     <div class="tl-main">
-      <div class="tl-top">
-        <span id="tlYear" class="tl-year">2025</span>
-        <span id="tlPhase" class="tl-phase observed">OBSERVED</span>
-        <div id="tlChips" class="tl-chips"></div>
-        <label class="tl-ring" title="Variable shown by the 3D ring of yearly bars">Ring <select id="tlRingVar"></select></label>
-        <button id="tlLight" class="tl-btn" title="Lighting: golden hour / night (NASA city lights)">☀ Golden hour</button>
-        <button id="tlQuality" class="tl-btn" title="Graphics quality (bloom, shadows, particle counts)">HQ</button>
-      </div>
-      <div id="tlTrack" class="tl-track">
-        <input type="range" id="tlSlider" step="1" aria-label="Year" />
-        <div class="tl-zones"><span>PAST · measured</span><span>NOW</span><span>FUTURE · if the trend continues</span></div>
-      </div>
-      <div id="tlImagery" class="tl-imagery"></div>
+      <div class="tl-top"><span id="tlYear" class="tl-year">2025</span><span id="tlPhase" class="tl-phase observed">OBSERVED</span><div id="tlChips" class="tl-chips"></div><div class="motion-control"><label for="motionSpeed">Motion speed <output id="motionValue" for="motionSpeed">0.35×</output></label><input id="motionSpeed" type="range" min="0" max="2" step="0.05" value="0.35" aria-label="Wind and timeline speed" title="Slows or speeds up wind, weather, and timeline playback. Zero pauses motion." /><span class="motion-extremes"><span>Still</span><span>Fast</span></span></div></div>
+      <div id="tlTrack" class="tl-track"><input type="range" id="tlSlider" step="1" aria-label="Year" /><div class="tl-zones"><span>Past · observed</span><span>Now</span><span>Future · trend extension</span></div></div>
+      <div class="tl-bottom"><div id="tlImagery" class="tl-imagery"></div><details class="view-options"><summary>View options</summary><div class="view-options-popover"><label class="tl-ring" title="Variable shown by the yearly bars">Yearly bars<select id="tlRingVar"></select></label><button id="tlLight" class="tl-btn" title="Switch between golden hour and night">☀ Golden hour</button><button id="tlQuality" class="tl-btn" title="Graphics quality: shadows, bloom, and particle counts">HQ</button></div></details></div>
     </div>
   </section>
-
-  <div id="tourCard" hidden><div id="tourText"></div><div class="tour-nav"><button id="tourPrev">‹</button><span id="tourStep"></span><button id="tourNext" class="primary">Next ›</button><button id="tourEnd">✕</button></div></div>
-  <div id="toast" hidden></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/Cesium.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="js/stats.js"></script>
-  <script src="js/layers.js"></script>
-  <script src="js/app.js"></script>
-  <script type="module" src="js/timeline.js"></script>
+  <div id="tourCard" hidden><div id="tourText"></div><div class="tour-nav"><button id="tourPrev">‹</button><span id="tourStep"></span><button id="tourNext" class="primary">Next ›</button><button id="tourEnd" aria-label="Close tour">✕</button></div></div>
+  <div id="toast" role="status" hidden></div>
+  <script src="https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/Cesium.js"></script><script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/stats.js"></script><script src="js/layers.js"></script><script src="js/app.js"></script>
+  <script type="module" src="js/timeline.js"></script><script type="module" src="js/neighborhood.js"></script>
 </body>
 </html>

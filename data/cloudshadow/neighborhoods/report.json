@@ -1,0 +1,119 @@
+{
+  "generatedAt": "2026-11-14T19:51:55+00:00",
+  "radiusM": 3300,
+  "boundedConcurrentRequests": 2,
+  "sites": {
+    "ashburn": {
+      "status": "ready",
+      "counts": {
+        "buildings": 9771,
+        "roads": 7619,
+        "areas": 1452,
+        "trees": 2714,
+        "waterways": 390
+      },
+      "source": {
+        "name": "OpenStreetMap",
+        "url": "https://www.openstreetmap.org/copyright",
+        "license": "ODbL-1.0",
+        "downloadedAt": "2026-11-14T19:51:52+00:00",
+        "endpoint": "https://overpass-api.de/api/interpreter",
+        "osmTimestamp": "2026-11-14T19:50:06Z",
+        "responseSha256": "ea7d23085ce74911e7768a20d1353339f8ed9f3e3572b43d39f267516f04a518",
+        "coverage": "Current, incomplete contributed OSM mapping; not historical reconstruction.",
+        "roadWidths": "OSM width tags when present; otherwise illustrative road-class defaults in meters.",
+        "queryScope": "ways and mapped tree nodes; multipolygon relations omitted"
+      },
+      "bytes": 6055185
+    },
+    "colossus1": {
+      "status": "ready",
+      "counts": {
+        "buildings": 587,
+        "roads": 656,
+        "areas": 275,
+        "trees": 17,
+        "waterways": 54
+      },
+      "source": {
+        "name": "OpenStreetMap",
+        "url": "https://www.openstreetmap.org/copyright",
+        "license": "ODbL-1.0",
+        "downloadedAt": "2026-11-14T19:49:04+00:00",
+        "endpoint": "https://overpass-api.de/api/interpreter",
+        "osmTimestamp": "2026-11-14T19:48:06Z",
+        "responseSha256": "427e341d08dc4d40df2a52c8e8bbb4e30a9b07e303d60743dda7efc960e572dc",
+        "coverage": "Current, incomplete contributed OSM mapping; not historical reconstruction.",
+        "roadWidths": "OSM width tags when present; otherwise illustrative road-class defaults in meters."
+      },
+      "bytes": 443582
+    },
+    "colossus2": {
+      "status": "ready",
+      "counts": {
+        "buildings": 10098,
+        "roads": 6611,
+        "areas": 1478,
+        "trees": 1400,
+        "waterways": 38
+      },
+      "source": {
+        "name": "OpenStreetMap",
+        "url": "https://www.openstreetmap.org/copyright",
+        "license": "ODbL-1.0",
+        "downloadedAt": "2026-11-14T19:49:06+00:00",
+        "endpoint": "https://overpass-api.de/api/interpreter",
+        "osmTimestamp": "2026-11-14T19:48:06Z",
+        "responseSha256": "6b70bd7d866067facc27c40712c58e1da46270a1cd3cdc08f3150818903785fe",
+        "coverage": "Current, incomplete contributed OSM mapping; not historical reconstruction.",
+        "roadWidths": "OSM width tags when present; otherwise illustrative road-class defaults in meters."
+      },
+      "bytes": 4338878
+    },
+    "abilene": {
+      "status": "ready",
+      "counts": {
+        "buildings": 1274,
+        "roads": 718,
+        "areas": 29,
+        "trees": 0,
+        "waterways": 20
+      },
+      "source": {
+        "name": "OpenStreetMap",
+        "url": "https://www.openstreetmap.org/copyright",
+        "license": "ODbL-1.0",
+        "downloadedAt": "2026-11-14T19:49:28+00:00",
+        "endpoint": "https://overpass-api.de/api/interpreter",
+        "osmTimestamp": "2026-11-14T19:48:06Z",
+        "responseSha256": "4c2952357b33b1b04e4fe395a10634e0f168d1ff65e532427e1cf7b75ff642f4",
+        "coverage": "Current, incomplete contributed OSM mapping; not historical reconstruction.",
+        "roadWidths": "OSM width tags when present; otherwise illustrative road-class defaults in meters."
+      },
+      "bytes": 487254
+    },
+    "thedalles": {
+      "status": "ready",
+      "counts": {
+        "buildings": 5685,
+        "roads": 1759,
+        "areas": 118,
+        "trees": 15,
+        "waterways": 36
+      },
+      "source": {
+        "name": "OpenStreetMap",
+        "url": "https://www.openstreetmap.org/copyright",
+        "license": "ODbL-1.0",
+        "downloadedAt": "2026-11-14T19:49:55+00:00",
+        "endpoint": "https://overpass-api.de/api/interpreter",
+        "osmTimestamp": "2026-11-14T19:48:06Z",
+        "responseSha256": "f66c3dd35e64c86c82f607f951285b1789210a4eb55a3a171257ea92025a9f53",
+        "coverage": "Current, incomplete contributed OSM mapping; not historical reconstruction.",
+        "roadWidths": "OSM width tags when present; otherwise illustrative road-class defaults in meters."
+      },
+      "bytes": 1465886
+    }
+  },
+  "allReady": true
+}
