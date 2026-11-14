@@ -16,11 +16,11 @@ Cesium raster overlay in UE          data/cloudshadow/unreal/CloudShadowSites.cs
 ## ⚡ Quick start (the project already exists: `clients/unreal/CloudShadow/`, created with UE 5.8.3)
 
 1. **Engine:** UE **5.8** (Cesium for Unreal v2.31.0, Oct 2026, ships 5.8 builds).
-2. **Cesium plugin:** Epic Launcher → **Fab** → "Cesium for Unreal" → **Install to Engine (5.8)**. It's optional in the project, so the project opens without it, but you need it for the globe.
+2. **Cesium plugin (required):** Epic Launcher → **Fab** → "Cesium for Unreal" → **Install to Engine (5.8)**, *before* opening the project. On a Mac, also run `xcodebuild -downloadComponent MetalToolchain` once, or UE 5.8 can't compile shaders.
 3. **Git LFS** (once per machine): `git lfs install`, *before* cloning or pulling, so `.uasset`/`.umap` files come down correctly.
 4. Open `clients/unreal/CloudShadow/CloudShadow.uproject`. The first launch compiles shaders, so give it time.
-5. **Window → Cesium → Connect to Cesium ion** (free account).
-6. Menu bar → **Cloud Shadow → Build Cloud Shadow level**. That creates `/Game/CloudShadow/Maps/CloudShadow` with:
+5. **Window → Cesium → Connect to Cesium ion** (free account). **Everyone does this on their own machine.** The token is stored in `Content/CesiumSettings/`, which is git-ignored on purpose. Until you connect, the globe is blank and the log shows `401` errors; that's expected.
+6. **The level is already built and committed** (`/Game/CloudShadow/Maps/CloudShadow`); just open it. To rebuild from scratch, use menu bar → **Cloud Shadow → Build Cloud Shadow level**. It contains:
    - georeference on xAI Colossus 1; Cesium World Terrain + Bing aerial
    - 10 NASA overlay components on the terrain (NO₂ 2025 active; NO₂ 2023, heat day/night, NDVI, HLS before/after for Colossus 1 & 2, OPERA disturbance ready to toggle)
    - Google Photorealistic 3D Tiles (hidden; unhide it and hide the terrain for city close-ups)

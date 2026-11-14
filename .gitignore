@@ -33,3 +33,6 @@ Binaries/
 
 # Cloud Shadow: NASA tile cache (regenerable by scripts/precompute.py)
 .tilecache/
+# Cesium for Unreal: local request cache and per-user ion server asset (stores the ion access token)
+cesium-request-cache.sqlite*
+clients/unreal/**/Content/CesiumSettings/

@@ -178,7 +178,7 @@ Every future result must record evidence class, native resolution, supported hor
 
 ## 3. Unreal + Cesium - implementation work
 
-**Project created, Cesium level not yet verified:** `clients/unreal/CloudShadow/` (UE 5.8.3, Cesium for Unreal v2.31.0). It opens on macOS and loads its Python editor menu; the Cesium level builder needs the plugin from Fab and is untested. See [the client track](clients/unreal/README.md), [Cloud Shadow setup](clients/unreal/CLOUDSHADOW_SETUP.md) and [integration guide](docs/unreal-integration.md).
+**Project created, level built:** `clients/unreal/CloudShadow/` (UE 5.8.3, Cesium for Unreal v2.31.0). It opens on macOS and the scripted level builder has generated and saved the Cesium level. On-screen rendering still needs each user's Cesium ion login and hasn't been checked yet. See [the client track](clients/unreal/README.md), [Cloud Shadow setup](clients/unreal/CLOUDSHADOW_SETUP.md) and [integration guide](docs/unreal-integration.md).
 
 Build globe navigation, facility selection, historical/future timelines, evidence-aware charts, scenario controls and comparisons. Future layers cover air quality, water availability/quality, land conditions, population/employment and noise. Until a model exists, display its unavailability explanation instead of a zero, plume, contour or invented map.
 
