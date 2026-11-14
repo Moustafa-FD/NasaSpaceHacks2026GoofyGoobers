@@ -30,3 +30,6 @@ Binaries/
 *.pth
 *.pt
 *.onnx
+
+# Cloud Shadow: NASA tile cache (regenerable by scripts/precompute.py)
+.tilecache/

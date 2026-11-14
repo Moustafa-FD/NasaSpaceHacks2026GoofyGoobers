@@ -6,13 +6,26 @@ Explore how environmental and community conditions change around data-center clu
 
 The full intended scope includes **air pollution and air quality; water use, availability and quality; electricity consumption; facility and household electricity bills; employment and unemployment rates; population and growth rates; land/ecosystem indicators; and noise pollution**. Historical NASA observations and trend significance remain central to the challenge. Future estimates must distinguish assumptions from observations and association from causation.
 
-## Current state
+## What works today: Cloud Shadow (NASA trend detective)
+
+A working, real-data slice of part 1 + part 3, focused on the challenge's core (**trend + significance from NASA data**) for **air pollution and weather/heat** around data centers:
+
+| | What it does | Where |
+|---|---|---|
+| **NASA adapter** | Pulls NASA GIBS tiles (no login) and decodes them into physical values with the official GIBS colormaps: MODIS land-surface temperature (day/night), MODIS NDVI, MODIS aerosol optical depth, Sentinel-5P TROPOMI NO₂, Aura OMI NO₂, MERRA-2 air temperature | `scripts/precompute.py` → `data/cloudshadow/` |
+| **Trend statistics** | Site (3×3 px) vs. surrounding ring; seasons removed; **Mann-Kendall + Sen's slope**; before/after **Welch t-test** with autocorrelation-adjusted n and 95% CI (checked against SciPy) | `apps/web/js/stats.js` |
+| **Web explorer** | CesiumJS globe, 5 case studies (xAI Colossus 1 & 2 Memphis, Ashburn VA, Stargate Abilene, Google The Dalles), click-anywhere live analysis, guided tour, before/after imagery swipe, sourced pollution/noise/water ledger | `apps/web/` → `npm run web` → http://localhost:8765 |
+| **Unreal project** | UE 5.8.3 + Cesium for Unreal project with a one-click level builder (NASA overlays, site pillars) | `clients/unreal/CloudShadow/`, see [setup](clients/unreal/CLOUDSHADOW_SETUP.md) |
+
+Strongest result so far: in Ashburn's Data Center Alley the region's air warmed **+0.71 °C/decade** (MERRA-2, p = 0.001) and the site's **night-time surface heat** warmed a further **+0.25 °C/decade** beyond its surroundings (p = 0.001). Memphis NO₂ near Colossus rose after mid-2024 but is **borderline** (p = 0.051). Full findings, caveats and method: **[docs/cloud-shadow.md](docs/cloud-shadow.md)**. Satellite changes near a facility are evidence, not proof of attribution.
+
+## Current state of the scenario starter
 
 This is an initial repository foundation, not a finished predictor. It includes a runnable local **Node -> queued Python worker -> result manifest** workflow, HTTP status/results, WebSocket notifications, shared contracts, synthetic inputs, and integration tests.
 
 The demo produces four transparent annual accounting series from invented inputs: facility electricity, grid-electricity CO2e, onsite cooling-water **use**, and a fixed-price facility energy bill. All results are labeled `illustrative`, use synthetic provenance, and report uncertainty as `not_quantified`. The remaining domains return explicit reasons under `unavailable`; map `layers` is empty.
 
-**There are no live NASA adapters, calibrated pollution/hydrology/acoustic models, economic or demographic forecasts, or compiled Unreal project yet.** Selecting a future year only extends the supplied arithmetic assumptions; it does not demonstrate predictive skill.
+**The scenario worker has no live NASA inputs yet** (the Cloud Shadow NASA adapter above is separate and not yet wired into `/v1/runs`), **and there are no calibrated pollution/hydrology/acoustic models or economic/demographic forecasts.** Selecting a future year only extends the supplied arithmetic assumptions; it does not demonstrate predictive skill.
 
 ## The three main parts
 
@@ -36,6 +49,7 @@ flowchart LR
 
 ```text
 .
+|-- apps/web/                 # Cloud Shadow web explorer + NASA trend API (server.cjs, port 8765)
 |-- apps/api/src/             # Local Node/TypeScript API and in-process FIFO queue
 |   |-- server.ts             # HTTP endpoints and read-only WebSocket event streams
 |   |-- run-manager.ts        # queued -> running -> completed / failed
@@ -46,8 +60,9 @@ flowchart LR
 |   |-- worker.py             # One stdin request -> one stdout manifest
 |   `-- tests/                # Numerical, validation and process-protocol checks
 |-- packages/contracts/       # JSON Schemas, TypeScript types and domain registry
-|-- clients/unreal/           # Unreal/Cesium implementation track, not a .uproject
+|-- clients/unreal/           # Unreal/Cesium track; CloudShadow/ = UE 5.8.3 project
 |-- data/
+|   |-- cloudshadow/          # Committed NASA-derived series for the trend detective (~1 MB)
 |   |-- examples/             # Small synthetic scenario fixture
 |   |-- raw/                  # Future source downloads; generated contents ignored
 |   |-- processed/            # Future normalized observations and layers; ignored
@@ -60,6 +75,8 @@ flowchart LR
 |   |-- resources.md          # All 13 challenge resources plus repositories/sources
 |   `-- roadmap.md            # Milestones and completion criteria
 |-- scripts/demo.ts           # Submit, subscribe, poll and fetch an actual demo run
+|-- scripts/precompute.py     # NASA GIBS adapter -> data/cloudshadow/series
+|-- scripts/export_unreal.cjs # data/cloudshadow -> Unreal DataTable CSV/JSON
 |-- tests/api.test.ts         # HTTP/WS/real Python integration and failure paths
 `-- .github/workflows/ci.yml  # Linux + Windows checks
 ```
@@ -113,6 +130,9 @@ Commands:
 | `npm test` | Exercise HTTP, WebSockets and the real Python worker |
 | `npm run test:models` | Check hand-computed accounting, units, leap years and invalid inputs |
 | `npm run check` | Run all required checks |
+| `npm run web` | Cloud Shadow explorer + NASA trend API on http://localhost:8765 |
+| `npm run data:nasa` | Refresh NASA series (needs `pip install pillow`; ~10 min first run, cached after) |
+| `npm run data:unreal` | Re-export results for the Unreal DataTable |
 
 ## 1. Data and backend - implementation work
 
@@ -158,7 +178,7 @@ Every future result must record evidence class, native resolution, supported hor
 
 ## 3. Unreal + Cesium - implementation work
 
-**Documented, not compiled:** follow [the client track](clients/unreal/README.md) and [integration guide](docs/unreal-integration.md). Record compatible engine/plugin versions when creating the actual Unreal project.
+**Project created, Cesium level not yet verified:** `clients/unreal/CloudShadow/` (UE 5.8.3, Cesium for Unreal v2.31.0). It opens on macOS and loads its Python editor menu; the Cesium level builder needs the plugin from Fab and is untested. See [the client track](clients/unreal/README.md), [Cloud Shadow setup](clients/unreal/CLOUDSHADOW_SETUP.md) and [integration guide](docs/unreal-integration.md).
 
 Build globe navigation, facility selection, historical/future timelines, evidence-aware charts, scenario controls and comparisons. Future layers cover air quality, water availability/quality, land conditions, population/employment and noise. Until a model exists, display its unavailability explanation instead of a zero, plume, contour or invented map.
 
