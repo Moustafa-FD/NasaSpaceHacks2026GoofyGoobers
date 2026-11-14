@@ -4,3 +4,7 @@
 *.pdf binary
 *.uasset binary
 *.umap binary
+
+# Unreal binary assets go through Git LFS (run `git lfs install` once per machine before cloning/pulling)
+*.uasset filter=lfs diff=lfs merge=lfs -text
+*.umap   filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,333 @@
+{
+  "sites": [
+    {
+      "id": "colossus1",
+      "name": "xAI Colossus 1",
+      "place": "South Memphis, Tennessee",
+      "lat": 35.0601,
+      "lon": -90.1564,
+      "onset": "2024-06",
+      "onsetLabel": "Colossus build-out + on-site gas turbines (mid-2024)",
+      "operator": "xAI",
+      "headline": "An AI supercomputer, powered partly by on-site gas turbines, next to an overburdened neighborhood.",
+      "story": "xAI converted the former Electrolux plant on Paul R. Lowry Road into the Colossus supercomputer in 2024. To get power fast, it ran methane gas turbines on site. The Southern Environmental Law Center reported up to 35 turbines from thermal imagery, and Shelby County later permitted 15 of them. Boxtown, a historically Black neighborhood, lies about 3 km to the east-southeast. Turbines emit nitrogen oxides (NOx), which satellites see as NO₂.",
+      "watchFor": [
+        "NO2",
+        "AOD",
+        "LST_Night"
+      ],
+      "neighbors": [
+        {
+          "name": "Boxtown",
+          "lat": 35.0484,
+          "lon": -90.1254
+        }
+      ],
+      "facts": [
+        {
+          "label": "Former use",
+          "value": "Electrolux appliance plant (closed 2020)"
+        },
+        {
+          "label": "Turbines reported",
+          "value": "Up to 35 (SELC, 2025); 15 permitted (Shelby County, Jul 2025)"
+        },
+        {
+          "label": "Nearest community",
+          "value": "Boxtown, ~3 km ESE"
+        }
+      ],
+      "sources": [
+        {
+          "title": "SELC: Resistance against xAI facility in South Memphis",
+          "url": "https://www.selc.org/news/resistance-against-elon-musks-xai-facility-in-south-memphis-gets-stronger/"
+        },
+        {
+          "title": "Inside Climate News: Colossus turbines and permits",
+          "url": "https://insideclimatenews.org/?p=97138"
+        },
+        {
+          "title": "TechCrunch: Air quality tests around xAI's Memphis data center",
+          "url": "https://techcrunch.com/2025/06/25/air-quality-tests-around-xais-memphis-data-center-raise-questions"
+        }
+      ],
+      "compare": {
+        "before": "2023-07-01",
+        "after": "2025-07-01"
+      },
+      "ledger": {
+        "power": {
+          "mw": 150,
+          "value": "150 MW from the grid (MLGW/TVA), plus on-site gas turbines",
+          "kind": "reported",
+          "src": [
+            "DCD: xAI gets 150MW for Colossus",
+            "https://www.datacenterdynamics.com/en/news/xai-colossus-memphis-power-tva/"
+          ]
+        },
+        "water": {
+          "value": "0.38 to 1.3 million gal/day (measured peak on MLGW bills vs. contracted peak allowance)",
+          "kind": "range",
+          "src": [
+            "AIWaterUse.org: xAI",
+            "https://aiwateruse.org/companies/xai"
+          ]
+        },
+        "air": {
+          "value": "Turbines emit NOx, formaldehyde and PM2.5; SELC says likely the largest industrial NOx source in Memphis",
+          "kind": "reported",
+          "src": [
+            "CNN: powered with dozens of gas turbines",
+            "https://www.cnn.com/2025/05/19/climate/xai-musk-memphis-turbines-pollution"
+          ]
+        }
+      },
+      "effects": {
+        "plume": true,
+        "plumeNote": "On-site gas turbines from mid-2024 (visualization; wind = NASA POWER, density follows the TROPOMI NO2 signal)",
+        "ringVar": "NDVI"
+      }
+    },
+    {
+      "id": "colossus2",
+      "name": "xAI Colossus 2",
+      "place": "Whitehaven, Memphis (TN–MS line)",
+      "lat": 34.998,
+      "lon": -90.0349,
+      "onset": "2025-03",
+      "onsetLabel": "Tulane Road site acquired, construction begins (2025)",
+      "operator": "xAI",
+      "headline": "A second, larger campus, going up on open land at the state line.",
+      "story": "xAI's second Memphis campus at 5420 Tulane Road went from open land to a large industrial site in 2025. Construction like this replaces vegetation with roofs and pavement, so we expect greenness (NDVI) to drop and surface temperature to rise.",
+      "watchFor": [
+        "NDVI",
+        "LST_Day"
+      ],
+      "neighbors": [],
+      "facts": [
+        {
+          "label": "Address",
+          "value": "5420 Tulane Rd, Memphis TN"
+        },
+        {
+          "label": "Expected signal",
+          "value": "Vegetation loss + surface warming"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Bisnow: xAI plans second Memphis data center",
+          "url": "https://www.bisnow.com/news/national/data-center/elon-musks-ai-firm-plans-second-memphis-data-center-128407"
+        }
+      ],
+      "compare": {
+        "before": "2024-07-01",
+        "after": "2026-07-01"
+      },
+      "ledger": {
+        "power": {
+          "value": "Reported ~500 MW from gas turbines while grid hookups are pending (single source)",
+          "kind": "unverified",
+          "src": [
+            "Murfreesboro Pulse: Colossus power & water concerns",
+            "https://boropulse.com/2026/09/part-4-memphis-the-fast-arrival-xai-supercomputer-colossus-causing-power-water-concerns-in-west-tn/"
+          ]
+        },
+        "water": {
+          "value": "xAI has requested up to 3.7 million gal/day across Colossus 1 + 2",
+          "kind": "requested",
+          "src": [
+            "AIWaterUse.org: xAI",
+            "https://aiwateruse.org/companies/xai"
+          ]
+        },
+        "noise": {
+          "value": "Southaven, MS residents near the turbine plant that powers Colossus describe a constant hum; one homeowner recorded ~70 dB indoors. A class-action nuisance suit followed, despite a $7M sound wall.",
+          "kind": "reported",
+          "src": [
+            "Mississippi Today: Southaven residents complain of noise from xAI turbines",
+            "https://mississippitoday.org/2025/11/24/southaven-residents-fear-pollution-complain-of-noise-from-elon-musks-xai-data-center-turbines/"
+          ]
+        },
+        "noise_suit": {
+          "value": "Residents sue xAI alleging near-constant turbine noise",
+          "kind": "reported",
+          "src": [
+            "Mississippi Free Press: Southaven residents sue xAI",
+            "https://www.mississippifreepress.org/southaven-residents-sue-xai-alleging-near-constant-noise-from-gas-turbines-is-causing-harm/"
+          ]
+        }
+      },
+      "effects": {
+        "plume": false,
+        "plumeNote": null,
+        "ringVar": "NDVI"
+      }
+    },
+    {
+      "id": "ashburn",
+      "name": "Data Center Alley",
+      "place": "Ashburn, Loudoun County, Virginia",
+      "lat": 39.0298,
+      "lon": -77.4744,
+      "onset": "2012-01",
+      "onsetLabel": "Hyperscale boom accelerates (2010s)",
+      "operator": "Many (AWS, Microsoft, Equinix, Digital Realty...)",
+      "headline": "One of the densest data-center clusters on Earth. 20 years of farmland turned into server halls.",
+      "story": "Loudoun County has one of the largest concentrations of data centers in the world. Over two decades, fields and forest around Ashburn became hundreds of hectares of flat white roofs and parking. It is the long-run version of what Memphis is starting now, and a good test of whether satellites can see the change.",
+      "watchFor": [
+        "LST_Night",
+        "AirTemp",
+        "NDVI"
+      ],
+      "neighbors": [],
+      "facts": [
+        {
+          "label": "Nickname",
+          "value": "Data Center Alley"
+        },
+        {
+          "label": "Timescale",
+          "value": "~20 years of build-out"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Loudoun County Economic Development: Data centers",
+          "url": "https://biz.loudoun.gov/key-business-sectors/data-centers/"
+        }
+      ],
+      "compare": {
+        "before": "2013-08-01",
+        "after": "2025-07-01"
+      },
+      "ledger": {
+        "power": {
+          "mw": 5000,
+          "value": "~5,000 MW of data-center capacity across Northern Virginia",
+          "kind": "reported",
+          "src": [
+            "City Journal: Loudoun County data centers",
+            "https://www.city-journal.org/article/loudoun-county-virginia-data-centers-construction"
+          ]
+        }
+      },
+      "effects": {
+        "plume": false,
+        "plumeNote": null,
+        "ringVar": "LST_Night"
+      }
+    },
+    {
+      "id": "abilene",
+      "name": "Stargate Abilene",
+      "place": "Lancium Clean Campus, Abilene, Texas",
+      "lat": 32.5029,
+      "lon": -99.7834,
+      "onset": "2024-06",
+      "onsetLabel": "Construction starts (2024)",
+      "operator": "OpenAI / Oracle / Crusoe",
+      "headline": "A gigawatt-scale AI campus built on West Texas rangeland.",
+      "story": "The first Stargate campus was built on the Lancium Clean Campus near Abilene starting in 2024. In a semi-arid landscape, cleared land and huge roofs change how the surface heats up, so watch daytime land surface temperature and greenness.",
+      "watchFor": [
+        "LST_Day",
+        "NDVI"
+      ],
+      "neighbors": [],
+      "facts": [
+        {
+          "label": "Landscape",
+          "value": "Semi-arid rangeland"
+        },
+        {
+          "label": "Expected signal",
+          "value": "Surface change, vegetation loss"
+        }
+      ],
+      "sources": [],
+      "compare": {
+        "before": "2023-07-01",
+        "after": "2026-07-01"
+      },
+      "ledger": {
+        "power": {
+          "mw": 1200,
+          "value": "~1.2 GW planned for the campus",
+          "kind": "reported",
+          "src": [
+            "Texas Standard: Stargate nears completion",
+            "https://texasstandard.org/stories/stargate-data-center-abilene-texas-construction-ai-artificial-intelligence/"
+          ]
+        },
+        "water": {
+          "value": "Closed-loop cooling; city claims are disputed (from <1% to far more of daily city use)",
+          "kind": "disputed",
+          "src": [
+            "SaveAbilene: Stargate impact",
+            "https://saveabilene.com/stargate.html"
+          ]
+        }
+      },
+      "effects": {
+        "plume": false,
+        "plumeNote": null,
+        "ringVar": "NDVI"
+      }
+    },
+    {
+      "id": "thedalles",
+      "name": "Google The Dalles",
+      "place": "The Dalles, Oregon",
+      "lat": 45.6241,
+      "lon": -121.2071,
+      "onset": "2006-01",
+      "onsetLabel": "Google's first company-owned data center opens (2006)",
+      "operator": "Google",
+      "headline": "A data center in a small river town, and a fight over how much water it uses.",
+      "story": "Google opened its first company-owned data center on the Columbia River in 2006 and has expanded it several times. Its water use became public after a 2022 records fight, which reported that it used more than a quarter of the city's water in 2021. Most of the impact is water, which is hard to see from orbit, so this site is a useful \"null\" comparison for the heat and vegetation signals.",
+      "watchFor": [
+        "LST_Day",
+        "NDVI"
+      ],
+      "neighbors": [],
+      "facts": [
+        {
+          "label": "Opened",
+          "value": "2006"
+        },
+        {
+          "label": "Main concern",
+          "value": "Water use"
+        }
+      ],
+      "sources": [],
+      "compare": {
+        "before": "2013-08-01",
+        "after": "2025-07-01"
+      },
+      "ledger": {
+        "water": {
+          "value": "355 million gallons in 2021, 29% of the city's water use, up from 124M gal in 2017",
+          "kind": "reported",
+          "src": [
+            "DCD: How much water Google's Oregon data centers use",
+            "https://www.datacenterdynamics.com/en/news/we-now-know-how-much-water-googles-oregon-data-centers-use-after-city-drops-lawsuit-against-journalists/"
+          ]
+        }
+      },
+      "effects": {
+        "plume": false,
+        "plumeNote": null,
+        "ringVar": "LST_Night"
+      }
+    }
+  ],
+  "context": {
+    "homesPerMW": 800,
+    "homesPerMWNote": "1 MW running all year = 8,760 MWh; an average US home uses ~10,800 kWh/yr (EIA), so ~800 homes per MW",
+    "homesSrc": [
+      "EIA: How much electricity does an American home use?",
+      "https://www.eia.gov/tools/faqs/faq.php?id=97&t=3"
+    ]
+  }
+}
