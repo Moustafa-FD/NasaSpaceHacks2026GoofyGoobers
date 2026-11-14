@@ -62,12 +62,16 @@ Environmental changes observed near a data center do not necessarily establish t
 | **Unreal project** | UE 5.8.3 + Cesium for Unreal, level with 70 yearly NASA imagery overlays and NASA data layers, built by script | `clients/unreal/CloudShadow/` |
 | **Data and backend** | Environmental Node `/v1` API, facility/emissions inventories, source adapters, cached data and background jobs; separate from the web explorer's datasets | `apps/api/`, `services/data/`, `packages/contracts/` · [Part 1 handoff](docs/data-and-backend.md) |
 | **Real wind flow (Part 2)** | NASA GEOS-FP analysis winds (+ temperature, sea-level pressure) as shared `flow-field/1.0` files: particle trails on the globe and the fluid sim/clouds follow the analysed wind of each frame, 2018 onward. Direction checked against Dulles airport observations (median ~9°). [docs/flow-fields.md](docs/flow-fields.md) | `services/models/fields/`, `apps/web/js/flowfield.js`, `data/cloudshadow/fields/` |
-| **Trend engine (Python, Part 2)** | Seasonal Mann-Kendall, Hamed-Rao correction, Sen's slope + CI, autocorrelation-adjusted t-test, control-region comparison and missing-data rules, run from a CLI on CSV files (not yet called by the API). Research on data access and wind/pressure sources: [docs/research/data-access-and-models.md](docs/research/data-access-and-models.md) | `services/models/trends/` |
+| **Trend engine (Python, Part 2)** | Seasonal Mann-Kendall, Hamed-Rao correction (can only widen uncertainty), Sen's slope + CI, autocorrelation-adjusted t-test, control-region comparison and missing-data rules, run from a CLI on CSV files (not yet called by the API). Research on data access and wind/pressure sources: [docs/research/data-access-and-models.md](docs/research/data-access-and-models.md) | `services/models/trends/` |
+| **Giovanni series (Part 2)** | Giovanni area averages through NASA Harmony for each site: GPM rainfall, GLDAS topsoil moisture and evapotranspiration, GRACE-assimilated groundwater, OMI NO₂. Resumable and quota-guarded; needs `EARTHDATA_TOKEN`. Results for all 5 sites in the research doc; not yet shown in the web app | `services/models/trends/giovanni.py` → `data/raw/giovanni/` |
+
+> **Where does the detailed view work?** Only at the **5 case-study sites**: timeline, yearly imagery, 3D effects, fluid sim, detailed wind box, ledger. **Anywhere else**, a click on the globe gives a live NASA trend analysis plus global map overlays and global wind trails, but no timeline or 3D effects. See [docs/coverage.md](docs/coverage.md).
 
 **Findings so far** (details, caveats and method in [docs/cloud-shadow.md](docs/cloud-shadow.md)):
 - **Ashburn, VA:** the region's air warmed **+0.71 °C/decade** (MERRA-2, p = 0.001), and the data-center area's **night-time surface heat** warmed a further **+0.25 °C/decade** beyond its surroundings (p = 0.001).
 - **Memphis, TN:** greenness fell at xAI Colossus 1 (p < 0.001) and Colossus 2 (p = 0.047); NO₂ near Colossus 1 rose after the mid-2024 turbines, but the change is **borderline** (p = 0.051).
 - Particle haze (aerosol optical depth): no significant increase at any site.
+- **Giovanni, all 5 sites** ([details](docs/research/data-access-and-models.md)): tropospheric NO₂ **fell** at Ashburn and Memphis (2005–2025, p < 0.02 on both tests), in line with the national emission-control decline. Ashburn groundwater storage −19 mm/decade is **borderline**. Topsoil dried at Colossus 1 and Abilene. No significant rainfall trend anywhere.
 
 ### Run it
 | Command | Purpose |
@@ -75,6 +79,9 @@ Environmental changes observed near a data center do not necessarily establish t
 | `npm run web` | Web explorer + JSON API on http://localhost:8765 |
 | `npm run web:build` / `web:preview` | Static build in `dist/web/` (what GitHub Pages serves) / preview on :8080 |
 | `npm run data:nasa` / `data:weather` / `data:timeline-imagery` / `data:unreal` | Refresh NASA series / NASA POWER weather / yearly 30 m imagery / timeline + Unreal exports (Python + `pip install pillow`) |
+| `npm run data:fields` | NASA GEOS-FP wind/temperature/pressure flow fields for web + Unreal (resumable, no login) |
+| `python -m services.models.trends.giovanni` | Giovanni area-averaged series for the sites (needs `EARTHDATA_TOKEN`) |
+| `python -m services.models.trends.cli <csv>` | Trend magnitude + significance report for any time-series CSV |
 | `npm start`, `npm run check` | Environmental Node API on :3000 / backend checks after `npm run data:setup` (CI) |
 
 The web explorer's committed case-study datasets do not yet cover water quality, groundwater, soil and agriculture indicators. The Node backend below adds separate station water-quality, modeled soil/water and agricultural climate-exposure data; these caches are not yet connected to the web explorer. Groundwater-specific products and calibrated crop-impact models remain future work.
