@@ -1,5 +1,6 @@
 // Cloud Shadow - main app: globe, panel, charts, ledger, tour.
 (async function () {
+  const { campusMarkerFromEvent, formatSiteMarkerLabel, siteMarkerPresentation } = await import("./site-marker.js");
   const $ = (s) => document.querySelector(s);
   const fmt = (v, d = 2) => (v == null || !isFinite(v) ? "–" : (v > 0 ? "+" : "") + v.toFixed(d));
   const fmtP = (p) => (p == null || !isFinite(p) ? "–" : p < 0.001 ? "p < 0.001" : "p = " + p.toFixed(3));
@@ -18,6 +19,7 @@
   // ------------------------------------------------------------ globe
   Cesium.Ion.defaultAccessToken = localStorage.getItem("cesiumIonToken") || "";
   const viewer = new Cesium.Viewer("globe", {
+    contextOptions: { webgl: { powerPreference: "high-performance" } },
     baseLayer: new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
       url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       maximumLevel: 19, credit: "Esri, Maxar, Earthstar Geographics",
@@ -27,6 +29,18 @@
     sceneModePicker: false, navigationHelpButton: false, fullscreenButton: false, infoBox: false, selectionIndicator: false,
   });
   const scene = viewer.scene;
+  // Inspect the actual Cesium context locally with ?gpu=1; no telemetry is sent.
+  if (new URLSearchParams(location.search).get("gpu") === "1") {
+    const gl = viewer.canvas.getContext("webgl2") || viewer.canvas.getContext("webgl");
+    const debug = gl?.getExtension("WEBGL_debug_renderer_info");
+    const renderer = debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : "GPU name unavailable in this browser";
+    const gpuInfo = document.createElement("aside");
+    gpuInfo.id = "gpu-info";
+    gpuInfo.setAttribute("aria-label", "GPU diagnostics");
+    gpuInfo.textContent = `Cesium GPU\n${renderer}\nContext power preference: ${gl?.getContextAttributes()?.powerPreference || "unavailable"}`;
+    gpuInfo.style.cssText = "position:fixed;top:86px;right:16px;z-index:10;max-width:min(480px,90vw);padding:12px;background:#101820ee;border:1px solid #68bd9b;border-radius:8px;color:#e8fff3;font:12px/1.5 monospace;white-space:pre-wrap;pointer-events:none";
+    document.body.appendChild(gpuInfo);
+  }
   scene.globe.enableLighting = false;
   scene.skyAtmosphere.show = true;
   scene.fog.enabled = true;
@@ -41,33 +55,32 @@
     } catch (e) { console.warn("ion features unavailable", e); }
   }
 
-  // Site markers: pillar height = reported power draw (MW). Taller = hungrier.
-  const pillarKm = (s) => (s.ledger?.power?.mw ? 4 + Math.sqrt(s.ledger.power.mw) * 1.1 : 3);
+  // Study-area pins become exact mapped roof pins once a campus is prepared.
+  const sitePins = new Map(), campusMarkers = new Map(), neighborPins = [];
+  let localMarkerMode = false;
   for (const s of SITES) {
-    const h = pillarKm(s) * 1000;
-    viewer.entities.add({
+    const pin = viewer.entities.add({
       id: "site-" + s.id,
-      position: Cesium.Cartesian3.fromDegrees(s.lon, s.lat, h / 2),
-      cylinder: { length: h, topRadius: 350, bottomRadius: 350, material: Cesium.Color.fromCssColorString("#ff9a4d").withAlpha(0.85), outline: false,
-        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(70000, Number.POSITIVE_INFINITY) },
-    });
-    viewer.entities.add({
-      id: "label-" + s.id,
-      position: Cesium.Cartesian3.fromDegrees(s.lon, s.lat, h + 600),
+      position: Cesium.Cartesian3.fromDegrees(s.lon, s.lat, 2),
+      point: { pixelSize: 10, color: Cesium.Color.fromCssColorString("#8fa8ad"), outlineColor: Cesium.Color.fromCssColorString("#10222a"), outlineWidth: 3,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        scaleByDistance: new Cesium.NearFarScalar(20000, 1.2, 10000000, 0.75) },
       label: {
-        text: s.name + (s.ledger?.power?.mw ? `\n${s.ledger.power.mw.toLocaleString()} MW` : ""),
-        font: "600 14px Inter, sans-serif", fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3,
-        style: Cesium.LabelStyle.FILL_AND_OUTLINE, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, showBackground: true,
-        backgroundColor: Cesium.Color.fromCssColorString("#0b0e13").withAlpha(0.7), disableDepthTestDistance: Number.POSITIVE_INFINITY,
-        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 4.0e6),
+        text: formatSiteMarkerLabel(s),
+        font: "500 12px Inter, sans-serif", fillColor: Cesium.Color.fromCssColorString("#dceceb"), outlineColor: Cesium.Color.fromCssColorString("#0b171d"), outlineWidth: 2,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15), showBackground: true,
+        backgroundPadding: new Cesium.Cartesian2(7, 5), backgroundColor: Cesium.Color.fromCssColorString("#10232b").withAlpha(0.8),
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 700000),
       },
     });
+    sitePins.set(s.id, pin);
     for (const nb of s.neighbors || []) {
-      viewer.entities.add({
+      neighborPins.push(viewer.entities.add({
         position: Cesium.Cartesian3.fromDegrees(nb.lon, nb.lat),
         point: { pixelSize: 9, color: Cesium.Color.fromCssColorString("#e66767"), outlineColor: Cesium.Color.WHITE, outlineWidth: 2, disableDepthTestDistance: Number.POSITIVE_INFINITY },
         label: { text: nb.name, font: "13px Inter, sans-serif", pixelOffset: new Cesium.Cartesian2(0, -16), fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE, disableDepthTestDistance: Number.POSITIVE_INFINITY, distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 1.5e5) },
-      });
+      }));
     }
   }
 
@@ -83,8 +96,9 @@
     }
     ringEntities.push(viewer.entities.add({
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
-      point: { pixelSize: 10, color: Cesium.Color.fromCssColorString("#d95926"), outlineColor: Cesium.Color.WHITE, outlineWidth: 2, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+      point: { pixelSize: 7, color: Cesium.Color.fromCssColorString("#80d9c0"), outlineColor: Cesium.Color.fromCssColorString("#10222a"), outlineWidth: 2, disableDepthTestDistance: Number.POSITIVE_INFINITY },
     }));
+    ringEntities.forEach((entity) => { entity.show = !localMarkerMode; });
   }
 
   function flyTo(lat, lon, km = 45, pitch = -50, heading = 0, duration = 2.5) {
@@ -99,6 +113,62 @@
   let overlayA = null, overlayB = null;
   const state = { site: SITES[0], live: null, varId: "NO2", mapLayer: "none" };
   const today = new Date().toISOString().slice(0, 10);
+
+  // This accessible caption also exposes the exact source anchor for inspection.
+  const markerStatus = document.createElement("p");
+  markerStatus.id = "siteMarkerStatus";
+  markerStatus.className = "muted";
+  markerStatus.setAttribute("role", "status");
+  markerStatus.setAttribute("aria-live", "polite");
+  function renderMarkerStatus() {
+    const site = state.site;
+    const marker = siteMarkerPresentation(site, campusMarkers.get(site.id), { active: localMarkerMode, selectedSiteId: site.id });
+    markerStatus.hidden = !!state.live;
+    markerStatus.textContent = marker.anchored
+      ? `${localMarkerMode ? "Roof marker" : "Mapped facility"}: ${marker.facilityName}`
+      : "Area marker · zoom in to locate the mapped facility.";
+    Object.assign(markerStatus.dataset, {
+      siteId: site.id, sourceId: marker.sourceId,
+      anchoring: marker.anchored ? (localMarkerMode ? "mapped-roof" : "mapped-campus") : "study-area",
+      lat: String(marker.lat), lon: String(marker.lon),
+      groundHeight: marker.groundHeight == null ? "" : String(marker.groundHeight),
+      roofHeight: marker.roofHeight == null ? "" : String(marker.roofHeight),
+      markerVisible: String(marker.show),
+    });
+    markerStatus.title = marker.anchored
+      ? `${marker.facilityName} · ${marker.lat.toFixed(6)}, ${marker.lon.toFixed(6)}${marker.sourceId ? ` · ${marker.sourceId}` : ""}. Comparison area remains centered at ${site.lat.toFixed(6)}, ${site.lon.toFixed(6)}.`
+      : "The comparison area is a regional study anchor, not a mapped building roof.";
+    $("#story").appendChild(markerStatus);
+  }
+  function updateSitePins() {
+    for (const site of SITES) {
+      const pin = sitePins.get(site.id);
+      const marker = siteMarkerPresentation(site, campusMarkers.get(site.id), { active: localMarkerMode, selectedSiteId: state.site.id });
+      pin.show = marker.show;
+      pin.position = Cesium.Cartesian3.fromDegrees(marker.lon, marker.lat, marker.height);
+      const reference = marker.clampToGround ? Cesium.HeightReference.CLAMP_TO_GROUND : Cesium.HeightReference.NONE;
+      pin.point.heightReference = reference;
+      pin.label.heightReference = reference;
+      pin.label.text = marker.label;
+      const selected = site.id === state.site.id && !state.live;
+      pin.point.color = Cesium.Color.fromCssColorString(selected ? "#80d9c0" : "#8fa8ad");
+    }
+    neighborPins.forEach((pin) => { pin.show = !localMarkerMode; });
+    ringEntities.forEach((entity) => { entity.show = !localMarkerMode; });
+    renderMarkerStatus();
+    scene.requestRender();
+  }
+  window.addEventListener("cs:campus-ready", ({ detail }) => {
+    const ready = campusMarkerFromEvent(detail, SITES);
+    if (!ready) return;
+    campusMarkers.set(ready.siteId, ready.marker);
+    updateSitePins();
+  });
+  window.addEventListener("cs:scene-mode", ({ detail }) => {
+    if (detail?.siteId && detail.siteId !== state.site.id) return;
+    localMarkerMode = !!detail?.active;
+    updateSitePins();
+  });
 
   function overlaySpec(kind, date) {
     if (kind === "none") return null;
@@ -133,18 +203,55 @@
       }
     }
     $("#split").hidden = !(cmp && a); $("#dateBWrap").hidden = !cmp;
+    syncLayerControls(a);
+  }
+  function syncLayerControls(spec) {
+    const descriptions = {
+      none: ["Satellite", "Satellite imagery shows the real-world landscape."],
+      LST_Day: ["Heat", "Daytime surface temperature: the warmth of ground and roofs, not the air."],
+      LST_Night: ["Night heat", "Nighttime surface temperature, measured after sunset."],
+      NDVI: ["Vegetation", "Greenness (NDVI) shows vegetation cover. It does not measure crop yield."],
+      NO2_OMI: ["Air pollution", "Nitrogen dioxide (NO₂) in the atmospheric column. This is a regional satellite view, not street-level exposure."],
+      NO2: ["Recent NO₂", "A more detailed satellite NO₂ record available since September 2023."],
+      AOD: ["Particles / haze", "Aerosol optical depth shows how much sunlight airborne particles block."],
+      AirTemp: ["Air temperature", "Regional air temperature from MERRA-2 reanalysis."],
+      HLS: ["Satellite · HLS", "NASA high-resolution surface imagery. Available image dates vary."],
+      DIST: ["Land disturbance", "Mapped vegetation disturbance, which can include clearing, construction, and fire."],
+    };
+    const [label, note] = descriptions[state.mapLayer] || descriptions.none;
+    $("#layerSummary").textContent = label;
+    $("#layerNote").textContent = note;
+    const family = ({ HLS: "none", LST_Night: "LST_Day", NO2: "NO2_OMI", AOD: "NO2_OMI" })[state.mapLayer] || state.mapLayer;
+    document.querySelectorAll("[data-map-layer]").forEach((button) => {
+      const active = button.dataset.mapLayer === family;
+      button.classList.toggle("active", active); button.setAttribute("aria-pressed", String(active));
+    });
+    const showLegend = !!spec && !["HLS", "DIST"].includes(state.mapLayer);
+    $("#mapLegend").hidden = !showLegend;
+    if (showLegend) {
+      $("#mapLegendTitle").textContent = label;
+      $("#mapLegendDetail").textContent = `${VARS[state.mapLayer]?.short || label} · ${spec.date}`;
+      $("#mapLegendScale").src = `https://gibs.earthdata.nasa.gov/legends/${spec.layer}_H.svg`;
+    }
   }
   function setMapLayer(kind, dateA, dateB, compare) {
+    const changed = state.mapLayer !== kind;
     state.mapLayer = kind; $("#layerSel").value = kind;
     if (dateA) $("#dateA").value = dateA; if (dateB) $("#dateB").value = dateB;
     if (compare != null) $("#cmpToggle").checked = compare;
     refreshOverlay();
+    if (changed) window.dispatchEvent(new CustomEvent('cs:map-layer', { detail: { kind } }));
   }
   $("#layerSel").onchange = (e) => {
     const s = state.site;
     if (e.target.value === "HLS" && s && hlsDates[s.id]?.before) setMapLayer("HLS", hlsDates[s.id].before.date, hlsDates[s.id].after?.date, true);
     else setMapLayer(e.target.value);
   };
+  document.querySelectorAll("[data-map-layer]").forEach((button) => button.addEventListener("click", () => {
+    const kind = button.dataset.mapLayer;
+    setMapLayer(kind, null, null, false);
+    if (VARS[kind]) { state.varId = kind; renderTabs(); runAnalysis(); }
+  }));
   $("#dateA").onchange = $("#dateB").onchange = $("#cmpToggle").onchange = refreshOverlay;
   $("#opacity").oninput = (e) => [overlayA, overlayB].forEach((l) => l && (l.alpha = +e.target.value));
 
@@ -165,8 +272,18 @@
   function renderChips() {
     $("#siteChips").innerHTML = "";
     for (const s of SITES) {
+      const selected = state.site === s && !state.live;
+      const pin = sitePins.get(s.id);
+      pin.point.color = Cesium.Color.fromCssColorString(selected ? "#80d9c0" : "#8fa8ad");
+      pin.point.pixelSize = selected ? 12 : 9;
       const b = document.createElement("button"); b.className = "chip" + (state.site === s && !state.live ? " active" : "");
-      b.textContent = s.name; b.onclick = () => selectSite(s); $("#siteChips").appendChild(b);
+      const placeNames = { colossus1: ["Memphis", "Colossus 1"], colossus2: ["Southaven", "Colossus 2"], ashburn: ["Ashburn", "Data Center Alley"], abilene: ["Abilene", "Stargate"], thedalles: ["The Dalles", "Google campus"] };
+      const [place, name] = placeNames[s.id] || [s.place, s.name];
+      const text = document.createElement("span"), title = document.createElement("span"), subtitle = document.createElement("span"), arrow = document.createElement("span");
+      title.className = "chip-title"; title.textContent = place; subtitle.className = "chip-subtitle"; subtitle.textContent = name;
+      arrow.className = "chip-arrow"; arrow.textContent = "↗"; arrow.setAttribute("aria-hidden", "true");
+      text.append(title, subtitle); b.append(text, arrow); b.title = s.name; b.setAttribute("aria-pressed", String(state.site === s && !state.live));
+      b.onclick = () => selectSite(s); $("#siteChips").appendChild(b);
     }
   }
   function renderStory() {
@@ -174,18 +291,21 @@
     if (state.live) {
       $("#story").innerHTML = `<h3>Your investigation</h3><div class="place">${state.live.lat.toFixed(4)}, ${state.live.lon.toFixed(4)}</div>
         <p>Live NASA data for this spot vs. the ring around it. Try a new industrial park, a mine, a new suburb, or a data center in your city.</p>`;
+      renderMarkerStatus();
       return;
     }
     $("#story").innerHTML = `<h3>${s.name}</h3><div class="place">${s.place} · ${s.operator}</div>
-      <div class="headline">${s.headline}</div><p>${s.story}</p>
-      <p class="muted">Start date used for before/after: <b>${s.onset}</b> (${s.onsetLabel})</p>`;
+      <div class="headline">${s.headline}</div><details><summary>About this place</summary><p>${s.story}</p>
+      <p class="muted">Comparison start: <b>${s.onset}</b> (${s.onsetLabel})</p></details>`;
+    renderMarkerStatus();
   }
   function renderTabs() {
     $("#varTabs").innerHTML = "";
     for (const [id, v] of Object.entries(VARS)) {
       const b = document.createElement("button"); b.className = "tab" + (state.varId === id ? " active" : "");
       const star = !state.live && state.site.watchFor?.includes(id) ? '<span class="star" title="Most relevant for this site">★ watch</span>' : "";
-      b.innerHTML = `${v.label}${star}`; b.onclick = () => { state.varId = id; renderTabs(); runAnalysis(); };
+      const labels = { LST_Day: "Heat · day", LST_Night: "Heat · night", NDVI: "Vegetation", NO2: "NO₂ · recent", NO2_OMI: "NO₂ · long record", AOD: "Particles / haze", AirTemp: "Air temperature" };
+      b.innerHTML = `${labels[id] || v.label}${star}`; b.onclick = () => { state.varId = id; renderTabs(); runAnalysis(); };
       $("#varTabs").appendChild(b);
     }
     const v = VARS[state.varId];
@@ -193,9 +313,11 @@
   }
 
   function selectSite(s, { fly = true, varId } = {}) {
+    if (state.site?.id !== s.id) localMarkerMode = false;
     state.site = s; state.live = null; liveAbort?.abort();
     state.varId = varId || s.watchFor?.[0] || "LST_Day";
     renderChips(); renderStory(); renderTabs(); renderLedger(); runAnalysis();
+    updateSitePins();
     if (fly) flyTo(s.lat, s.lon, 40, -45);
     window.dispatchEvent(new CustomEvent("cs:site", { detail: { site: s, fly } }));
   }
@@ -353,6 +475,7 @@
   // ------------------------------------------------------------ click anywhere = live mode
   new Cesium.ScreenSpaceEventHandler(viewer.canvas).setInputAction((ev) => {
     const picked = scene.pick(ev.position);
+    if (picked?.id?.lowPoly || picked?.id === "low-poly-neighborhood" || picked?.id?.id === "low-poly-neighborhood" || picked?.primitive?.id?.lowPoly) return;
     if (picked?.id?.id?.startsWith?.("site-")) return selectSite(SITES.find((s) => "site-" + s.id === picked.id.id));
     const cart = viewer.camera.pickEllipsoid(ev.position, scene.globe.ellipsoid); if (!cart) return;
     const c = Cesium.Cartographic.fromCartesian(cart);
@@ -371,7 +494,7 @@
     { t: "Colossus 2: watching land disappear", p: "The second campus went from open land to industrial site in 2025. Drag the split to compare before and after in 30 m imagery, then check the greenness trend.", go: () => { selectSite(S.colossus2, { fly: false, varId: "NDVI" }); setMapLayer("HLS", hls("colossus2").before?.date, hls("colossus2").after?.date, true); flyTo(S.colossus2.lat, S.colossus2.lon, 7, -55, -15, 3); } },
     { t: "The long view: Data Center Alley", p: "Twenty years of build-out in Ashburn, VA. Its nights now run warmer than the land around it, a 24/7 heat fingerprint. Mann-Kendall says that trend is real (p = 0.001).", go: () => { selectSite(S.ashburn, { fly: false, varId: "LST_Night" }); setMapLayer("LST_Night", "2004-07-11", "2025-07-12", true); flyTo(S.ashburn.lat, S.ashburn.lon, 60, -55, 0, 3.5); } },
     { t: "Weather or data center?", p: "Is it just a hotter climate? NASA's MERRA-2 weather reanalysis shows the regional air temperature, our control. A site only counts as a signal when it changes relative to its surroundings, not with the whole region.", go: () => { selectSite(S.ashburn, { fly: false, varId: "AirTemp" }); setMapLayer("LST_Night", "2025-07-12", null, false); flyTo(S.ashburn.lat, S.ashburn.lon, 220, -60, 0, 3); } },
-    { t: "Stargate Abilene: the next one", p: "Pillar height = planned power draw (~1.2 GW). Power at this scale means heat, and where it's generated on site, air pollution. Drag the split to watch rangeland turn into server halls.", go: () => { selectSite(S.abilene, { fly: false, varId: "NDVI" }); setMapLayer("HLS", hls("abilene").before?.date, hls("abilene").after?.date, true); flyTo(S.abilene.lat, S.abilene.lon, 12, -50, 30, 3.5); } },
+    { t: "Stargate Abilene: the next one", p: "The pin marks the campus; reported power capacity remains in its label and source ledger. Drag the split to compare rangeland and server-hall imagery, then inspect the vegetation trend.", go: () => { selectSite(S.abilene, { fly: false, varId: "NDVI" }); setMapLayer("HLS", hls("abilene").before?.date, hls("abilene").after?.date, true); flyTo(S.abilene.lat, S.abilene.lon, 12, -50, 30, 3.5); } },
     { t: "Your turn, detective", p: "Click anywhere on Earth. We'll pull live NASA data for that spot and its surroundings, then test whether the change is real.", go: () => { setMapLayer("none", null, null, false); } },
   ];
   let tourI = 0;
@@ -387,6 +510,12 @@
   document.addEventListener("keydown", (e) => { if ($("#tourCard").hidden) return; if (e.key === "ArrowRight") $("#tourNext").click(); if (e.key === "ArrowLeft") $("#tourPrev").click(); if (e.key === "Escape") $("#tourEnd").click(); });
 
   // ------------------------------------------------------------ boot
+  $("#analysisDetails").addEventListener("toggle", () => {
+    if ($("#analysisDetails").open) { chartMain?.resize(); chartDiff?.resize(); }
+  });
+  $("#mapLegendScale").addEventListener("error", () => { $("#mapLegendScale").hidden = true; });
+  $("#mapLegendScale").addEventListener("load", () => { $("#mapLegendScale").hidden = false; });
+  syncLayerControls(null);
   // pre-run the satellite analyses so the ledger shows measured cards immediately
   for (const s of SITES) for (const id of Object.keys(VARS)) { const ser = SERIES[s.id]?.[id]; if (ser) (lastResults[s.id] ||= {})[id] = Stats.analyze(ser, s.onset); }
   selectSite(SITES[0], { fly: false });

@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.ts",
     "test:models": "python -m unittest discover -s services/models/tests -v",
-    "check": "npm run typecheck && npm test && npm run test:data && npm run test:models",
+    "check": "npm run typecheck && npm test && npm run test:data && npm run test:models && npm run test:web",
     "web": "node apps/web/server.cjs",
     "web:build": "node scripts/build_web.cjs",
     "web:preview": "node scripts/build_web.cjs && python -m http.server 8080 --directory dist/web",
@@ -27,7 +27,8 @@
     "data:verify": "node --env-file-if-exists=.env scripts/verify-data.ts",
     "data:expand": "node --env-file-if-exists=.env scripts/expand-data.ts",
     "data:verify-expanded": "node --env-file-if-exists=.env scripts/verify-expanded.ts",
-    "test:data": "node --env-file-if-exists=.env scripts/test-data.ts"
+    "test:data": "node --env-file-if-exists=.env scripts/test-data.ts",
+    "test:web": "node --test tests/*.test.js"
   },
   "dependencies": {
     "ajv": "^8.17.1",
