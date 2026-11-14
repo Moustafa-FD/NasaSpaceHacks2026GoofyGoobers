@@ -1,11 +1,13 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { fileURLToPath } from "node:url";
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
 import { WebSocket, WebSocketServer } from "ws";
-import { DOMAINS, type Scenario } from "../../../packages/contracts/src/index.ts";
-import { pythonRunner, type ModelRunner } from "./model-worker.ts";
-import { RunManager, CapacityError } from "./run-manager.ts";
-import { scenarioErrors } from "./validation.ts";
+import { ENVIRONMENT_DOMAINS, validateEnvironmentRequest, type EnvironmentRequest } from "../../../packages/contracts/src/environment.ts";
+import { EnvironmentStore } from "./environment/store.ts";
+import { EnvironmentJobs, EnvironmentCapacityError } from "./environment/jobs.ts";
+import { environmentExecutor, type EnvironmentExecutor } from "./environment/service.ts";
+import { validateGroundEvidence } from "./environment/ground-evidence.ts";
+import { libraryInventory, LibraryQueryError, queryLibrary } from "./environment/library.ts";
 
 class RequestError extends Error { status: number; constructor(status: number, message: string) { super(message); this.status = status; } }
 
@@ -37,20 +39,57 @@ function readJson(request: IncomingMessage): Promise<unknown> {
   });
 }
 
-export function createApi(options: { runner?: ModelRunner; maxRuns?: number } = {}) {
-  const timeout = Number(process.env.WORKER_TIMEOUT_MS ?? 30_000);
-  if (!Number.isInteger(timeout) || timeout < 100 || timeout > 300_000) throw new Error("WORKER_TIMEOUT_MS must be an integer from 100 to 300000");
-  const runs = new RunManager(options.runner ?? pythonRunner(process.env.PYTHON_EXECUTABLE ?? "python", timeout), options.maxRuns);
+export async function createApi(options: { store?: EnvironmentStore; executor?: EnvironmentExecutor } = {}) {
+  const store = options.store ?? new EnvironmentStore();
+  const runs = new EnvironmentJobs(store, options.executor ?? environmentExecutor(store));
+  await runs.init();
   const server = createServer((request, response) => {
     void (async () => {
-      const path = new URL(request.url ?? "/", "http://localhost").pathname;
-      if (request.method === "GET" && path === "/health") return send(response, 200, { status: "ok", schemaVersion: "1.0", mode: "illustrative" });
-      if (request.method === "GET" && path === "/v1/domains") return send(response, 200, { schemaVersion: "1.0", domains: DOMAINS });
+      const url = new URL(request.url ?? "/", "http://localhost");
+      const path = url.pathname;
+      if (request.method === "GET" && path === "/health") return send(response, 200, { status: "ok", schemaVersion: "1.0", mode: "environmental", persistence: "local-files" });
+      if (request.method === "GET" && path === "/v1/domains") return send(response, 200, { schemaVersion: "1.0", domains: ENVIRONMENT_DOMAINS });
+      if (request.method === "GET" && (path === "/v1/facilities" || path === "/v1/emissions")) return send(response, 200, await queryLibrary(store, url.searchParams, path.endsWith("facilities") ? "facilities" : "emissions"));
+      if (request.method === "GET" && path === "/v1/catalog") {
+        const catalog = await store.read(store.processedDirectory, "catalog");
+        return send(response, 200, catalog ?? { schemaVersion: "1.0", status: "not_synced", access: "metadata_only", records: [], instruction: "Submit a sync run to discover the curated challenge collections" });
+      }
+      if (request.method === "GET" && path === "/v1/inventory") {
+        return send(response, 200, {
+          schemaVersion: "1.0", scope: "global_environmental_recent_priority",
+          downloadedCacheBytes: await store.bytes(),
+          globalData: await store.read(join(store.rawDirectory, "power-grid"), "inventory") ?? null,
+          acquisition: await store.read(store.processedDirectory, "global-acquisition") ?? null,
+          catalog: await store.read(store.processedDirectory, "catalog") ?? null,
+          datasets: await libraryInventory(store),
+          geographicPriority: ["CA", "US"],
+          warnings: ["Source/catalog coverage is separate from actual downloaded coverage.", "An open-ended CMR metadata date is not verified latest-observation availability."]
+        });
+      }
+      if (request.method === "GET" && path === "/v1/sources") return send(response, 200, {
+        schemaVersion: "1.0",
+        sources: [
+          { id: "osm", provider: "OpenStreetMap contributors / Overpass API", access: "public", adapterStatus: "live_adapter", coverage: "global mapped elements, not a complete facility census", license: "ODbL-1.0", documentationUrl: "https://dev.overpass-api.de/overpass-doc/en/", note: "Attribution and share-alike obligations apply; distinct map elements can represent one campus. Country tags are incomplete." },
+          { id: "npri", provider: "Environment and Climate Change Canada NPRI", access: "public", adapterStatus: "live_adapter", coverage: "Canadian reporting facilities in sector 518210", evidence: "facility_reported_release", documentationUrl: "https://www.canada.ca/en/environment-climate-change/services/national-pollutant-release-inventory/using-interpreting-data.html", note: "Sector candidates require facility verification. Missing values are not zero; reporting methods and preliminary years are retained." },
+          { id: "epa-nei", provider: "US EPA National Emissions Inventory", access: "public", adapterStatus: "live_adapter", coverage: "US sector 518210 inventory summaries", evidence: "reported_emissions_inventory", documentationUrl: "https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei", note: "Inventory estimates are not ambient measurements or permit limits; source sector coding does not independently confirm a data center." },
+          { id: "cams", provider: "Copernicus CAMS via Open-Meteo", access: "public_noncommercial", adapterStatus: "live_model_adapter", coverage: "global point history from August 2022, actual valid dates vary", evidence: "model-derived", documentationUrl: "https://open-meteo.com/en/docs/air-quality-api", note: "PM2.5/PM10/NO2/O3/SO2 concentrations; not measured facility releases or automatic source attribution." },
+          { id: "era5", provider: "Copernicus ERA5 via Open-Meteo", access: "public_noncommercial", adapterStatus: "live_model_adapter", coverage: "global point history from 1940; about five days publication delay", evidence: "model-derived", documentationUrl: "https://open-meteo.com/en/docs/historical-weather-api", note: "Daily rain, reference ET0, temperature and soil moisture at three depths; not water chemistry or facility consumption." },
+          { id: "highresmip", provider: "CMIP6 HighResMIP via Open-Meteo", access: "public_noncommercial", adapterStatus: "live_climate_scenario_adapter", coverage: "point simulations 1950-01-01 through 2050-01-01", evidence: "climate-scenario", documentationUrl: "https://open-meteo.com/en/docs/climate-api", note: "Two high-forcing model simulations and agricultural climate-exposure screening; not daily weather forecasts, crop yields or local facility-impact predictions." },
+          { id: "ground-evidence", access: "local_user_import", adapterStatus: "structural_validation_only", coverage: "water quality, noise, crop and vegetation records supplied with source references", note: "No ground measurements ship with this importer; records are not independently verified." },
+          { id: "usgs", provider: "U.S. Geological Survey", access: "public_anonymous_bounded", adapterStatus: "live_ground_adapter", coverage: "USGS monitoring locations and available station-specific parameters", evidence: "ground-observation", documentationUrl: "https://api.waterdata.usgs.gov/docs/ogcapi/", note: "Water temperature, conductance, pH, dissolved oxygen and turbidity where recorded; provisional/qualifier/method metadata retained. No automatic data-center attribution." },
+          { id: "power-grid", provider: "NASA POWER / MERRA-2", access: "public", format: "Zarr v2", coverage: "global", resolution: "0.5 degree latitude x 0.625 degree longitude", variables: ["T2M", "PRECTOTCORR", "RH2M", "WS2M"], evidence: "model-derived", documentationUrl: "https://power.larc.nasa.gov/docs/tutorials/service-data-request/aws/", note: "Supplementary NASA source; not one of the 13 challenge links. Actual valid dates and downloaded coverage are in inventory." },
+          { id: "power-point", provider: "NASA POWER / MERRA-2", access: "public", coverage: "global point queries", evidence: "model-derived", documentationUrl: "https://power.larc.nasa.gov/docs/services/api/temporal/monthly/", note: "Point results do not mean every global grid cell has been downloaded." },
+          { id: "giovanni", access: "earthdata_login_required", adapterStatus: "discovery_only", resourceUrl: "https://giovanni.gsfc.nasa.gov/", note: "Time-series probe was rejected without token; no credentials are configured by this app." },
+          { id: "appeears", access: "earthdata_login_required_for_extraction", adapterStatus: "discovery_only", resourceUrl: "https://appeears.earthdatacloud.nasa.gov/", note: "Public product metadata is distinct from an authenticated extraction task." },
+          { id: "gistemp", access: "public_host_unreachable_during_setup", adapterStatus: "optional_helpers_only", resourceUrl: "https://data.giss.nasa.gov/gistemp/data_v4.html", note: "Direct archive and CSV connections timed out on this laptop; no GISTEMP observations are claimed downloaded." }
+        ]
+      });
       if (request.method === "POST" && path === "/v1/runs") {
         const body = await readJson(request);
-        const errors = scenarioErrors(body);
-        if (errors.length) return send(response, 422, { error: { code: "INVALID_SCENARIO", message: "Scenario validation failed", details: errors } });
-        const run = runs.create(body as Scenario);
+        const errors = validateEnvironmentRequest(body);
+        if (body && typeof body === "object" && (body as { kind?: string }).kind === "ground-evidence") errors.push(...validateGroundEvidence(body));
+        if (errors.length) return send(response, 422, { error: { code: "INVALID_ENVIRONMENT_REQUEST", message: "Environmental request validation failed", details: errors } });
+        const run = await runs.create(body as EnvironmentRequest);
         return send(response, 202, { id: run.id, status: run.status, statusUrl: `/v1/runs/${run.id}`, resultUrl: `/v1/runs/${run.id}/results`, eventsUrl: `/v1/runs/${run.id}/events` });
       }
       const match = /^\/v1\/runs\/([0-9a-f-]{36})(\/results)?$/.exec(path);
@@ -59,13 +98,14 @@ export function createApi(options: { runner?: ModelRunner; maxRuns?: number } = 
         if (!run) return send(response, 404, { error: { code: "NOT_FOUND", message: "Run not found" } });
         if (!match[2]) return send(response, 200, run);
         if (run.status !== "completed") return send(response, 409, { error: { code: "RESULT_UNAVAILABLE", message: `Run is ${run.status}` } });
-        return send(response, 200, runs.result(run.id));
+        return send(response, 200, await runs.result(run.id));
       }
       send(response, 404, { error: { code: "NOT_FOUND", message: "Route not found" } });
     })().catch(error => {
       if (response.headersSent || response.destroyed) return;
       if (error instanceof RequestError) return send(response, error.status, { error: { code: "INVALID_REQUEST", message: error.message } });
-      if (error instanceof CapacityError) return send(response, 503, { error: { code: "CAPACITY_REACHED", message: error.message } });
+      if (error instanceof LibraryQueryError) return send(response, 400, { error: { code: "INVALID_LIBRARY_QUERY", message: error.message } });
+      if (error instanceof EnvironmentCapacityError) return send(response, 503, { error: { code: "CAPACITY_REACHED", message: error.message } });
       console.error(error);
       send(response, 500, { error: { code: "INTERNAL_ERROR", message: "Unexpected server error" } });
     });
@@ -88,11 +128,10 @@ export function createApi(options: { runner?: ModelRunner; maxRuns?: number } = 
       push({ type: "run.status", run: runs.get(match[1]) });
     });
   });
-
   return {
     server,
     async close(): Promise<void> {
-      runs.close();
+      await runs.close();
       for (const connection of events.clients) connection.terminate();
       events.close();
       server.closeAllConnections();
@@ -104,8 +143,8 @@ export function createApi(options: { runner?: ModelRunner; maxRuns?: number } = 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   const port = Number(process.env.PORT ?? 3000);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("PORT must be an integer from 1 to 65535");
-  const api = createApi();
-  api.server.listen(port, "127.0.0.1", () => console.log(`Illustrative API: http://127.0.0.1:${port} (no live data adapters)`));
+  const api = await createApi();
+  api.server.listen(port, "127.0.0.1", () => console.log(`Environmental API: http://127.0.0.1:${port} (global NASA data inventory and local cache)`));
   api.server.on("error", error => { console.error(error); process.exitCode = 1; });
   for (const signal of ["SIGINT", "SIGTERM"] as const) process.once(signal, () => { void api.close().then(() => process.exit(0)); });
 }

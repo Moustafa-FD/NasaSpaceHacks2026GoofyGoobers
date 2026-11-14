@@ -23,4 +23,5 @@ jobs:
         with:
           python-version: '3.11'
       - run: npm ci --ignore-scripts
+      - run: npm run data:setup
       - run: npm run check

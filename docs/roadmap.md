@@ -1,5 +1,7 @@
 # Implementation roadmap
 
+> **Archived starter roadmap:** the stage table and suggested tasks below are historical planning, not the current completion status or backlog. The repository already includes the team's [web/NASA/statistics workflow](../apps/web/README.md) and [Unreal project](../clients/unreal/README.md), alongside the environmental gateway described in [Data and backend](data-and-backend.md) and [the current API](api.md). Current scope is environmental, including agriculture; bill, employment/labor and population stages are out of scope. Use the active handoff for Part 2 integration and preserve the existing client/data pipeline.
+
 This roadmap separates demonstrated behavior from planned scientific capability. No stage is completed merely because a folder or resource link exists.
 
 | Stage | Work | Completion evidence |
