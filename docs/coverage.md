@@ -16,6 +16,8 @@ The reason is cost, not code. Each detailed site needs prepared data: yearly 30 
 | Real-wind particle trails, NASA GEOS-FP (2018+) | **Detailed box** (±3° × ±4°, ~25 km cells) | **Global layer only** (2° × 2.5°), visible when zoomed out above ~2,500 km |
 | Analysed wind at the site point (drives fluid, clouds, streaks) | Yes | No |
 | Giovanni series (rainfall, soil moisture, evapotranspiration, groundwater, OMI NO₂) | Downloaded for the 5 sites (`data/raw/giovanni/`, not yet shown in the app) | Possible on request with `python -m services.models.trends.giovanni` after adding a site |
+| Climate projections to 2100 (NEX-GDDP-CMIP6, 5 models, 2 SSPs) | Precomputed (`data/cloudshadow/projections/`) | API job `climate-projection` for any point (~1-5 min) |
+| Air-dispersion screening (plume χ/Q on GEOS-FP winds) | Colossus 1 precomputed; any site via API | API job `plume-scenario` for any point (pulls GEOS-FP wind on demand) |
 | Sourced facts ledger, story, guided tour | Yes | No |
 | Node `/v1` backend caches (facilities, emissions inventories, water-quality stations) | Partly; not yet connected to the web app | Data is global/North America but not connected to the web app |
 

@@ -16,6 +16,7 @@ import { fetchUsEmissions } from "./us-emissions.ts";
 import { fetchWaterQuality } from "./water-quality.ts";
 import { shouldReplaceNpriCanonical } from "./library.ts";
 import { runTrendAnalysis } from "./trends.ts";
+import { runClimateProjection, runPlumeScenario } from "./scenarios.ts";
 
 export type ProgressReporter = (progress: number, stage: string, details?: Record<string, unknown>) => void;
 export type EnvironmentExecutor = (request: EnvironmentRequest, signal: AbortSignal, report: ProgressReporter) => Promise<unknown>;
@@ -134,6 +135,8 @@ export function environmentExecutor(store: EnvironmentStore): EnvironmentExecuto
           break;
         }
         case "trend-analysis": data = await runTrendAnalysis(store, request, signal, report); break;
+        case "plume-scenario": data = await runPlumeScenario(request, signal, report); break;
+        case "climate-projection": data = await runClimateProjection(request, signal, report); break;
         case "ground-evidence": {
           data = await saveSource(normalizeGroundEvidence(request));
           await store.write(store.processedDirectory, `evidence-${key}`, data);

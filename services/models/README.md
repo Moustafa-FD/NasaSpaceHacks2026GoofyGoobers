@@ -68,6 +68,10 @@ python -m services.models.trends.giovanni                      # default variabl
 python -m services.models.trends.cli data/raw/giovanni/ashburn/GPM_3IMERGM_07_precipitation.csv --units "mm/hr"
 ```
 
+### Scenario models (`projections/`)
+
+`projections/nexgddp.py` + `build.py`: NASA NEX-GDDP-CMIP6 climate projections to 2100. `projections/plume.py`: Gaussian-plume dispersion screening on GEOS-FP winds. `projections/worker.py`: line-protocol worker behind the `climate-projection` and `plume-scenario` API jobs. Methods, assumptions and limits are in [docs/projections.md](../../docs/projections.md).
+
 ### Trend jobs in the Node API
 
 The environmental API runs the same engine as a background job (`kind: "trend-analysis"`), with the usual 202 → status/WebSocket → results flow:

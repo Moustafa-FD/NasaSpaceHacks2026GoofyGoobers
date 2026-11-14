@@ -72,6 +72,7 @@ Environmental changes observed near a data center do not necessarily establish t
 - **Memphis, TN:** greenness fell at xAI Colossus 1 (p < 0.001) and Colossus 2 (p = 0.047); NO₂ near Colossus 1 rose after the mid-2024 turbines, but the change is **borderline** (p = 0.051).
 - Particle haze (aerosol optical depth): no significant increase at any site.
 - **Giovanni, all 5 sites** ([details](docs/research/data-access-and-models.md)): tropospheric NO₂ **fell** at Ashburn and Memphis (2005–2025, p < 0.02 on both tests), in line with the national emission-control decline. Ashburn groundwater storage −19 mm/decade is **borderline**. Topsoil dried at Colossus 1 and Abilene. No significant rainfall trend anywhere.
+- **Climate to 2100, NASA NEX-GDDP-CMIP6** ([method](docs/projections.md)), conditional scenarios with 5-model spread: by 2081–2100 the sites warm **+2.0 to +2.8 °C** under SSP2-4.5 and **+4.2 to +4.9 °C** under SSP5-8.5 (model medians). Days ≥ 35 °C rise from 28 to ~109/yr in Memphis and from 14 to ~60/yr in Ashburn under SSP5-8.5. These are regional climate scenarios, not facility effects.
 
 ### Run it
 | Command | Purpose |
@@ -82,6 +83,7 @@ Environmental changes observed near a data center do not necessarily establish t
 | `npm run data:fields` | NASA GEOS-FP wind/temperature/pressure flow fields for web + Unreal (resumable, no login) |
 | `python -m services.models.trends.giovanni` | Giovanni area-averaged series for the sites (needs `EARTHDATA_TOKEN`) |
 | `python -m services.models.trends.cli <csv>` | Trend magnitude + significance report for any time-series CSV |
+| `python -m services.models.projections.build` / `python -m services.models.projections.plume` | NEX-GDDP-CMIP6 climate projections to 2100 per site / plume χ/Q footprints (sites with on-site combustion) |
 | `npm start`, `npm run check` | Environmental Node API on :3000 / backend checks after `npm run data:setup` (CI) |
 
 The web explorer's committed case-study datasets do not yet cover water quality, groundwater, soil and agriculture indicators. The Node backend below adds separate station water-quality, modeled soil/water and agricultural climate-exposure data; these caches are not yet connected to the web explorer. Groundwater-specific products and calibrated crop-impact models remain future work.
@@ -118,7 +120,7 @@ On November 14, 2026, the reference implementation passed **130 tests** and live
 
 **API behavior change:** `npm start` now serves environmental `/v1` operations, and `npm run demo` reads cached POWER series, requiring `data:sync` first. Old scenario request bodies are rejected; the accounting worker/schemas remain regression fixtures, with no economic outputs in the public environmental API. The web explorer still uses `npm run web` on port 8765 and its own `/api` contract. Give the two services distinct `PORT` values; browser integration still needs a proxy/CORS implementation.
 
-**Trend jobs (Part 2):** `POST /v1/runs` with `kind: "trend-analysis"` runs the Python trend engine on a completed `series` run (`input: {runId, variable}`) or an inline series (`input: {series: {label, unit, points}}`), with an optional `control` for a target-minus-control trend. See [services/models/README.md](services/models/README.md#trend-jobs-in-the-node-api).
+**Part 2 jobs:** `kind: "plume-scenario"` (dispersion screening on GEOS-FP winds) and `kind: "climate-projection"` (NEX-GDDP-CMIP6 to 2100, any point) are documented in [docs/projections.md](docs/projections.md). `POST /v1/runs` with `kind: "trend-analysis"` runs the Python trend engine on a completed `series` run (`input: {runId, variable}`) or an inline series (`input: {series: {label, unit, points}}`), with an optional `control` for a target-minus-control trend. See [services/models/README.md](services/models/README.md#trend-jobs-in-the-node-api).
 
 **Still needed in this Node API:** verified facility matching, calibrated facility-impact and agricultural models, and noise propagation/prediction. Ground noise and vegetation records can be imported with provenance, but no noise dataset or numeric NDVI observations were acquired; the public ORNL vegetation service was unavailable during setup.
 
@@ -131,10 +133,10 @@ See **[1. Data and backend — technical handoff](docs/data-and-backend.md)** fo
 | Historical trend magnitude + significance (challenge core) | **Done**: Python engine + `trend-analysis` API job, validated vs SciPy, with autocorrelation safeguards | `services/models/trends/`, `apps/api/src/environment/trends.ts` |
 | Real NASA inputs for water and air | **Done** for 5 sites: Giovanni rainfall, soil moisture, evapotranspiration, groundwater, OMI NO₂ (local download) | `services/models/trends/giovanni.py` |
 | Shared winds/temperature/pressure for web + Unreal | **Done**: GEOS-FP flow fields 2018–2026, validated vs Dulles observations | `services/models/fields/`, `docs/flow-fields.md` |
-| Baseline vs expansion comparison | **Partial**: target-minus-control trend difference. No facility-expansion scenario model | `trend-analysis` `control` input |
-| Long-range climate scenarios | **Partial** (Part 1 backend: two HighResMIP models to 2050). NEX-GDDP-CMIP6 to 2100 not integrated | `docs/data-and-backend.md` |
-| Air-quality transport/chemistry from facility emissions | **Not implemented**: needs emissions, meteorology and ground calibration | — |
+| Baseline vs expansion comparison | **Partial**: target-minus-control trend difference, and emission scenarios via `plume-scenario`. No facility-expansion model (operating data are private) | `trend-analysis` `control`, `plume-scenario` |
+| Long-range climate scenarios to 2100 | **Done**: NASA NEX-GDDP-CMIP6, 5-model ensemble, SSP2-4.5/SSP5-8.5, baseline vs 2041–2060 and 2081–2100, for the 5 sites and as a `climate-projection` API job for any point | `services/models/projections/`, `data/cloudshadow/projections/`, [docs/projections.md](docs/projections.md) |
+| Air-quality transport from facility emissions | **Done as screening**: Gaussian plume on real GEOS-FP winds gives a χ/Q footprint, and concentration only with a sourced emission rate (`plume-scenario` job; Colossus 1 product). **Not done:** chemistry and monitor calibration | `services/models/projections/plume.py`, [docs/projections.md](docs/projections.md) |
 | Watershed/groundwater balance, water quality | **Not implemented**: data available (Giovanni, USGS stations); no hydrological or water-quality model | — |
 | Crop/agriculture response, noise propagation | **Not implemented**: needs crop yields/phenology and acoustic measurements | — |
 
-What exists everywhere vs only at the 5 case-study sites: [docs/coverage.md](docs/coverage.md). UI follow-ups: issue #4.
+What remains and what would unlock it: [docs/projections.md](docs/projections.md#what-still-remains-outside-part-2). What exists everywhere vs only at the 5 case-study sites: [docs/coverage.md](docs/coverage.md). UI follow-ups: issue #4.
