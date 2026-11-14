@@ -11,6 +11,12 @@ import { libraryInventory, LibraryQueryError, queryLibrary } from "./environment
 
 class RequestError extends Error { status: number; constructor(status: number, message: string) { super(message); this.status = status; } }
 
+/** Browser front ends (Part 3) allowed to call this loopback API. Override with API_CORS_ORIGINS (comma-separated). */
+export function corsOrigins(env = process.env.API_CORS_ORIGINS): Set<string> {
+  const defaults = ["http://localhost:8765", "http://127.0.0.1:8765", "http://localhost:8080", "http://127.0.0.1:8080", "https://moustafa-fd.github.io"];
+  return new Set((env ? env.split(",") : defaults).map(origin => origin.trim()).filter(origin => /^https?:\/\/[^/\s]+$/.test(origin)));
+}
+
 function send(response: ServerResponse, status: number, value: unknown): void {
   response.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
   response.end(JSON.stringify(value));
@@ -43,10 +49,18 @@ export async function createApi(options: { store?: EnvironmentStore; executor?: 
   const store = options.store ?? new EnvironmentStore();
   const runs = new EnvironmentJobs(store, options.executor ?? environmentExecutor(store));
   await runs.init();
+  const allowedOrigins = corsOrigins();
   const server = createServer((request, response) => {
     void (async () => {
       const url = new URL(request.url ?? "/", "http://localhost");
       const path = url.pathname;
+      const origin = request.headers.origin;
+      if (origin && allowedOrigins.has(origin)) { response.setHeader("Access-Control-Allow-Origin", origin); response.setHeader("Vary", "Origin"); }
+      if (request.method === "OPTIONS") {
+        if (!origin || !allowedOrigins.has(origin)) return send(response, 403, { error: { code: "CORS_ORIGIN_NOT_ALLOWED", message: "Origin not in API_CORS_ORIGINS" } });
+        response.writeHead(204, { "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Access-Control-Max-Age": "600" });
+        return response.end();
+      }
       if (request.method === "GET" && path === "/health") return send(response, 200, { status: "ok", schemaVersion: "1.0", mode: "environmental", persistence: "local-files" });
       if (request.method === "GET" && path === "/v1/domains") return send(response, 200, { schemaVersion: "1.0", domains: ENVIRONMENT_DOMAINS });
       if (request.method === "GET" && (path === "/v1/facilities" || path === "/v1/emissions")) return send(response, 200, await queryLibrary(store, url.searchParams, path.endsWith("facilities") ? "facilities" : "emissions"));
@@ -79,7 +93,7 @@ export async function createApi(options: { store?: EnvironmentStore; executor?: 
           { id: "usgs", provider: "U.S. Geological Survey", access: "public_anonymous_bounded", adapterStatus: "live_ground_adapter", coverage: "USGS monitoring locations and available station-specific parameters", evidence: "ground-observation", documentationUrl: "https://api.waterdata.usgs.gov/docs/ogcapi/", note: "Water temperature, conductance, pH, dissolved oxygen and turbidity where recorded; provisional/qualifier/method metadata retained. No automatic data-center attribution." },
           { id: "power-grid", provider: "NASA POWER / MERRA-2", access: "public", format: "Zarr v2", coverage: "global", resolution: "0.5 degree latitude x 0.625 degree longitude", variables: ["T2M", "PRECTOTCORR", "RH2M", "WS2M"], evidence: "model-derived", documentationUrl: "https://power.larc.nasa.gov/docs/tutorials/service-data-request/aws/", note: "Supplementary NASA source; not one of the 13 challenge links. Actual valid dates and downloaded coverage are in inventory." },
           { id: "power-point", provider: "NASA POWER / MERRA-2", access: "public", coverage: "global point queries", evidence: "model-derived", documentationUrl: "https://power.larc.nasa.gov/docs/services/api/temporal/monthly/", note: "Point results do not mean every global grid cell has been downloaded." },
-          { id: "giovanni", access: "earthdata_login_required", adapterStatus: "discovery_only", resourceUrl: "https://giovanni.gsfc.nasa.gov/", note: "Time-series probe was rejected without token; no credentials are configured by this app." },
+          { id: "giovanni", access: "earthdata_login_required", adapterStatus: "part2_local_downloader", resourceUrl: "https://giovanni.gsfc.nasa.gov/", note: "Area-averaged series via NASA Harmony with EARTHDATA_TOKEN (python -m services.models.trends.giovanni; account must accept the GES DISC licence). Downloads stay local; pass them to trend-analysis as inline series." },
           { id: "appeears", access: "earthdata_login_required_for_extraction", adapterStatus: "discovery_only", resourceUrl: "https://appeears.earthdatacloud.nasa.gov/", note: "Public product metadata is distinct from an authenticated extraction task." },
           { id: "gistemp", access: "public_host_unreachable_during_setup", adapterStatus: "optional_helpers_only", resourceUrl: "https://data.giss.nasa.gov/gistemp/data_v4.html", note: "Direct archive and CSV connections timed out on this laptop; no GISTEMP observations are claimed downloaded." }
         ]

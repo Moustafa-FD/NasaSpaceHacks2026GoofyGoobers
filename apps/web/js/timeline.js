@@ -13,6 +13,7 @@
 // Hooks into app.js through window.CloudShadow + "cs:ready" / "cs:site" events.
 
 import * as FX from "./fx.js";
+import { attachFlow } from "./flowfield.js";
 import { getMotionSpeed, setMotionSpeed } from "./motion.js";
 import { createSmokeSprite, globeSmokePolicy, plumeParticleAlpha } from "./smoke-policy.js";
 
@@ -21,7 +22,7 @@ const TREND_VARS = { LST_Night: "Night heat", NDVI: "Vegetation", NO2_OMI: "NOâ‚
 const $ = (s) => document.querySelector(s);
 const fmt = (v, d = 2) => (v == null || !isFinite(v) ? "â€“" : (v > 0 ? "+" : "") + (+v).toFixed(d));
 
-let CS, viewer, hlsTimeline = {};
+let CS, viewer, FLOW, hlsTimeline = {};
 const T = {
   site: null, rows: new Map(), meta: null, year: 2025, ringVar: "LST_Night",
   layers: [], playing: false, playTimer: null, localScene: false, siteLoad: 0,
@@ -159,6 +160,7 @@ function applyYear(year, { instant = false } = {}) {
   }
   setGround(year);
   FX.applyYear(year, r, phase);
+  FLOW?.setYear(T.site, year, phase); // real GEOS-FP wind (2018+) overrides the annual POWER arrow via "cs:wind"
   // data overlay follows the year (if one is selected and has data that year)
   const kind = CS.getMapLayer?.();
   if (kind && VARS[kind]) CS.setMapLayer(kind, `${Math.min(year, lastObservedYear())}-07-15`);
@@ -323,6 +325,11 @@ function wireUi() {
 async function init(cs) {
   CS = cs; viewer = cs.viewer;
   FX.init(viewer);
+  FLOW = attachFlow(viewer);
+  window.addEventListener("cs:wind", (e) => {
+    const w = e.detail; if (!w || w.siteId !== T.site?.id) return;
+    T.target.windDir = w.towardDeg; T.target.windSpeed = w.speed; T._updateWindVec?.();
+  });
   if (new URLSearchParams(location.search).get("light") === "night") FX.setLight("night");
   try { hlsTimeline = await (await fetch("data/hls_timeline.json")).json(); } catch { hlsTimeline = {}; }
   const q = new URLSearchParams(location.search);

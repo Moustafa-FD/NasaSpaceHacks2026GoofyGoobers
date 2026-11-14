@@ -41,6 +41,59 @@ The request envelope is `{ "runId": "a-node-generated-id", "scenario": { ... } }
 
 These coordinates identify a display extent only. They do not locate a verified facility, select weather, allocate withdrawals to a watershed, or turn accounting totals into geographic predictions.
 
+## Trend engine (`trends/`)
+
+The challenge's core requirement is to visualize a regional time series and report its **rate of change** and whether the trend is **statistically significant**. `trends/` implements that analysis. It is standard-library only, works offline, and is **not yet connected to the Node API or the scenario contract**; it runs on CSV files through its own CLI until a trend-run contract is agreed with the backend track.
+
+| Module | Purpose |
+| --- | --- |
+| `stats.py` | Least-squares slope with t-test and CI (optional lag-1 effective-sample-size adjustment, Santer et al. 2000); Mann-Kendall with tie/continuity correction and optional Hamed-Rao autocorrelation correction; Sen's slope with Gilbert CI; seasonal Mann-Kendall and seasonal Sen slope (Hirsch et al. 1982); Benjamini-Hochberg FDR for many-cell maps |
+| `series.py` | CSV reading (Giovanni-style `key:,value` preamble, fill values), monthly grid with gaps kept as `None`, deseasonalized annual values, monthly anomalies, target-minus-control differences, missing-data report |
+| `analysis.py` | Monthly report (seasonal Mann-Kendall + seasonal Sen on values, adjusted t-test on anomalies), annual report (Hamed-Rao Mann-Kendall + Sen + adjusted t-test), control-region comparison, plain-language summary |
+| `catalog.json` / `catalog.py` | Candidate NASA variables with plain-language definitions and caveats; water quality and noise listed as unavailable with reasons |
+| `cli.py` | Command-line report (text or `--json`) |
+| `make_synthetic.py` | Writes the deterministic **synthetic** fixtures in `data/examples/trends/` |
+
+```sh
+python -m services.models.trends.cli data/examples/trends/synthetic-target-monthly.csv --units K
+python -m services.models.trends.cli data/examples/trends/synthetic-target-monthly.csv --control data/examples/trends/synthetic-control-monthly.csv
+python -m services.models.trends.cli data/examples/trends/synthetic-target-monthly.csv --cadence annual --json
+python -m services.models.trends.cli --list-variables
+```
+
+Real NASA inputs: `giovanni.py` downloads Giovanni area-averaged CSVs (through NASA Harmony) for each case-study site. It covers GPM rainfall, GLDAS topsoil moisture and evapotranspiration, GRACE-assimilated groundwater, and OMI tropospheric NO₂. Requirements: `EARTHDATA_TOKEN` in `.env`, and the Earthdata account must have accepted the GES DISC licence and signed in to Giovanni once. Files go to `data/raw/giovanni/<site>/` (ignored by Git) with provenance JSON. Re-runs skip existing files, and the run stops before the monthly Giovanni quota passes `--max-quota` (default 80%).
+
+```sh
+python -m services.models.trends.giovanni                      # default variables, all sites
+python -m services.models.trends.cli data/raw/giovanni/ashburn/GPM_3IMERGM_07_precipitation.csv --units "mm/hr"
+```
+
+### Scenario models (`projections/`)
+
+`projections/nexgddp.py` + `build.py`: NASA NEX-GDDP-CMIP6 climate projections to 2100. `projections/plume.py`: Gaussian-plume dispersion screening on GEOS-FP winds. `projections/worker.py`: line-protocol worker behind the `climate-projection` and `plume-scenario` API jobs. Methods, assumptions and limits are in [docs/projections.md](../../docs/projections.md).
+
+### Trend jobs in the Node API
+
+The environmental API runs the same engine as a background job (`kind: "trend-analysis"`), with the usual 202 → status/WebSocket → results flow:
+
+```json
+{ "schemaVersion": "1.0", "kind": "trend-analysis",
+  "input": { "runId": "<completed series run id>", "variable": "T2M" },
+  "cadence": "annual", "alpha": 0.05, "minYears": 10 }
+```
+
+The `input` (and optional `control`) is either `{runId | runIds, variable, model?}`, which reads completed Part 1 runs of kind `series`, `air-quality`, `land-water`, `climate` or `water-quality` (several runs are stitched in time; hourly data become daily means; mixing evidence types or units is refused), or an inline series `{ "series": { "label", "unit", "source", "points": [{ "date": "YYYY[-MM[-DD]]", "value": number|null }] } }` of up to 20,000 points. The result carries `evidence: "statistical-analysis"`, the method and tests used, input provenance (run ID, source URL, raw and input SHA-256), and the full report. With a control, it reports target, control and target-minus-control trends. Bridge: `apps/api/src/environment/trends.ts` → `python -m services.models.trends.worker`.
+
+Rules the engine enforces:
+
+- Records shorter than `--min-years` (default 10) or with more than 20% missing steps return `status: "insufficient_data"` with reasons and **no** trend numbers.
+- Missing values are never filled with zeros. Daily input is aggregated per month only when at least `--min-count` valid observations exist.
+- Annual values are built from seasonal anomalies plus the climatology, because averaging raw months with a gap biases a seasonal series.
+- Every report carries the attribution limitation: a regional trend, or a target-minus-control divergence, is not proof that a facility caused it.
+- Pairwise methods are O(n²): aggregate daily data to monthly/annual first.
+
+Validation: hand-computed cases; agreement with `scipy.stats` `linregress`, `theilslopes`, `kendalltau` and `t` where scipy is installed (skipped otherwise); exact recovery of a noise-free trend; and a false-positive rate near alpha for trendless synthetic series. These checks verify the statistics, not any real-world finding. The catalog's collection IDs and versions are marked `checked: false` until confirmed in Earthdata Search.
+
 ## Accounting formulas and units
 
 For each calendar year, `hours = 24 * days_in_year` (including leap years):

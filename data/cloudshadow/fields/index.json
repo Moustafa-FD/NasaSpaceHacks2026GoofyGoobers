@@ -1,0 +1,707 @@
+{
+ "schemaVersion": "flow-field-index/1.0",
+ "generated": "2026-11-14T19:59Z",
+ "source": "NASA GMAO GEOS-FP via NCCS OPeNDAP",
+ "validation": {
+  "method": "GEOS-FP site series compared at the same instants with NASA POWER hourly (MERRA-2) and with NOAA ISD observations at Washington Dulles airport (KIAD, ~10 km from the Ashburn site), 2025.",
+  "direction": "Median difference ~9 deg from the Dulles observations (7 instants with a reported direction, all within 37 deg).",
+  "speed": "GEOS-FP 10 m speed averaged 1.98 m/s vs 3.15 m/s observed at Dulles (8 instants, ~37% lower); NASA POWER averaged ~18% higher than observed. Grid-cell winds over suburbs/forest are weaker than an exposed airport anemometer, so treat speed as relative; it is not corrected.",
+  "temperature": "2 m temperature within 1.3 K mean absolute difference of NASA POWER hourly (12 instants).",
+  "details": "docs/flow-fields.md"
+ },
+ "products": [
+  {
+   "id": "abilene-2018",
+   "kind": "site",
+   "site": "abilene",
+   "year": 2018,
+   "frames": 12,
+   "complete": true,
+   "manifest": "abilene/2018.json",
+   "files": {
+    "wind": "abilene/2018.wind.png",
+    "scalars": "abilene/2018.scalars.png"
+   }
+  },
+  {
+   "id": "abilene-2019",
+   "kind": "site",
+   "site": "abilene",
+   "year": 2019,
+   "frames": 12,
+   "complete": true,
+   "manifest": "abilene/2019.json",
+   "files": {
+    "wind": "abilene/2019.wind.png",
+    "scalars": "abilene/2019.scalars.png"
+   }
+  },
+  {
+   "id": "abilene-2020",
+   "kind": "site",
+   "site": "abilene",
+   "year": 2020,
+   "frames": 12,
+   "complete": true,
+   "manifest": "abilene/2020.json",
+   "files": {
+    "wind": "abilene/2020.wind.png",
+    "scalars": "abilene/2020.scalars.png"
+   }
+  },
+  {
+   "id": "abilene-2021",
+   "kind": "site",
+   "site": "abilene",
+   "year": 2021,
+   "frames": 12,
+   "complete": true,
+   "manifest": "abilene/2021.json",
+   "files": {
+    "wind": "abilene/2021.wind.png",
+    "scalars": "abilene/2021.scalars.png"
+   }
+  },
+  {
+   "id": "abilene-2022",
+   "kind": "site",
+   "site": "abilene",
+   "year": 2022,
+   "frames": 12,
+   "complete": true,
+   "manifest": "abilene/2022.json",
+   "files": {
+    "wind": "abilene/2022.wind.png",
+    "scalars": "abilene/2022.scalars.png"
+   }
+  },
+  {
+   "id": "abilene-2023",
+   "kind": "site",
+   "site": "abilene",
+   "year": 2023,
+   "frames": 12,
+   "complete": true,
+   "manifest": "abilene/2023.json",
+   "files": {
+    "wind": "abilene/2023.wind.png",
+    "scalars": "abilene/2023.scalars.png"
+   }
+  },
+  {
+   "id": "abilene-2024",
+   "kind": "site",
+   "site": "abilene",
+   "year": 2024,
+   "frames": 12,
+   "complete": true,
+   "manifest": "abilene/2024.json",
+   "files": {
+    "wind": "abilene/2024.wind.png",
+    "scalars": "abilene/2024.scalars.png"
+   }
+  },
+  {
+   "id": "abilene-2025",
+   "kind": "site",
+   "site": "abilene",
+   "year": 2025,
+   "frames": 12,
+   "complete": true,
+   "manifest": "abilene/2025.json",
+   "files": {
+    "wind": "abilene/2025.wind.png",
+    "scalars": "abilene/2025.scalars.png"
+   }
+  },
+  {
+   "id": "abilene-2026",
+   "kind": "site",
+   "site": "abilene",
+   "year": 2026,
+   "frames": 10,
+   "complete": false,
+   "manifest": "abilene/2026.json",
+   "files": {
+    "wind": "abilene/2026.wind.png",
+    "scalars": "abilene/2026.scalars.png"
+   }
+  },
+  {
+   "id": "ashburn-2018",
+   "kind": "site",
+   "site": "ashburn",
+   "year": 2018,
+   "frames": 12,
+   "complete": true,
+   "manifest": "ashburn/2018.json",
+   "files": {
+    "wind": "ashburn/2018.wind.png",
+    "scalars": "ashburn/2018.scalars.png"
+   }
+  },
+  {
+   "id": "ashburn-2019",
+   "kind": "site",
+   "site": "ashburn",
+   "year": 2019,
+   "frames": 12,
+   "complete": true,
+   "manifest": "ashburn/2019.json",
+   "files": {
+    "wind": "ashburn/2019.wind.png",
+    "scalars": "ashburn/2019.scalars.png"
+   }
+  },
+  {
+   "id": "ashburn-2020",
+   "kind": "site",
+   "site": "ashburn",
+   "year": 2020,
+   "frames": 12,
+   "complete": true,
+   "manifest": "ashburn/2020.json",
+   "files": {
+    "wind": "ashburn/2020.wind.png",
+    "scalars": "ashburn/2020.scalars.png"
+   }
+  },
+  {
+   "id": "ashburn-2021",
+   "kind": "site",
+   "site": "ashburn",
+   "year": 2021,
+   "frames": 12,
+   "complete": true,
+   "manifest": "ashburn/2021.json",
+   "files": {
+    "wind": "ashburn/2021.wind.png",
+    "scalars": "ashburn/2021.scalars.png"
+   }
+  },
+  {
+   "id": "ashburn-2022",
+   "kind": "site",
+   "site": "ashburn",
+   "year": 2022,
+   "frames": 12,
+   "complete": true,
+   "manifest": "ashburn/2022.json",
+   "files": {
+    "wind": "ashburn/2022.wind.png",
+    "scalars": "ashburn/2022.scalars.png"
+   }
+  },
+  {
+   "id": "ashburn-2023",
+   "kind": "site",
+   "site": "ashburn",
+   "year": 2023,
+   "frames": 12,
+   "complete": true,
+   "manifest": "ashburn/2023.json",
+   "files": {
+    "wind": "ashburn/2023.wind.png",
+    "scalars": "ashburn/2023.scalars.png"
+   }
+  },
+  {
+   "id": "ashburn-2024",
+   "kind": "site",
+   "site": "ashburn",
+   "year": 2024,
+   "frames": 12,
+   "complete": true,
+   "manifest": "ashburn/2024.json",
+   "files": {
+    "wind": "ashburn/2024.wind.png",
+    "scalars": "ashburn/2024.scalars.png"
+   }
+  },
+  {
+   "id": "ashburn-2025",
+   "kind": "site",
+   "site": "ashburn",
+   "year": 2025,
+   "frames": 12,
+   "complete": true,
+   "manifest": "ashburn/2025.json",
+   "files": {
+    "wind": "ashburn/2025.wind.png",
+    "scalars": "ashburn/2025.scalars.png"
+   }
+  },
+  {
+   "id": "ashburn-2026",
+   "kind": "site",
+   "site": "ashburn",
+   "year": 2026,
+   "frames": 10,
+   "complete": false,
+   "manifest": "ashburn/2026.json",
+   "files": {
+    "wind": "ashburn/2026.wind.png",
+    "scalars": "ashburn/2026.scalars.png"
+   }
+  },
+  {
+   "id": "colossus1-2018",
+   "kind": "site",
+   "site": "colossus1",
+   "year": 2018,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus1/2018.json",
+   "files": {
+    "wind": "colossus1/2018.wind.png",
+    "scalars": "colossus1/2018.scalars.png"
+   }
+  },
+  {
+   "id": "colossus1-2019",
+   "kind": "site",
+   "site": "colossus1",
+   "year": 2019,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus1/2019.json",
+   "files": {
+    "wind": "colossus1/2019.wind.png",
+    "scalars": "colossus1/2019.scalars.png"
+   }
+  },
+  {
+   "id": "colossus1-2020",
+   "kind": "site",
+   "site": "colossus1",
+   "year": 2020,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus1/2020.json",
+   "files": {
+    "wind": "colossus1/2020.wind.png",
+    "scalars": "colossus1/2020.scalars.png"
+   }
+  },
+  {
+   "id": "colossus1-2021",
+   "kind": "site",
+   "site": "colossus1",
+   "year": 2021,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus1/2021.json",
+   "files": {
+    "wind": "colossus1/2021.wind.png",
+    "scalars": "colossus1/2021.scalars.png"
+   }
+  },
+  {
+   "id": "colossus1-2022",
+   "kind": "site",
+   "site": "colossus1",
+   "year": 2022,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus1/2022.json",
+   "files": {
+    "wind": "colossus1/2022.wind.png",
+    "scalars": "colossus1/2022.scalars.png"
+   }
+  },
+  {
+   "id": "colossus1-2023",
+   "kind": "site",
+   "site": "colossus1",
+   "year": 2023,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus1/2023.json",
+   "files": {
+    "wind": "colossus1/2023.wind.png",
+    "scalars": "colossus1/2023.scalars.png"
+   }
+  },
+  {
+   "id": "colossus1-2024",
+   "kind": "site",
+   "site": "colossus1",
+   "year": 2024,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus1/2024.json",
+   "files": {
+    "wind": "colossus1/2024.wind.png",
+    "scalars": "colossus1/2024.scalars.png"
+   }
+  },
+  {
+   "id": "colossus1-2025",
+   "kind": "site",
+   "site": "colossus1",
+   "year": 2025,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus1/2025.json",
+   "files": {
+    "wind": "colossus1/2025.wind.png",
+    "scalars": "colossus1/2025.scalars.png"
+   }
+  },
+  {
+   "id": "colossus1-2026",
+   "kind": "site",
+   "site": "colossus1",
+   "year": 2026,
+   "frames": 10,
+   "complete": false,
+   "manifest": "colossus1/2026.json",
+   "files": {
+    "wind": "colossus1/2026.wind.png",
+    "scalars": "colossus1/2026.scalars.png"
+   }
+  },
+  {
+   "id": "colossus2-2018",
+   "kind": "site",
+   "site": "colossus2",
+   "year": 2018,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus2/2018.json",
+   "files": {
+    "wind": "colossus2/2018.wind.png",
+    "scalars": "colossus2/2018.scalars.png"
+   }
+  },
+  {
+   "id": "colossus2-2019",
+   "kind": "site",
+   "site": "colossus2",
+   "year": 2019,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus2/2019.json",
+   "files": {
+    "wind": "colossus2/2019.wind.png",
+    "scalars": "colossus2/2019.scalars.png"
+   }
+  },
+  {
+   "id": "colossus2-2020",
+   "kind": "site",
+   "site": "colossus2",
+   "year": 2020,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus2/2020.json",
+   "files": {
+    "wind": "colossus2/2020.wind.png",
+    "scalars": "colossus2/2020.scalars.png"
+   }
+  },
+  {
+   "id": "colossus2-2021",
+   "kind": "site",
+   "site": "colossus2",
+   "year": 2021,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus2/2021.json",
+   "files": {
+    "wind": "colossus2/2021.wind.png",
+    "scalars": "colossus2/2021.scalars.png"
+   }
+  },
+  {
+   "id": "colossus2-2022",
+   "kind": "site",
+   "site": "colossus2",
+   "year": 2022,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus2/2022.json",
+   "files": {
+    "wind": "colossus2/2022.wind.png",
+    "scalars": "colossus2/2022.scalars.png"
+   }
+  },
+  {
+   "id": "colossus2-2023",
+   "kind": "site",
+   "site": "colossus2",
+   "year": 2023,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus2/2023.json",
+   "files": {
+    "wind": "colossus2/2023.wind.png",
+    "scalars": "colossus2/2023.scalars.png"
+   }
+  },
+  {
+   "id": "colossus2-2024",
+   "kind": "site",
+   "site": "colossus2",
+   "year": 2024,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus2/2024.json",
+   "files": {
+    "wind": "colossus2/2024.wind.png",
+    "scalars": "colossus2/2024.scalars.png"
+   }
+  },
+  {
+   "id": "colossus2-2025",
+   "kind": "site",
+   "site": "colossus2",
+   "year": 2025,
+   "frames": 12,
+   "complete": true,
+   "manifest": "colossus2/2025.json",
+   "files": {
+    "wind": "colossus2/2025.wind.png",
+    "scalars": "colossus2/2025.scalars.png"
+   }
+  },
+  {
+   "id": "colossus2-2026",
+   "kind": "site",
+   "site": "colossus2",
+   "year": 2026,
+   "frames": 10,
+   "complete": false,
+   "manifest": "colossus2/2026.json",
+   "files": {
+    "wind": "colossus2/2026.wind.png",
+    "scalars": "colossus2/2026.scalars.png"
+   }
+  },
+  {
+   "id": "global-2018",
+   "kind": "global",
+   "site": null,
+   "year": 2018,
+   "frames": 12,
+   "complete": true,
+   "manifest": "global/2018.json",
+   "files": {
+    "wind": "global/2018.wind.png"
+   }
+  },
+  {
+   "id": "global-2019",
+   "kind": "global",
+   "site": null,
+   "year": 2019,
+   "frames": 12,
+   "complete": true,
+   "manifest": "global/2019.json",
+   "files": {
+    "wind": "global/2019.wind.png"
+   }
+  },
+  {
+   "id": "global-2020",
+   "kind": "global",
+   "site": null,
+   "year": 2020,
+   "frames": 12,
+   "complete": true,
+   "manifest": "global/2020.json",
+   "files": {
+    "wind": "global/2020.wind.png"
+   }
+  },
+  {
+   "id": "global-2021",
+   "kind": "global",
+   "site": null,
+   "year": 2021,
+   "frames": 12,
+   "complete": true,
+   "manifest": "global/2021.json",
+   "files": {
+    "wind": "global/2021.wind.png"
+   }
+  },
+  {
+   "id": "global-2022",
+   "kind": "global",
+   "site": null,
+   "year": 2022,
+   "frames": 12,
+   "complete": true,
+   "manifest": "global/2022.json",
+   "files": {
+    "wind": "global/2022.wind.png"
+   }
+  },
+  {
+   "id": "global-2023",
+   "kind": "global",
+   "site": null,
+   "year": 2023,
+   "frames": 12,
+   "complete": true,
+   "manifest": "global/2023.json",
+   "files": {
+    "wind": "global/2023.wind.png"
+   }
+  },
+  {
+   "id": "global-2024",
+   "kind": "global",
+   "site": null,
+   "year": 2024,
+   "frames": 12,
+   "complete": true,
+   "manifest": "global/2024.json",
+   "files": {
+    "wind": "global/2024.wind.png"
+   }
+  },
+  {
+   "id": "global-2025",
+   "kind": "global",
+   "site": null,
+   "year": 2025,
+   "frames": 12,
+   "complete": true,
+   "manifest": "global/2025.json",
+   "files": {
+    "wind": "global/2025.wind.png"
+   }
+  },
+  {
+   "id": "global-2026",
+   "kind": "global",
+   "site": null,
+   "year": 2026,
+   "frames": 10,
+   "complete": false,
+   "manifest": "global/2026.json",
+   "files": {
+    "wind": "global/2026.wind.png"
+   }
+  },
+  {
+   "id": "thedalles-2018",
+   "kind": "site",
+   "site": "thedalles",
+   "year": 2018,
+   "frames": 12,
+   "complete": true,
+   "manifest": "thedalles/2018.json",
+   "files": {
+    "wind": "thedalles/2018.wind.png",
+    "scalars": "thedalles/2018.scalars.png"
+   }
+  },
+  {
+   "id": "thedalles-2019",
+   "kind": "site",
+   "site": "thedalles",
+   "year": 2019,
+   "frames": 12,
+   "complete": true,
+   "manifest": "thedalles/2019.json",
+   "files": {
+    "wind": "thedalles/2019.wind.png",
+    "scalars": "thedalles/2019.scalars.png"
+   }
+  },
+  {
+   "id": "thedalles-2020",
+   "kind": "site",
+   "site": "thedalles",
+   "year": 2020,
+   "frames": 12,
+   "complete": true,
+   "manifest": "thedalles/2020.json",
+   "files": {
+    "wind": "thedalles/2020.wind.png",
+    "scalars": "thedalles/2020.scalars.png"
+   }
+  },
+  {
+   "id": "thedalles-2021",
+   "kind": "site",
+   "site": "thedalles",
+   "year": 2021,
+   "frames": 12,
+   "complete": true,
+   "manifest": "thedalles/2021.json",
+   "files": {
+    "wind": "thedalles/2021.wind.png",
+    "scalars": "thedalles/2021.scalars.png"
+   }
+  },
+  {
+   "id": "thedalles-2022",
+   "kind": "site",
+   "site": "thedalles",
+   "year": 2022,
+   "frames": 12,
+   "complete": true,
+   "manifest": "thedalles/2022.json",
+   "files": {
+    "wind": "thedalles/2022.wind.png",
+    "scalars": "thedalles/2022.scalars.png"
+   }
+  },
+  {
+   "id": "thedalles-2023",
+   "kind": "site",
+   "site": "thedalles",
+   "year": 2023,
+   "frames": 12,
+   "complete": true,
+   "manifest": "thedalles/2023.json",
+   "files": {
+    "wind": "thedalles/2023.wind.png",
+    "scalars": "thedalles/2023.scalars.png"
+   }
+  },
+  {
+   "id": "thedalles-2024",
+   "kind": "site",
+   "site": "thedalles",
+   "year": 2024,
+   "frames": 12,
+   "complete": true,
+   "manifest": "thedalles/2024.json",
+   "files": {
+    "wind": "thedalles/2024.wind.png",
+    "scalars": "thedalles/2024.scalars.png"
+   }
+  },
+  {
+   "id": "thedalles-2025",
+   "kind": "site",
+   "site": "thedalles",
+   "year": 2025,
+   "frames": 12,
+   "complete": true,
+   "manifest": "thedalles/2025.json",
+   "files": {
+    "wind": "thedalles/2025.wind.png",
+    "scalars": "thedalles/2025.scalars.png"
+   }
+  },
+  {
+   "id": "thedalles-2026",
+   "kind": "site",
+   "site": "thedalles",
+   "year": 2026,
+   "frames": 10,
+   "complete": false,
+   "manifest": "thedalles/2026.json",
+   "files": {
+    "wind": "thedalles/2026.wind.png",
+    "scalars": "thedalles/2026.scalars.png"
+   }
+  }
+ ]
+}

@@ -1,0 +1,241 @@
+{
+  "catalogVersion": "0.1",
+  "note": "Candidate variables for environmental trend investigations. Collection identifiers, versions, variable names and record start dates were not re-checked against Earthdata Search for this draft (checked: false). Confirm each in Earthdata Search or Giovanni before building an adapter.",
+  "variables": [
+    {
+      "id": "omi-no2-tropospheric-column",
+      "status": "candidate",
+      "checked": false,
+      "theme": "air",
+      "label": "Nitrogen dioxide (tropospheric column)",
+      "plainDefinition": "How much nitrogen dioxide gas sits in the lower atmosphere above an area. Most of it comes from burning fuel: traffic, power plants and backup generators.",
+      "source": "OMI on NASA Aura",
+      "collection": "OMNO2d",
+      "version": "003",
+      "variable": "ColumnAmountNO2TropCloudScreened",
+      "units": "molecules/cm^2",
+      "nativeResolution": "0.25 degree, daily",
+      "recordStart": "2004-10",
+      "access": ["Giovanni", "GES DISC"],
+      "caveats": [
+        "A column through the atmosphere, not the concentration at breathing height.",
+        "Cloudy days are screened out, so some months have few valid days.",
+        "OMI has a known row anomaly since 2007 that reduces coverage."
+      ]
+    },
+    {
+      "id": "merra2-aerosol-optical-thickness",
+      "status": "candidate",
+      "checked": false,
+      "theme": "air",
+      "label": "Aerosol optical thickness (model reanalysis)",
+      "plainDefinition": "How much haze, smoke, dust and fine particles block sunlight, estimated by a NASA model that combines satellite and other observations.",
+      "source": "MERRA-2 reanalysis",
+      "collection": "M2TMNXAER",
+      "version": "5.12.4",
+      "variable": "TOTEXTTAU",
+      "units": "unitless",
+      "nativeResolution": "0.5 x 0.625 degree, monthly",
+      "recordStart": "1980-01",
+      "access": ["Giovanni", "GES DISC"],
+      "caveats": [
+        "A model estimate of the whole air column, not a surface PM2.5 measurement.",
+        "Coarse grid cells can be larger than the area around a single facility."
+      ]
+    },
+    {
+      "id": "modis-aerosol-optical-depth",
+      "status": "candidate",
+      "checked": false,
+      "theme": "air",
+      "label": "Aerosol optical depth (satellite)",
+      "plainDefinition": "A satellite measurement of how hazy the air is from particles such as smoke, dust and pollution.",
+      "source": "MODIS on NASA Terra",
+      "collection": "MOD08_M3",
+      "version": "61",
+      "variable": "AOD_550_Dark_Target_Deep_Blue_Combined_Mean_Mean",
+      "units": "unitless",
+      "nativeResolution": "1 degree, monthly",
+      "recordStart": "2000-03",
+      "access": ["Giovanni", "LAADS DAAC"],
+      "caveats": [
+        "Column measurement, not surface air quality.",
+        "Clear-sky retrievals only."
+      ]
+    },
+    {
+      "id": "merra2-air-temperature-2m",
+      "status": "candidate",
+      "checked": false,
+      "theme": "heat",
+      "label": "Air temperature at 2 metres (model reanalysis)",
+      "plainDefinition": "The air temperature about head height above the ground, as estimated by a NASA model built from many observations.",
+      "source": "MERRA-2 reanalysis",
+      "collection": "M2TMNXSLV",
+      "version": "5.12.4",
+      "variable": "T2M",
+      "units": "K",
+      "nativeResolution": "0.5 x 0.625 degree, monthly",
+      "recordStart": "1980-01",
+      "access": ["Giovanni", "GES DISC"],
+      "caveats": [
+        "Regional climate signal; cells are far larger than a facility site."
+      ]
+    },
+    {
+      "id": "modis-land-surface-temperature-day",
+      "status": "candidate",
+      "checked": false,
+      "theme": "heat",
+      "label": "Daytime land surface temperature",
+      "plainDefinition": "How hot the ground, roofs and vegetation surfaces are in the daytime, measured from space. Built-up areas are often hotter than fields or forests.",
+      "source": "MODIS on NASA Terra",
+      "collection": "MOD11A2",
+      "version": "061",
+      "variable": "LST_Day_1km",
+      "units": "K (after applying the 0.02 scale factor)",
+      "nativeResolution": "1 km, 8-day",
+      "recordStart": "2000-03",
+      "access": ["AppEEARS", "LP DAAC"],
+      "caveats": [
+        "Surface skin temperature, not air temperature.",
+        "Clear-sky only; apply the quality flags.",
+        "Apply the scale factor before analysis."
+      ]
+    },
+    {
+      "id": "gpm-imerg-precipitation",
+      "status": "candidate",
+      "checked": false,
+      "theme": "water",
+      "label": "Precipitation",
+      "plainDefinition": "How much rain and snow falls, combined from many satellites.",
+      "source": "GPM IMERG",
+      "collection": "GPM_3IMERGM",
+      "version": "07",
+      "variable": "precipitation",
+      "units": "mm/hr (monthly mean rate)",
+      "nativeResolution": "0.1 degree, monthly",
+      "recordStart": "2000-06",
+      "access": ["Giovanni", "GES DISC"],
+      "caveats": [
+        "Rainfall is year-to-year noisy; trends often need long records to become significant."
+      ]
+    },
+    {
+      "id": "gldas-soil-moisture-0-10cm",
+      "status": "candidate",
+      "checked": false,
+      "theme": "water",
+      "label": "Topsoil moisture (0-10 cm)",
+      "plainDefinition": "How much water is held in the top layer of soil, which crops and plants draw on.",
+      "source": "GLDAS Noah land model",
+      "collection": "GLDAS_NOAH025_M",
+      "version": "2.1",
+      "variable": "SoilMoi0_10cm_inst",
+      "units": "kg/m^2",
+      "nativeResolution": "0.25 degree, monthly",
+      "recordStart": "2000-01",
+      "access": ["Giovanni", "GES DISC"],
+      "caveats": [
+        "A land-model estimate driven by observations, not a direct soil measurement.",
+        "Does not include a facility's own water withdrawals."
+      ]
+    },
+    {
+      "id": "gldas-evapotranspiration",
+      "status": "candidate",
+      "checked": false,
+      "theme": "water",
+      "label": "Evapotranspiration",
+      "plainDefinition": "Water returning to the air from soil, water surfaces and plant leaves.",
+      "source": "GLDAS Noah land model",
+      "collection": "GLDAS_NOAH025_M",
+      "version": "2.1",
+      "variable": "Evap_tavg",
+      "units": "kg/m^2/s",
+      "nativeResolution": "0.25 degree, monthly",
+      "recordStart": "2000-01",
+      "access": ["Giovanni", "GES DISC"],
+      "caveats": [
+        "Model estimate; it does not separate cooling-tower evaporation from natural evaporation."
+      ]
+    },
+    {
+      "id": "grace-terrestrial-water-storage",
+      "status": "candidate",
+      "checked": false,
+      "theme": "water",
+      "label": "Total water storage (including groundwater)",
+      "plainDefinition": "Changes in all water stored on and under the land - soil, groundwater, lakes and snow - detected from tiny changes in Earth's gravity.",
+      "source": "GRACE and GRACE-FO",
+      "collection": "JPL GRACE/GRACE-FO mascon (RL06.x)",
+      "version": "RL06.x",
+      "variable": "lwe_thickness",
+      "units": "cm equivalent water thickness (anomaly)",
+      "nativeResolution": "about 300 km effective, monthly",
+      "recordStart": "2002-04",
+      "access": ["PO.DAAC"],
+      "caveats": [
+        "Very coarse; reflects whole regions, never a single site.",
+        "Gap between the two missions (2017-2018) must be reported as missing."
+      ]
+    },
+    {
+      "id": "modis-ndvi",
+      "status": "candidate",
+      "checked": false,
+      "theme": "land-agriculture",
+      "label": "Vegetation greenness (NDVI)",
+      "plainDefinition": "A satellite index of how green and leafy plants are. Healthy crops and forests score high; bare ground and pavement score low.",
+      "source": "MODIS on NASA Terra",
+      "collection": "MOD13Q1",
+      "version": "061",
+      "variable": "250m_16_days_NDVI",
+      "units": "unitless (after applying the 0.0001 scale factor)",
+      "nativeResolution": "250 m, 16-day",
+      "recordStart": "2000-02",
+      "access": ["AppEEARS", "LP DAAC"],
+      "caveats": [
+        "Greenness is an indicator of vegetation condition, not a measurement of crop yield.",
+        "Apply quality flags and the scale factor."
+      ]
+    },
+    {
+      "id": "modis-land-cover",
+      "status": "candidate",
+      "checked": false,
+      "theme": "land-agriculture",
+      "label": "Land cover type",
+      "plainDefinition": "What covers the ground each year - cropland, forest, grassland, water or built-up land.",
+      "source": "MODIS Terra + Aqua",
+      "collection": "MCD12Q1",
+      "version": "061",
+      "variable": "LC_Type1",
+      "units": "class (analyze as the share of a class in the region)",
+      "nativeResolution": "500 m, annual",
+      "recordStart": "2001",
+      "access": ["AppEEARS", "LP DAAC"],
+      "caveats": [
+        "Categorical; trend-test the yearly share of one class (for example built-up land), not class codes.",
+        "Year-to-year classification noise can mimic change."
+      ]
+    },
+    {
+      "id": "surface-water-quality",
+      "status": "unavailable",
+      "theme": "water",
+      "label": "River and lake water quality",
+      "plainDefinition": "Chemistry and temperature of local rivers and lakes.",
+      "unavailableReason": "No suitable NASA trend variable for small inland waters near facilities. Needs ground sampling records (for example the Water Quality Portal) and a dedicated adapter."
+    },
+    {
+      "id": "environmental-noise",
+      "status": "unavailable",
+      "theme": "noise",
+      "label": "Environmental noise",
+      "plainDefinition": "Sound levels heard near homes and habitats.",
+      "unavailableReason": "Satellites do not measure sound. Needs ground acoustic measurements and an acoustic propagation model."
+    }
+  ]
+}

@@ -28,6 +28,7 @@
     "data:expand": "node --env-file-if-exists=.env scripts/expand-data.ts",
     "data:verify-expanded": "node --env-file-if-exists=.env scripts/verify-expanded.ts",
     "test:data": "node --env-file-if-exists=.env scripts/test-data.ts",
+    "data:fields": "python -m services.models.fields.build",
     "test:web": "node --test tests/*.test.js"
   },
   "dependencies": {

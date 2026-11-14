@@ -61,11 +61,18 @@ Environmental changes observed near a data center do not necessarily establish t
 | **Trend statistics** | Site vs. surrounding ring, seasons removed, **Mann-Kendall + Sen's slope (95% CI)**, before/after **Welch t-test** with autocorrelation-adjusted n (checked against SciPy) | `apps/web/js/stats.js` |
 | **Unreal project** | UE 5.8.3 + Cesium for Unreal, level with 70 yearly NASA imagery overlays and NASA data layers, built by script | `clients/unreal/CloudShadow/` |
 | **Data and backend** | Environmental Node `/v1` API, facility/emissions inventories, source adapters, cached data and background jobs; separate from the web explorer's datasets | `apps/api/`, `services/data/`, `packages/contracts/` · [Part 1 handoff](docs/data-and-backend.md) |
+| **Real wind flow (Part 2)** | NASA GEOS-FP analysis winds (+ temperature, sea-level pressure) as shared `flow-field/1.0` files: particle trails on the globe and the fluid sim/clouds follow the analysed wind of each frame, 2018 onward. Direction checked against Dulles airport observations (median ~9°). [docs/flow-fields.md](docs/flow-fields.md) | `services/models/fields/`, `apps/web/js/flowfield.js`, `data/cloudshadow/fields/` |
+| **Trend engine (Python, Part 2)** | Seasonal Mann-Kendall, Hamed-Rao correction (can only widen uncertainty), Sen's slope + CI, autocorrelation-adjusted t-test, control-region comparison and missing-data rules. Runs from a CLI on CSV files **and as the `trend-analysis` job in the Node API**. Research on data access and wind/pressure sources: [docs/research/data-access-and-models.md](docs/research/data-access-and-models.md) | `services/models/trends/` |
+| **Giovanni series (Part 2)** | Giovanni area averages through NASA Harmony for each site: GPM rainfall, GLDAS topsoil moisture and evapotranspiration, GRACE-assimilated groundwater, OMI NO₂. Resumable and quota-guarded; needs `EARTHDATA_TOKEN`. Results for all 5 sites in the research doc; not yet shown in the web app | `services/models/trends/giovanni.py` → `data/raw/giovanni/` |
+
+> **Where does the detailed view work?** Only at the **5 case-study sites**: timeline, yearly imagery, 3D effects, fluid sim, detailed wind box, ledger. **Anywhere else**, a click on the globe gives a live NASA trend analysis plus global map overlays and global wind trails, but no timeline or 3D effects. See [docs/coverage.md](docs/coverage.md).
 
 **Findings so far** (details, caveats and method in [docs/cloud-shadow.md](docs/cloud-shadow.md)):
 - **Ashburn, VA:** the region's air warmed **+0.71 °C/decade** (MERRA-2, p = 0.001), and the data-center area's **night-time surface heat** warmed a further **+0.25 °C/decade** beyond its surroundings (p = 0.001).
 - **Memphis, TN:** greenness fell at xAI Colossus 1 (p < 0.001) and Colossus 2 (p = 0.047); NO₂ near Colossus 1 rose after the mid-2024 turbines, but the change is **borderline** (p = 0.051).
 - Particle haze (aerosol optical depth): no significant increase at any site.
+- **Giovanni, all 5 sites** ([details](docs/research/data-access-and-models.md)): tropospheric NO₂ **fell** at Ashburn and Memphis (2005–2025, p < 0.02 on both tests), in line with the national emission-control decline. Ashburn groundwater storage −19 mm/decade is **borderline**. Topsoil dried at Colossus 1 and Abilene. No significant rainfall trend anywhere.
+- **Climate to 2100, NASA NEX-GDDP-CMIP6** ([method](docs/projections.md)), conditional scenarios with 5-model spread: by 2081–2100 the sites warm **+2.0 to +2.8 °C** under SSP2-4.5 and **+4.2 to +4.9 °C** under SSP5-8.5 (model medians). Days ≥ 35 °C rise from 28 to ~109/yr in Memphis and from 14 to ~60/yr in Ashburn under SSP5-8.5. These are regional climate scenarios, not facility effects.
 
 ### Run it
 | Command | Purpose |
@@ -73,6 +80,10 @@ Environmental changes observed near a data center do not necessarily establish t
 | `npm run web` | Web explorer + JSON API on http://localhost:8765 |
 | `npm run web:build` / `web:preview` | Static build in `dist/web/` (what GitHub Pages serves) / preview on :8080 |
 | `npm run data:nasa` / `data:weather` / `data:timeline-imagery` / `data:unreal` | Refresh NASA series / NASA POWER weather / yearly 30 m imagery / timeline + Unreal exports (Python + `pip install pillow`) |
+| `npm run data:fields` | NASA GEOS-FP wind/temperature/pressure flow fields for web + Unreal (resumable, no login) |
+| `python -m services.models.trends.giovanni` | Giovanni area-averaged series for the sites (needs `EARTHDATA_TOKEN`) |
+| `python -m services.models.trends.cli <csv>` | Trend magnitude + significance report for any time-series CSV |
+| `python -m services.models.projections.build` / `python -m services.models.projections.plume` | NEX-GDDP-CMIP6 climate projections to 2100 per site / plume χ/Q footprints (sites with on-site combustion) |
 | `npm start`, `npm run check` | Environmental Node API on :3000 / backend checks after `npm run data:setup` (CI) |
 
 The web explorer's committed case-study datasets do not yet cover water quality, groundwater, soil and agriculture indicators. The Node backend below adds separate station water-quality, modeled soil/water and agricultural climate-exposure data; these caches are not yet connected to the web explorer. Groundwater-specific products and calibrated crop-impact models remain future work.
@@ -107,8 +118,25 @@ On November 14, 2026, the reference implementation passed **130 tests** and live
 
 **Run the Node backend:** install Node 24.12+ and Python 3.11+, then run `npm ci`, `npm run data:setup` and `npm start`. In another terminal use `npm run data:sync` for POWER history, `npm run data:expand` for bounded inventories/regional examples, and optional `npm run data:verify` / `npm run data:verify-expanded` after acquisition. `npm run check` runs offline checks after data dependencies are installed.
 
-**API behavior change:** `npm start` now serves environmental `/v1` operations, and `npm run demo` reads cached POWER series, requiring `data:sync` first. Old scenario request bodies are rejected; the accounting worker/schemas remain regression fixtures, with no economic outputs in the public environmental API. The web explorer still uses `npm run web` on port 8765 and its own `/api` contract. Give the two services distinct `PORT` values; browser integration still needs a proxy/CORS implementation.
+**API behavior change:** `npm start` now serves environmental `/v1` operations, and `npm run demo` reads cached POWER series, requiring `data:sync` first. Old scenario request bodies are rejected; the accounting worker/schemas remain regression fixtures, with no economic outputs in the public environmental API. The web explorer still uses `npm run web` on port 8765 and its own `/api` contract. Give the two services distinct `PORT` values. The API sends CORS headers to the local web ports and the GitHub Pages origin (override with `API_CORS_ORIGINS`).
 
-**Still needed in this Node API:** trend/significance job integration, verified facility matching, calibrated facility-impact and agricultural models, and noise propagation/prediction. Ground noise and vegetation records can be imported with provenance, but no noise dataset or numeric NDVI observations were acquired; the public ORNL vegetation service was unavailable during setup.
+**Part 2 jobs:** `kind: "plume-scenario"` (dispersion screening on GEOS-FP winds) and `kind: "climate-projection"` (NEX-GDDP-CMIP6 to 2100, any point) are documented in [docs/projections.md](docs/projections.md). `POST /v1/runs` with `kind: "trend-analysis"` runs the Python trend engine on a completed `series` run (`input: {runId, variable}`) or an inline series (`input: {series: {label, unit, points}}`), with an optional `control` for a target-minus-control trend. See [services/models/README.md](services/models/README.md#trend-jobs-in-the-node-api).
+
+**Still needed in this Node API:** verified facility matching, calibrated facility-impact and agricultural models, and noise propagation/prediction. Ground noise and vegetation records can be imported with provenance, but no noise dataset or numeric NDVI observations were acquired; the public ORNL vegetation service was unavailable during setup.
 
 See **[1. Data and backend — technical handoff](docs/data-and-backend.md)** for setup prerequisites, exact request/result examples, data locations, source limits and the extension points Part 2 should use.
+
+### 2. Projection engine (Part 2): status
+
+| Requirement (PDF / handoff) | Status | Where |
+|---|---|---|
+| Historical trend magnitude + significance (challenge core) | **Done**: Python engine + `trend-analysis` API job, validated vs SciPy, with autocorrelation safeguards | `services/models/trends/`, `apps/api/src/environment/trends.ts` |
+| Real NASA inputs for water and air | **Done** for 5 sites: Giovanni rainfall, soil moisture, evapotranspiration, groundwater, OMI NO₂ (local download) | `services/models/trends/giovanni.py` |
+| Shared winds/temperature/pressure for web + Unreal | **Done**: GEOS-FP flow fields 2018–2026, validated vs Dulles observations | `services/models/fields/`, `docs/flow-fields.md` |
+| Baseline vs expansion comparison | **Partial**: target-minus-control trend difference, and emission scenarios via `plume-scenario`. No facility-expansion model (operating data are private) | `trend-analysis` `control`, `plume-scenario` |
+| Long-range climate scenarios to 2100 | **Done**: NASA NEX-GDDP-CMIP6, 5-model ensemble, SSP2-4.5/SSP5-8.5, baseline vs 2041–2060 and 2081–2100, for the 5 sites and as a `climate-projection` API job for any point | `services/models/projections/`, `data/cloudshadow/projections/`, [docs/projections.md](docs/projections.md) |
+| Air-quality transport from facility emissions | **Done as screening**: Gaussian plume on real GEOS-FP winds gives a χ/Q footprint, and concentration only with a sourced emission rate (`plume-scenario` job; Colossus 1 product). **Not done:** chemistry and monitor calibration | `services/models/projections/plume.py`, [docs/projections.md](docs/projections.md) |
+| Watershed/groundwater balance, water quality | **Not implemented**: data available (Giovanni, USGS stations); no hydrological or water-quality model | — |
+| Crop/agriculture response, noise propagation | **Not implemented**: needs crop yields/phenology and acoustic measurements | — |
+
+**Parts 1 ↔ 2 are connected** through the single `/v1` job API: `trend-analysis` reads POWER, CAMS, ERA5, HighResMIP and USGS runs (stitching several runs, refusing mixed evidence), and the API now allows browser front ends via CORS. **Only Part 3 plumbing remains:** [docs/part3-integration.md](docs/part3-integration.md) lists every call, result field and static file, and where each belongs on screen. What remains and what would unlock it: [docs/projections.md](docs/projections.md#what-still-remains-outside-part-2). What exists everywhere vs only at the 5 case-study sites: [docs/coverage.md](docs/coverage.md). UI follow-ups: issue #4.
