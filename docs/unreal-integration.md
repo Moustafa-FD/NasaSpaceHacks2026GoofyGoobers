@@ -1,6 +1,8 @@
 # Unreal + Cesium integration plan
 
-This document is the implementation track for part 3. There is no `.uproject`, compiled connector, map asset, or packaged Unreal application in this starter. The local API and synthetic example can be exercised before installing Unreal.
+> **Archived starter connector plan:** the generic scenario connector, accounting-result examples and acceptance checklist below are retained design notes. The active environmental `:3000` API accepts the supported operation kinds in [the current API](api.md) and [Data and backend](data-and-backend.md); it rejects the old synthetic scenario body. The repository already contains an [Unreal project and setup workflow](../clients/unreal/README.md) plus the [web explorer, statistics and separate `:8765` API](../apps/web/README.md). Those implementations remain intact; no automatic bridge from them to the expanded environmental gateway is supplied here. Electricity-bill, employment/labor and population controls in the archived plan are outside current scope.
+
+This document preserves the original networking and scenario-UI proposal. Follow the existing client guides for the team's implemented globe, assets and timeline, and the active API documents when adding environmental requests.
 
 ## Target experience
 

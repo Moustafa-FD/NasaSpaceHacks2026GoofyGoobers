@@ -1,5 +1,7 @@
 # Architecture
 
+> **Archived starter architecture:** the sections below describe the original synthetic-accounting design, including its in-memory registry, scenario payloads and proposed client. They are not the active environmental API contract. Use [Data and backend](data-and-backend.md) and [the current API](api.md) for the persistent Part 1 gateway, source-specific evidence and extension points. Existing web statistics, NASA-derived data, layer templates and Unreal project work are documented in [the web team guide](../apps/web/README.md) and [Unreal setup](../clients/unreal/README.md); they are separate from the gateway. Electricity bills, employment/labor and population sections below are historical planning, outside the current environmental/agriculture scope.
+
 The system has three parts: a data/API backend, a projection engine, and an Unreal explorer. The first vertical slice runs locally and uses explicitly synthetic scenario assumptions. It demonstrates communication and accounting, not validated environmental or socioeconomic forecasting.
 
 | Part | Responsibility | Starter state |

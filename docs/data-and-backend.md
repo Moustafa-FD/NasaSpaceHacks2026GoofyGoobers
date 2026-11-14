@@ -1,37 +1,37 @@
 # 1. Data and backend
 
-> **Implementation availability:** this handoff describes the separate local Node environmental API on branch `codex/environment-data-backend`, commit `71d263d`, inspected on **2026-11-14**. That API implementation is **local only and is not included in this documentation PR**. The updated `main` baseline, `c6b8ed1`, already includes the team's web explorer, NASA-data pipeline, statistical methods and Unreal work described below; it does not include this expanded `:3000/v1` implementation. Obtain that implementation checkout before running its commands/contracts. Its downloaded caches and verification receipts are ignored local files and are not shipped by this PR.
+> **Implementation availability:** this backend PR includes Footprint Atlas's expanded Node environmental API, alongside the existing web explorer, NASA-data pipeline, statistical methods and Unreal project. Use this PR checkout before merge, or a main checkout containing it afterward. Source code and reproducible acquisition commands are included; downloaded caches, saved runs and verification receipts remain local and are not shipped. The dated verification below comes from the reference implementation at `71d263d` on 2026-11-14.
 
-Except in the explicitly labeled main-coexistence section, code paths, imports, commands and runtime contracts below are relative to **that local Node implementation checkout**. The existing `apps/api` scenario starter, legacy JSON Schemas/accounting worker and starter `docs/api.md` on main are not this expanded Node environmental contract. This document is self-contained so Part 2 can assess the implementation before it is published.
+Code paths, imports and commands below refer to this repository checkout. The active Node contract is `packages/contracts/src/environment.ts` and the expanded [API documentation](api.md). The old accounting JSON Schemas and Python worker remain fixtures; their scenario bodies are no longer accepted by the environmental API.
 
 ## Purpose and boundary
 
 Part 1 acquires environmental evidence, preserves source definitions/provenance, maintains bounded local caches and exposes asynchronous requests/results. Coverage is global where supported, with Canada/USA investigation priority. Source availability, actual locally acquired coverage and finite observations are separate facts.
 
-Part 2 can consume historical series, official emissions records, station observations and conditional climate simulations. The local Node API does not yet expose statistical trend jobs. Part 2 should evaluate and integrate the existing main statistical work rather than assume it must start from zero, then validate methods and any new environmental-impact models against their intended evidence. Electricity bills, labor and population projections are outside the current environmental scope.
+Part 2 can consume historical series, official emissions records, station observations and conditional climate simulations. The Node environmental API does not yet expose statistical trend jobs. Part 2 should evaluate and integrate the existing main statistical work rather than assume it must start from zero, then validate methods and any new environmental-impact models against their intended evidence. Electricity bills, labor and population projections are outside the current environmental scope.
 
-Existing agriculture calculations provide climate-exposure indicators. They do not predict crop yield, agricultural suitability or damage attributable to a data center. This local Node API provides no calibrated facility-attribution, pollutant-transport, acoustic-propagation or comprehensive water-chemistry model.
+Existing agriculture calculations provide climate-exposure indicators. They do not predict crop yield, agricultural suitability or damage attributable to a data center. This Node environmental API provides no calibrated facility-attribution, pollutant-transport, acoustic-propagation or comprehensive water-chemistry model.
 
-## Coexisting work already on main (`c6b8ed1`)
+## Coexisting web, NASA, statistics and Unreal work
 
 The [web team guide](../apps/web/README.md) describes the existing browser/Unreal workflow; this handoff does not replace it or independently establish its scientific validation.
 
 | Main implementation | Current interface and integration boundary |
 | --- | --- |
-| `apps/web/server.cjs` | `npm run web`, default port 8765; `/api/sites`, `/api/analysis?site=&var=`, `/api/layers` and variable/date layer requests. Separate from the local Node `/v1` API. |
-| `data/cloudshadow/`, `scripts/summary.cjs`, NASA pipeline scripts | Committed site datasets and exports used by the web workflow. Its monthly `t/site/ref` arrays are not automatically mapped to the local Node cache/result shapes. |
+| `apps/web/server.cjs` | `npm run web`, default port 8765; `/api/sites`, `/api/analysis?site=&var=`, `/api/layers` and variable/date layer requests. Separate from the Node environmental `/v1` API. |
+| `data/cloudshadow/`, `scripts/summary.cjs`, NASA pipeline scripts | Committed site datasets and exports used by the web workflow. Its monthly `t/site/ref` arrays are not automatically mapped to the Node environmental cache/result shapes. |
 | `apps/web/js/stats.js` | Existing Mann-Kendall, Sen's slope, deseasonalization and Welch/before-after routines. Review assumptions/numerical checks and adapt their input/evidence contract when reusing them. |
 | Web layers and Unreal work | Main supplies Cesium GIBS WMTS templates plus an Unreal project/timeline exports. Those are separate from the native grid JSON and job results documented here. |
 
-Main's GIBS-derived series use decoded color-class midpoints, which must be distinguished from quality-controlled source science pixels. Its trend extrapolations through 2035 are separate from the local Node HighResMIP climate simulations through 2050-01-01; their uncertainty meanings are not interchangeable.
+Main's GIBS-derived series use decoded color-class midpoints, which must be distinguished from quality-controlled source science pixels. Its trend extrapolations through 2035 are separate from the Node environmental HighResMIP climate simulations through 2050-01-01; their uncertainty meanings are not interchangeable.
 
-No automatic connection between these workflows is implemented. The web server does not proxy `/v1`, and the local Node API has no browser CORS configuration; browser requests from port 8765 to 3000 need an implemented proxy/CORS integration. Both servers read `PORT`, so assign distinct values when running them together. A static GitHub Pages deployment does not host either Node API. Preserve existing main work while designing this integration.
+No automatic connection between these workflows is implemented. The web server does not proxy `/v1`, and the Node environmental API has no browser CORS configuration; browser requests from port 8765 to 3000 need an implemented proxy/CORS integration. Both servers read `PORT`, so assign distinct values when running them together. A static GitHub Pages deployment does not host either Node API. Preserve existing main work while designing this integration.
 
 Two possible integration paths are a new Node analysis job that maps aligned Part 1 series into the existing statistics inputs, or an offline exporter into the web/Unreal `data/cloudshadow` formats. `scripts/summary.cjs` exposes the existing `Stats` implementation, whose analysis input uses monthly `t/site/ref` arrays. Select the comparison/reference explicitly and preserve source definitions. Neither bridge/exporter currently exists; the browser reads static site/series files, and `web:build` does not copy the ignored environmental caches.
 
 ## Verified local snapshot
 
-These are dated local Node acquisition/plumbing results, not scientific accuracy or predictive-skill validation. Its ignored caches/receipts are separate from the datasets already committed under main's `data/cloudshadow/`.
+These are dated Node environmental acquisition/plumbing results, not scientific accuracy or predictive-skill validation. Its ignored caches/receipts are separate from the datasets already committed under main's `data/cloudshadow/`.
 
 | Source | Verified local result on 2026-11-14 | Interpretation |
 | --- | --- | --- |
@@ -46,7 +46,7 @@ All **17 expansion jobs** completed. Local receipts are `data/runs/environment/l
 
 ## Implementation map
 
-| Implementation-checkout path | Responsibility |
+| Repository path | Responsibility |
 | --- | --- |
 | `packages/contracts/src/environment.ts` | Active `EnvironmentRequest` union, `EnvironmentRun`, capability registry and runtime validation |
 | `apps/api/src/server.ts` | Loopback HTTP API, read-only WebSocket status and ground-record validation |
@@ -60,14 +60,14 @@ All **17 expansion jobs** completed. Local receipts are `data/runs/environment/l
 
 The active environmental contract is TypeScript plus runtime validators. `packages/contracts/src/index.ts` and `packages/contracts/schemas/scenario.schema.json` / `result.schema.json` belong to the inactive accounting fixture, despite sharing a `1.0` version label.
 
-## Running the implementation checkout
+## Running this checkout
 
-First obtain the implementation branch and confirm the checkout; these instructions are not a request to install or replace the code in this docs-only PR.
+Use a checkout containing this backend PR. Install dependencies and start the Node API; acquisition is a separate explicit step.
 
 ```sh
 git branch --show-current
 git rev-parse --short HEAD
-# Reference inspected: codex/environment-data-backend / 71d263d
+# Before merge: codex/part1-backend; afterward use main containing this backend
 npm ci
 npm run data:setup
 npm start
@@ -79,9 +79,11 @@ Requirements are Node 24.12+ (supported majors 24-26), npm and Python 3.11+ avai
 {"status":"ok","schemaVersion":"1.0","mode":"environmental","persistence":"local-files"}
 ```
 
-If `mode` is not `environmental`, do not apply these request examples to that running starter/server. Optional `.env` settings are `PORT`, `API_BASE_URL` for CLI clients, `PYTHON_EXECUTABLE`, `DATA_PYTHON_EXECUTABLE` and `DATA_WORKER_TIMEOUT_MS`. The data helper chooses explicit `DATA_PYTHON_EXECUTABLE`, otherwise local `.venv`, otherwise `PYTHON_EXECUTABLE`/`python`. Credentials must remain outside Git and Unreal assets.
+If `mode` is not `environmental`, you are connected to another/older API; check the checkout, process and port before applying these requests. Optional `.env` settings are `PORT`, `API_BASE_URL` for CLI clients, `PYTHON_EXECUTABLE`, `DATA_PYTHON_EXECUTABLE` and `DATA_WORKER_TIMEOUT_MS`. The data helper chooses explicit `DATA_PYTHON_EXECUTABLE`, otherwise local `.venv`, otherwise `PYTHON_EXECUTABLE`/`python`. Credentials must remain outside Git and Unreal assets. `data:setup` installs the POWER helper's NumPy/numcodecs dependencies; it does not install every separate NASA web-pipeline dependency. On Windows the helper automatically uses `.venv/Scripts/python.exe`, on Linux/macOS `.venv/bin/python`; activation is unnecessary for this helper. CI installs data dependencies before offline `check` on Windows and Linux. The retained `test:models` command still requires `python` on PATH.
 
-In another terminal, from the implementation checkout:
+`npm start` now exposes environmental jobs. `npm run demo` is a cached POWER-series query and needs a completed `data:sync`; it no longer runs the synthetic accounting example. Legacy schemas/worker remain regression fixtures and do not expose economic domains through this API. The web commands and `/api` endpoints retain their separate workflow.
+
+In another terminal, from this checkout:
 
 ```sh
 npm run data:sync             # POWER global history + curated CMR discovery
@@ -291,7 +293,7 @@ Open-Meteo quotas are weighted by range/variables/models and shared by IP. Large
 The normal consumer entry is the validated HTTP job API, which preserves caching, quotas, persistence and provenance. Direct adapter calls bypass portions of that orchestration. For code integration, the implementation exports:
 
 ```ts
-// Paths resolve only inside the implementation checkout, not this docs-only PR.
+// Imports are relative to this repository root; adapters are included in this PR.
 import type { EnvironmentRequest, EnvironmentRun } from "./packages/contracts/src/environment.ts";
 import { validateEnvironmentRequest } from "./packages/contracts/src/environment.ts";
 import { EnvironmentStore } from "./apps/api/src/environment/store.ts";
@@ -312,21 +314,21 @@ import { validateGroundEvidence, normalizeGroundEvidence } from "./apps/api/src/
 
 `runGridWorker` is hardcoded to `services/data/power_grid.py`, not a generic model runner. It writes one JSON stdin request and consumes progress JSON lines plus one `{type:"result",result:...}` message. A Part 2 scientific worker needs a new bridge or an explicit refactor; do not send analysis payloads to this grid helper or the inactive accounting worker.
 
-## Proposed Part 2 integration — not active local Node operations
+## Proposed Part 2 integration — not active Node API operations
 
-1. Evaluate/reuse main's existing statistical routines and expose appropriate historical trend magnitude/significance through a declared local Node analysis contract for variable/region/period. Define seasonality, aggregation, missing-data thresholds, serial correlation, multiple testing and rate units. Operational model changes and regulatory-reporting changes require comparability checks.
+1. Evaluate/reuse main's existing statistical routines and expose appropriate historical trend magnitude/significance through a declared Node environmental analysis contract for variable/region/period. Define seasonality, aggregation, missing-data thresholds, serial correlation, multiple testing and rate units. Operational model changes and regulatory-reporting changes require comparability checks.
 2. Define a versioned analysis input referencing completed run IDs, source/raw hashes, variable/unit, evidence, geography/grid/datum, temporal support, quality/censoring rules and declared transformations. Preserve the acquired input rather than silently refetching during a reproducible run.
 3. Define output with method/model version, parameters, source references, result units, actual coverage, uncertainty, diagnostics and unavailable metrics. Analysis cache keys must include input hashes, model/method version and parameters, not only a location/date.
-4. Add an explicit request type and validator in `environment.ts`, dispatch in `environmentExecutor`, scientific worker bridge and meaningful numerical/held-out checks. Reuse `EnvironmentJobs` lifecycle/persistence and HTTP/WS delivery. Names such as `trend-analysis` or `impact-scenario` are **illustrative future names and are currently rejected by the local Node API as request kinds**.
+4. Add an explicit request type and validator in `environment.ts`, dispatch in `environmentExecutor`, scientific worker bridge and meaningful numerical/held-out checks. Reuse `EnvironmentJobs` lifecycle/persistence and HTTP/WS delivery. Names such as `trend-analysis` or `impact-scenario` are **illustrative future names and are currently rejected by the Node environmental API as request kinds**.
 5. Introduce calibrated air-quality, hydrological, acoustic or crop models only when inputs, scale, supported horizon and validation exist. Facility linkage/attribution needs verified operating history, emissions/withdrawals and comparison areas; nearby trends alone are insufficient.
 
 Part 2 readiness means a reproducible dataset with units, timestamps, null/quality handling and provenance—not automatic readiness to predict a facility's future effects. Crop work additionally needs identity/phenology, soil/management observations and observed yields; vegetation indices are not yield measurements.
 
 ## Remaining access/model gaps and Unreal boundary
 
-In the local Node implementation, curated CMR discovery covers MERRA-2, IMERG, OMI, MODIS vegetation/surface-temperature and GLDAS families, with version/access metadata. Those records are not downloaded observations. Earthdata Login is not configured and would not itself implement missing extraction adapters. Its public ORNL NDVI probes on 2026-11-14 returned 503 / band-metadata timeout; no NDVI adapter or numeric vegetation acquisition is claimed for that local Node pipeline. Main's separate GIBS-derived vegetation work is described above. GISTEMP probes timed out; helper code is not acquired evidence.
+In the Node environmental implementation, curated CMR discovery covers MERRA-2, IMERG, OMI, MODIS vegetation/surface-temperature and GLDAS families, with version/access metadata. Those records are not downloaded observations. Earthdata Login is not configured and would not itself implement missing extraction adapters. Its public ORNL NDVI probes on 2026-11-14 returned 503 / band-metadata timeout; no NDVI adapter or numeric vegetation acquisition is claimed for that Node environmental pipeline. Main's separate GIBS-derived vegetation work is described above. GISTEMP probes timed out; helper code is not acquired evidence.
 
-Within this local Node contract, statistical trend jobs, validated facility effects, pollutant transport/deposition, comprehensive water chemistry, acoustic impacts, calibrated yields/suitability and scenarios to 2100 remain unavailable. It includes no compiled Unreal client for these `/v1` routes; main's engine/web work remains a separate integration target. A future connector can browse source IDs, submit supported jobs, follow status and render cached results at their supplied cadence. The local Node API supplies no layer URLs or globe stream; main's existing WMTS layers use a different contract. Terrain/facility edits affect these numerical results only after a supported model accepts them.
+Within this Node environmental contract, statistical trend jobs, validated facility effects, pollutant transport/deposition, comprehensive water chemistry, acoustic impacts, calibrated yields/suitability and scenarios to 2100 remain unavailable. It includes no compiled Unreal client for these `/v1` routes; main's engine/web work remains a separate integration target. A future connector can browse source IDs, submit supported jobs, follow status and render cached results at their supplied cadence. The Node environmental API supplies no layer URLs or globe stream; main's existing WMTS layers use a different contract. Terrain/facility edits affect these numerical results only after a supported model accepts them.
 
 ## Primary resource references
 
