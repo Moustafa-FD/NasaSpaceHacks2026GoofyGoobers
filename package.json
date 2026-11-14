@@ -15,7 +15,9 @@
     "check": "npm run typecheck && npm test && npm run test:models",
     "web": "node apps/web/server.cjs",
     "data:nasa": "python scripts/precompute.py",
-    "data:unreal": "node scripts/export_unreal.cjs"
+    "data:weather": "python scripts/fetch_weather.py",
+    "data:unreal": "node scripts/export_unreal.cjs && node scripts/export_timeline.cjs",
+    "data:timeline-imagery": "python scripts/hls_timeline.py"
   },
   "dependencies": { "ajv": "^8.17.1", "ws": "^8.18.0" },
   "devDependencies": { "@types/node": "^24.0.0", "@types/ws": "^8.18.0", "typescript": "~5.9.3" }

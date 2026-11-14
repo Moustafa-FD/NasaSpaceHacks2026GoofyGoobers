@@ -35,6 +35,26 @@
 		{
 			"Name": "WebBrowserWidget",
 			"Enabled": true
+		},
+		{
+			"Name": "NiagaraFluids",
+			"Enabled": true
+		},
+		{
+			"Name": "NiagaraSimCaching",
+			"Enabled": true
+		},
+		{
+			"Name": "MovieRenderPipeline",
+			"Enabled": true
+		},
+		{
+			"Name": "SequencerScripting",
+			"Enabled": true
+		},
+		{
+			"Name": "Text3D",
+			"Enabled": true
 		}
 	]
 }

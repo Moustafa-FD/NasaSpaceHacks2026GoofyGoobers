@@ -1,0 +1,2498 @@
+{
+ "id": "ashburn",
+ "source": "NASA POWER (MERRA-2), monthly, point",
+ "api_version": "v2.10.0",
+ "units": {
+  "PRECTOTCORR": "mm/day",
+  "RH2M": "%",
+  "T2M": "C",
+  "WD10M": "Degrees",
+  "WS10M": "m/s"
+ },
+ "rows": [
+  {
+   "year": 2003,
+   "month": 1,
+   "T2M": -3.23,
+   "WS10M": 3.96,
+   "WD10M": 301.7,
+   "PRECTOTCORR": 2.17,
+   "RH2M": 82.21
+  },
+  {
+   "year": 2003,
+   "month": 2,
+   "T2M": -1.89,
+   "WS10M": 3.84,
+   "WD10M": 305.3,
+   "PRECTOTCORR": 5.69,
+   "RH2M": 86.11
+  },
+  {
+   "year": 2003,
+   "month": 3,
+   "T2M": 5.71,
+   "WS10M": 3.65,
+   "WD10M": 257.6,
+   "PRECTOTCORR": 3.17,
+   "RH2M": 86.09
+  },
+  {
+   "year": 2003,
+   "month": 4,
+   "T2M": 10.79,
+   "WS10M": 3.75,
+   "WD10M": 14.9,
+   "PRECTOTCORR": 2.74,
+   "RH2M": 82.06
+  },
+  {
+   "year": 2003,
+   "month": 5,
+   "T2M": 15.32,
+   "WS10M": 3.09,
+   "WD10M": 163.9,
+   "PRECTOTCORR": 6.03,
+   "RH2M": 84.88
+  },
+  {
+   "year": 2003,
+   "month": 6,
+   "T2M": 20.37,
+   "WS10M": 2.94,
+   "WD10M": 296.4,
+   "PRECTOTCORR": 6.19,
+   "RH2M": 82.82
+  },
+  {
+   "year": 2003,
+   "month": 7,
+   "T2M": 23.43,
+   "WS10M": 2.67,
+   "WD10M": 243.5,
+   "PRECTOTCORR": 4.27,
+   "RH2M": 81.97
+  },
+  {
+   "year": 2003,
+   "month": 8,
+   "T2M": 24.1,
+   "WS10M": 2.18,
+   "WD10M": 223.4,
+   "PRECTOTCORR": 3.6,
+   "RH2M": 81.89
+  },
+  {
+   "year": 2003,
+   "month": 9,
+   "T2M": 19.25,
+   "WS10M": 3.27,
+   "WD10M": 69.3,
+   "PRECTOTCORR": 7.94,
+   "RH2M": 83.09
+  },
+  {
+   "year": 2003,
+   "month": 10,
+   "T2M": 11.47,
+   "WS10M": 3.14,
+   "WD10M": 271.1,
+   "PRECTOTCORR": 3.14,
+   "RH2M": 82.48
+  },
+  {
+   "year": 2003,
+   "month": 11,
+   "T2M": 8.92,
+   "WS10M": 3.54,
+   "WD10M": 244.9,
+   "PRECTOTCORR": 3.85,
+   "RH2M": 83.72
+  },
+  {
+   "year": 2003,
+   "month": 12,
+   "T2M": 0.32,
+   "WS10M": 3.95,
+   "WD10M": 286.3,
+   "PRECTOTCORR": 3.82,
+   "RH2M": 86.61
+  },
+  {
+   "year": 2004,
+   "month": 1,
+   "T2M": -3.29,
+   "WS10M": 4.33,
+   "WD10M": 300.2,
+   "PRECTOTCORR": 1.35,
+   "RH2M": 82.55
+  },
+  {
+   "year": 2004,
+   "month": 2,
+   "T2M": -0.65,
+   "WS10M": 3.6,
+   "WD10M": 320.0,
+   "PRECTOTCORR": 2.3,
+   "RH2M": 84.23
+  },
+  {
+   "year": 2004,
+   "month": 3,
+   "T2M": 6.58,
+   "WS10M": 3.85,
+   "WD10M": 274.5,
+   "PRECTOTCORR": 1.77,
+   "RH2M": 80.56
+  },
+  {
+   "year": 2004,
+   "month": 4,
+   "T2M": 11.72,
+   "WS10M": 3.83,
+   "WD10M": 298.5,
+   "PRECTOTCORR": 4.44,
+   "RH2M": 80.04
+  },
+  {
+   "year": 2004,
+   "month": 5,
+   "T2M": 20.19,
+   "WS10M": 2.93,
+   "WD10M": 223.4,
+   "PRECTOTCORR": 3.79,
+   "RH2M": 81.45
+  },
+  {
+   "year": 2004,
+   "month": 6,
+   "T2M": 21.4,
+   "WS10M": 2.67,
+   "WD10M": 271.1,
+   "PRECTOTCORR": 3.73,
+   "RH2M": 77.87
+  },
+  {
+   "year": 2004,
+   "month": 7,
+   "T2M": 24.74,
+   "WS10M": 2.58,
+   "WD10M": 220.8,
+   "PRECTOTCORR": 3.99,
+   "RH2M": 72.68
+  },
+  {
+   "year": 2004,
+   "month": 8,
+   "T2M": 23.57,
+   "WS10M": 2.52,
+   "WD10M": 212.1,
+   "PRECTOTCORR": 2.96,
+   "RH2M": 71.86
+  },
+  {
+   "year": 2004,
+   "month": 9,
+   "T2M": 20.73,
+   "WS10M": 3.06,
+   "WD10M": 57.6,
+   "PRECTOTCORR": 6.38,
+   "RH2M": 77.28
+  },
+  {
+   "year": 2004,
+   "month": 10,
+   "T2M": 12.82,
+   "WS10M": 2.67,
+   "WD10M": 326.1,
+   "PRECTOTCORR": 1.12,
+   "RH2M": 81.47
+  },
+  {
+   "year": 2004,
+   "month": 11,
+   "T2M": 8.21,
+   "WS10M": 3.34,
+   "WD10M": 299.5,
+   "PRECTOTCORR": 3.39,
+   "RH2M": 80.71
+  },
+  {
+   "year": 2004,
+   "month": 12,
+   "T2M": 1.92,
+   "WS10M": 3.84,
+   "WD10M": 271.0,
+   "PRECTOTCORR": 2.31,
+   "RH2M": 81.79
+  },
+  {
+   "year": 2005,
+   "month": 1,
+   "T2M": 0.21,
+   "WS10M": 3.95,
+   "WD10M": 314.0,
+   "PRECTOTCORR": 2.71,
+   "RH2M": 84.72
+  },
+  {
+   "year": 2005,
+   "month": 2,
+   "T2M": 1.52,
+   "WS10M": 3.53,
+   "WD10M": 316.6,
+   "PRECTOTCORR": 1.66,
+   "RH2M": 81.24
+  },
+  {
+   "year": 2005,
+   "month": 3,
+   "T2M": 3.35,
+   "WS10M": 3.87,
+   "WD10M": 303.8,
+   "PRECTOTCORR": 3.23,
+   "RH2M": 79.77
+  },
+  {
+   "year": 2005,
+   "month": 4,
+   "T2M": 11.92,
+   "WS10M": 3.79,
+   "WD10M": 266.7,
+   "PRECTOTCORR": 3.25,
+   "RH2M": 75.96
+  },
+  {
+   "year": 2005,
+   "month": 5,
+   "T2M": 14.84,
+   "WS10M": 3.19,
+   "WD10M": 333.6,
+   "PRECTOTCORR": 2.71,
+   "RH2M": 76.38
+  },
+  {
+   "year": 2005,
+   "month": 6,
+   "T2M": 23.48,
+   "WS10M": 2.75,
+   "WD10M": 200.3,
+   "PRECTOTCORR": 1.9,
+   "RH2M": 71.61
+  },
+  {
+   "year": 2005,
+   "month": 7,
+   "T2M": 26.03,
+   "WS10M": 2.39,
+   "WD10M": 295.7,
+   "PRECTOTCORR": 4.81,
+   "RH2M": 71.03
+  },
+  {
+   "year": 2005,
+   "month": 8,
+   "T2M": 26.22,
+   "WS10M": 2.38,
+   "WD10M": 194.4,
+   "PRECTOTCORR": 2.46,
+   "RH2M": 64.98
+  },
+  {
+   "year": 2005,
+   "month": 9,
+   "T2M": 22.68,
+   "WS10M": 2.72,
+   "WD10M": 95.1,
+   "PRECTOTCORR": 0.36,
+   "RH2M": 60.39
+  },
+  {
+   "year": 2005,
+   "month": 10,
+   "T2M": 13.85,
+   "WS10M": 3.38,
+   "WD10M": 337.8,
+   "PRECTOTCORR": 5.84,
+   "RH2M": 79.13
+  },
+  {
+   "year": 2005,
+   "month": 11,
+   "T2M": 7.77,
+   "WS10M": 3.76,
+   "WD10M": 240.3,
+   "PRECTOTCORR": 2.75,
+   "RH2M": 77.76
+  },
+  {
+   "year": 2005,
+   "month": 12,
+   "T2M": -1.12,
+   "WS10M": 3.25,
+   "WD10M": 283.4,
+   "PRECTOTCORR": 2.15,
+   "RH2M": 85.15
+  },
+  {
+   "year": 2006,
+   "month": 1,
+   "T2M": 3.25,
+   "WS10M": 4.2,
+   "WD10M": 263.2,
+   "PRECTOTCORR": 2.51,
+   "RH2M": 85.4
+  },
+  {
+   "year": 2006,
+   "month": 2,
+   "T2M": 1.01,
+   "WS10M": 4.09,
+   "WD10M": 281.0,
+   "PRECTOTCORR": 1.81,
+   "RH2M": 77.88
+  },
+  {
+   "year": 2006,
+   "month": 3,
+   "T2M": 6.0,
+   "WS10M": 3.97,
+   "WD10M": 301.3,
+   "PRECTOTCORR": 0.17,
+   "RH2M": 72.75
+  },
+  {
+   "year": 2006,
+   "month": 4,
+   "T2M": 13.08,
+   "WS10M": 3.4,
+   "WD10M": 306.8,
+   "PRECTOTCORR": 2.99,
+   "RH2M": 72.63
+  },
+  {
+   "year": 2006,
+   "month": 5,
+   "T2M": 17.01,
+   "WS10M": 3.12,
+   "WD10M": 297.3,
+   "PRECTOTCORR": 1.97,
+   "RH2M": 68.94
+  },
+  {
+   "year": 2006,
+   "month": 6,
+   "T2M": 22.79,
+   "WS10M": 2.74,
+   "WD10M": 282.5,
+   "PRECTOTCORR": 7.05,
+   "RH2M": 67.91
+  },
+  {
+   "year": 2006,
+   "month": 7,
+   "T2M": 25.38,
+   "WS10M": 2.41,
+   "WD10M": 255.1,
+   "PRECTOTCORR": 2.43,
+   "RH2M": 75.04
+  },
+  {
+   "year": 2006,
+   "month": 8,
+   "T2M": 26.28,
+   "WS10M": 2.62,
+   "WD10M": 334.3,
+   "PRECTOTCORR": 1.25,
+   "RH2M": 58.94
+  },
+  {
+   "year": 2006,
+   "month": 9,
+   "T2M": 18.31,
+   "WS10M": 3.02,
+   "WD10M": 300.5,
+   "PRECTOTCORR": 5.51,
+   "RH2M": 78.51
+  },
+  {
+   "year": 2006,
+   "month": 10,
+   "T2M": 12.22,
+   "WS10M": 3.55,
+   "WD10M": 275.5,
+   "PRECTOTCORR": 3.59,
+   "RH2M": 75.75
+  },
+  {
+   "year": 2006,
+   "month": 11,
+   "T2M": 8.21,
+   "WS10M": 3.42,
+   "WD10M": 330.5,
+   "PRECTOTCORR": 4.52,
+   "RH2M": 85.14
+  },
+  {
+   "year": 2006,
+   "month": 12,
+   "T2M": 4.24,
+   "WS10M": 3.34,
+   "WD10M": 261.1,
+   "PRECTOTCORR": 1.45,
+   "RH2M": 82.74
+  },
+  {
+   "year": 2007,
+   "month": 1,
+   "T2M": 2.53,
+   "WS10M": 4.0,
+   "WD10M": 269.1,
+   "PRECTOTCORR": 1.73,
+   "RH2M": 81.21
+  },
+  {
+   "year": 2007,
+   "month": 2,
+   "T2M": -4.01,
+   "WS10M": 4.37,
+   "WD10M": 296.9,
+   "PRECTOTCORR": 2.73,
+   "RH2M": 80.48
+  },
+  {
+   "year": 2007,
+   "month": 3,
+   "T2M": 6.06,
+   "WS10M": 4.21,
+   "WD10M": 286.1,
+   "PRECTOTCORR": 2.94,
+   "RH2M": 80.79
+  },
+  {
+   "year": 2007,
+   "month": 4,
+   "T2M": 10.2,
+   "WS10M": 4.16,
+   "WD10M": 302.9,
+   "PRECTOTCORR": 2.95,
+   "RH2M": 75.96
+  },
+  {
+   "year": 2007,
+   "month": 5,
+   "T2M": 18.24,
+   "WS10M": 2.93,
+   "WD10M": 191.6,
+   "PRECTOTCORR": 1.18,
+   "RH2M": 72.5
+  },
+  {
+   "year": 2007,
+   "month": 6,
+   "T2M": 23.38,
+   "WS10M": 2.59,
+   "WD10M": 301.9,
+   "PRECTOTCORR": 2.64,
+   "RH2M": 65.49
+  },
+  {
+   "year": 2007,
+   "month": 7,
+   "T2M": 25.68,
+   "WS10M": 2.73,
+   "WD10M": 272.1,
+   "PRECTOTCORR": 1.92,
+   "RH2M": 57.14
+  },
+  {
+   "year": 2007,
+   "month": 8,
+   "T2M": 26.27,
+   "WS10M": 2.35,
+   "WD10M": 342.5,
+   "PRECTOTCORR": 3.16,
+   "RH2M": 63.96
+  },
+  {
+   "year": 2007,
+   "month": 9,
+   "T2M": 21.75,
+   "WS10M": 2.6,
+   "WD10M": 163.6,
+   "PRECTOTCORR": 1.13,
+   "RH2M": 63.09
+  },
+  {
+   "year": 2007,
+   "month": 10,
+   "T2M": 17.22,
+   "WS10M": 3.05,
+   "WD10M": 246.9,
+   "PRECTOTCORR": 3.63,
+   "RH2M": 70.16
+  },
+  {
+   "year": 2007,
+   "month": 11,
+   "T2M": 6.32,
+   "WS10M": 3.41,
+   "WD10M": 273.4,
+   "PRECTOTCORR": 1.43,
+   "RH2M": 77.11
+  },
+  {
+   "year": 2007,
+   "month": 12,
+   "T2M": 2.14,
+   "WS10M": 3.45,
+   "WD10M": 282.5,
+   "PRECTOTCORR": 2.95,
+   "RH2M": 85.21
+  },
+  {
+   "year": 2008,
+   "month": 1,
+   "T2M": 0.48,
+   "WS10M": 3.71,
+   "WD10M": 275.9,
+   "PRECTOTCORR": 1.1,
+   "RH2M": 79.37
+  },
+  {
+   "year": 2008,
+   "month": 2,
+   "T2M": 1.61,
+   "WS10M": 4.03,
+   "WD10M": 268.1,
+   "PRECTOTCORR": 2.83,
+   "RH2M": 80.52
+  },
+  {
+   "year": 2008,
+   "month": 3,
+   "T2M": 6.23,
+   "WS10M": 4.23,
+   "WD10M": 277.5,
+   "PRECTOTCORR": 2.65,
+   "RH2M": 75.99
+  },
+  {
+   "year": 2008,
+   "month": 4,
+   "T2M": 12.54,
+   "WS10M": 3.42,
+   "WD10M": 85.9,
+   "PRECTOTCORR": 5.06,
+   "RH2M": 79.11
+  },
+  {
+   "year": 2008,
+   "month": 5,
+   "T2M": 15.71,
+   "WS10M": 3.52,
+   "WD10M": 276.6,
+   "PRECTOTCORR": 5.76,
+   "RH2M": 77.94
+  },
+  {
+   "year": 2008,
+   "month": 6,
+   "T2M": 23.07,
+   "WS10M": 2.55,
+   "WD10M": 262.1,
+   "PRECTOTCORR": 4.04,
+   "RH2M": 77.13
+  },
+  {
+   "year": 2008,
+   "month": 7,
+   "T2M": 24.96,
+   "WS10M": 2.24,
+   "WD10M": 247.7,
+   "PRECTOTCORR": 3.0,
+   "RH2M": 69.13
+  },
+  {
+   "year": 2008,
+   "month": 8,
+   "T2M": 23.66,
+   "WS10M": 2.65,
+   "WD10M": 324.3,
+   "PRECTOTCORR": 1.92,
+   "RH2M": 62.19
+  },
+  {
+   "year": 2008,
+   "month": 9,
+   "T2M": 20.67,
+   "WS10M": 2.95,
+   "WD10M": 29.6,
+   "PRECTOTCORR": 4.95,
+   "RH2M": 73.01
+  },
+  {
+   "year": 2008,
+   "month": 10,
+   "T2M": 12.29,
+   "WS10M": 3.19,
+   "WD10M": 313.8,
+   "PRECTOTCORR": 1.23,
+   "RH2M": 70.42
+  },
+  {
+   "year": 2008,
+   "month": 11,
+   "T2M": 5.72,
+   "WS10M": 3.27,
+   "WD10M": 287.1,
+   "PRECTOTCORR": 2.08,
+   "RH2M": 77.39
+  },
+  {
+   "year": 2008,
+   "month": 12,
+   "T2M": 1.52,
+   "WS10M": 4.0,
+   "WD10M": 261.6,
+   "PRECTOTCORR": 2.82,
+   "RH2M": 81.95
+  },
+  {
+   "year": 2009,
+   "month": 1,
+   "T2M": -2.54,
+   "WS10M": 3.54,
+   "WD10M": 286.8,
+   "PRECTOTCORR": 1.94,
+   "RH2M": 80.17
+  },
+  {
+   "year": 2009,
+   "month": 2,
+   "T2M": 1.29,
+   "WS10M": 4.5,
+   "WD10M": 278.4,
+   "PRECTOTCORR": 0.52,
+   "RH2M": 76.84
+  },
+  {
+   "year": 2009,
+   "month": 3,
+   "T2M": 5.49,
+   "WS10M": 3.74,
+   "WD10M": 303.6,
+   "PRECTOTCORR": 1.68,
+   "RH2M": 78.01
+  },
+  {
+   "year": 2009,
+   "month": 4,
+   "T2M": 11.93,
+   "WS10M": 3.9,
+   "WD10M": 272.9,
+   "PRECTOTCORR": 3.49,
+   "RH2M": 75.49
+  },
+  {
+   "year": 2009,
+   "month": 5,
+   "T2M": 17.33,
+   "WS10M": 3.2,
+   "WD10M": 206.7,
+   "PRECTOTCORR": 5.7,
+   "RH2M": 80.26
+  },
+  {
+   "year": 2009,
+   "month": 6,
+   "T2M": 21.66,
+   "WS10M": 2.74,
+   "WD10M": 306.9,
+   "PRECTOTCORR": 4.93,
+   "RH2M": 80.04
+  },
+  {
+   "year": 2009,
+   "month": 7,
+   "T2M": 23.72,
+   "WS10M": 2.54,
+   "WD10M": 248.3,
+   "PRECTOTCORR": 2.48,
+   "RH2M": 66.39
+  },
+  {
+   "year": 2009,
+   "month": 8,
+   "T2M": 25.32,
+   "WS10M": 2.28,
+   "WD10M": 276.4,
+   "PRECTOTCORR": 3.15,
+   "RH2M": 68.59
+  },
+  {
+   "year": 2009,
+   "month": 9,
+   "T2M": 19.73,
+   "WS10M": 3.1,
+   "WD10M": 33.1,
+   "PRECTOTCORR": 2.05,
+   "RH2M": 70.58
+  },
+  {
+   "year": 2009,
+   "month": 10,
+   "T2M": 12.73,
+   "WS10M": 3.36,
+   "WD10M": 293.4,
+   "PRECTOTCORR": 3.92,
+   "RH2M": 75.24
+  },
+  {
+   "year": 2009,
+   "month": 11,
+   "T2M": 8.38,
+   "WS10M": 3.42,
+   "WD10M": 354.5,
+   "PRECTOTCORR": 3.38,
+   "RH2M": 85.77
+  },
+  {
+   "year": 2009,
+   "month": 12,
+   "T2M": -0.62,
+   "WS10M": 3.69,
+   "WD10M": 290.7,
+   "PRECTOTCORR": 5.17,
+   "RH2M": 86.89
+  },
+  {
+   "year": 2010,
+   "month": 1,
+   "T2M": -1.8,
+   "WS10M": 4.38,
+   "WD10M": 304.0,
+   "PRECTOTCORR": 2.26,
+   "RH2M": 83.19
+  },
+  {
+   "year": 2010,
+   "month": 2,
+   "T2M": -3.12,
+   "WS10M": 4.39,
+   "WD10M": 302.2,
+   "PRECTOTCORR": 3.01,
+   "RH2M": 90.3
+  },
+  {
+   "year": 2010,
+   "month": 3,
+   "T2M": 7.41,
+   "WS10M": 4.18,
+   "WD10M": 330.7,
+   "PRECTOTCORR": 4.07,
+   "RH2M": 81.62
+  },
+  {
+   "year": 2010,
+   "month": 4,
+   "T2M": 13.48,
+   "WS10M": 3.32,
+   "WD10M": 272.3,
+   "PRECTOTCORR": 1.68,
+   "RH2M": 76.66
+  },
+  {
+   "year": 2010,
+   "month": 5,
+   "T2M": 18.43,
+   "WS10M": 3.24,
+   "WD10M": 237.9,
+   "PRECTOTCORR": 3.19,
+   "RH2M": 79.09
+  },
+  {
+   "year": 2010,
+   "month": 6,
+   "T2M": 24.91,
+   "WS10M": 2.85,
+   "WD10M": 275.6,
+   "PRECTOTCORR": 1.53,
+   "RH2M": 69.71
+  },
+  {
+   "year": 2010,
+   "month": 7,
+   "T2M": 27.6,
+   "WS10M": 2.54,
+   "WD10M": 277.5,
+   "PRECTOTCORR": 2.65,
+   "RH2M": 57.62
+  },
+  {
+   "year": 2010,
+   "month": 8,
+   "T2M": 25.8,
+   "WS10M": 2.56,
+   "WD10M": 180.6,
+   "PRECTOTCORR": 3.18,
+   "RH2M": 65.87
+  },
+  {
+   "year": 2010,
+   "month": 9,
+   "T2M": 22.28,
+   "WS10M": 3.09,
+   "WD10M": 265.2,
+   "PRECTOTCORR": 5.41,
+   "RH2M": 59.89
+  },
+  {
+   "year": 2010,
+   "month": 10,
+   "T2M": 13.09,
+   "WS10M": 3.47,
+   "WD10M": 289.1,
+   "PRECTOTCORR": 2.09,
+   "RH2M": 77.99
+  },
+  {
+   "year": 2010,
+   "month": 11,
+   "T2M": 6.48,
+   "WS10M": 3.34,
+   "WD10M": 301.8,
+   "PRECTOTCORR": 2.27,
+   "RH2M": 80.24
+  },
+  {
+   "year": 2010,
+   "month": 12,
+   "T2M": -2.06,
+   "WS10M": 4.5,
+   "WD10M": 300.7,
+   "PRECTOTCORR": 1.58,
+   "RH2M": 78.32
+  },
+  {
+   "year": 2011,
+   "month": 1,
+   "T2M": -2.76,
+   "WS10M": 3.57,
+   "WD10M": 297.8,
+   "PRECTOTCORR": 1.36,
+   "RH2M": 81.25
+  },
+  {
+   "year": 2011,
+   "month": 2,
+   "T2M": 1.96,
+   "WS10M": 4.32,
+   "WD10M": 265.8,
+   "PRECTOTCORR": 1.97,
+   "RH2M": 77.75
+  },
+  {
+   "year": 2011,
+   "month": 3,
+   "T2M": 5.3,
+   "WS10M": 3.99,
+   "WD10M": 327.1,
+   "PRECTOTCORR": 4.22,
+   "RH2M": 79.4
+  },
+  {
+   "year": 2011,
+   "month": 4,
+   "T2M": 13.23,
+   "WS10M": 4.39,
+   "WD10M": 212.1,
+   "PRECTOTCORR": 5.2,
+   "RH2M": 81.19
+  },
+  {
+   "year": 2011,
+   "month": 5,
+   "T2M": 18.4,
+   "WS10M": 3.08,
+   "WD10M": 209.2,
+   "PRECTOTCORR": 3.46,
+   "RH2M": 81.99
+  },
+  {
+   "year": 2011,
+   "month": 6,
+   "T2M": 23.07,
+   "WS10M": 2.51,
+   "WD10M": 284.3,
+   "PRECTOTCORR": 1.86,
+   "RH2M": 73.96
+  },
+  {
+   "year": 2011,
+   "month": 7,
+   "T2M": 27.53,
+   "WS10M": 2.23,
+   "WD10M": 269.5,
+   "PRECTOTCORR": 2.15,
+   "RH2M": 62.33
+  },
+  {
+   "year": 2011,
+   "month": 8,
+   "T2M": 25.04,
+   "WS10M": 3.14,
+   "WD10M": 283.6,
+   "PRECTOTCORR": 4.18,
+   "RH2M": 64.47
+  },
+  {
+   "year": 2011,
+   "month": 9,
+   "T2M": 20.0,
+   "WS10M": 2.62,
+   "WD10M": 157.4,
+   "PRECTOTCORR": 7.38,
+   "RH2M": 85.74
+  },
+  {
+   "year": 2011,
+   "month": 10,
+   "T2M": 12.12,
+   "WS10M": 3.23,
+   "WD10M": 269.5,
+   "PRECTOTCORR": 3.74,
+   "RH2M": 82.61
+  },
+  {
+   "year": 2011,
+   "month": 11,
+   "T2M": 8.16,
+   "WS10M": 3.4,
+   "WD10M": 226.1,
+   "PRECTOTCORR": 2.59,
+   "RH2M": 85.13
+  },
+  {
+   "year": 2011,
+   "month": 12,
+   "T2M": 3.8,
+   "WS10M": 3.2,
+   "WD10M": 261.2,
+   "PRECTOTCORR": 3.17,
+   "RH2M": 85.95
+  },
+  {
+   "year": 2012,
+   "month": 1,
+   "T2M": 1.39,
+   "WS10M": 4.05,
+   "WD10M": 254.8,
+   "PRECTOTCORR": 1.67,
+   "RH2M": 83.6
+  },
+  {
+   "year": 2012,
+   "month": 2,
+   "T2M": 3.57,
+   "WS10M": 3.91,
+   "WD10M": 281.4,
+   "PRECTOTCORR": 2.07,
+   "RH2M": 81.04
+  },
+  {
+   "year": 2012,
+   "month": 3,
+   "T2M": 11.06,
+   "WS10M": 3.66,
+   "WD10M": 241.5,
+   "PRECTOTCORR": 1.17,
+   "RH2M": 80.73
+  },
+  {
+   "year": 2012,
+   "month": 4,
+   "T2M": 11.73,
+   "WS10M": 3.66,
+   "WD10M": 301.1,
+   "PRECTOTCORR": 1.77,
+   "RH2M": 72.1
+  },
+  {
+   "year": 2012,
+   "month": 5,
+   "T2M": 20.04,
+   "WS10M": 2.8,
+   "WD10M": 182.2,
+   "PRECTOTCORR": 4.13,
+   "RH2M": 77.65
+  },
+  {
+   "year": 2012,
+   "month": 6,
+   "T2M": 22.73,
+   "WS10M": 2.95,
+   "WD10M": 296.5,
+   "PRECTOTCORR": 2.52,
+   "RH2M": 65.31
+  },
+  {
+   "year": 2012,
+   "month": 7,
+   "T2M": 27.51,
+   "WS10M": 2.36,
+   "WD10M": 284.2,
+   "PRECTOTCORR": 3.41,
+   "RH2M": 63.13
+  },
+  {
+   "year": 2012,
+   "month": 8,
+   "T2M": 24.96,
+   "WS10M": 2.24,
+   "WD10M": 206.1,
+   "PRECTOTCORR": 3.1,
+   "RH2M": 66.68
+  },
+  {
+   "year": 2012,
+   "month": 9,
+   "T2M": 19.91,
+   "WS10M": 2.71,
+   "WD10M": 235.1,
+   "PRECTOTCORR": 3.42,
+   "RH2M": 71.43
+  },
+  {
+   "year": 2012,
+   "month": 10,
+   "T2M": 13.29,
+   "WS10M": 3.21,
+   "WD10M": 270.9,
+   "PRECTOTCORR": 5.76,
+   "RH2M": 79.0
+  },
+  {
+   "year": 2012,
+   "month": 11,
+   "T2M": 4.19,
+   "WS10M": 3.13,
+   "WD10M": 326.7,
+   "PRECTOTCORR": 0.78,
+   "RH2M": 80.43
+  },
+  {
+   "year": 2012,
+   "month": 12,
+   "T2M": 3.93,
+   "WS10M": 3.56,
+   "WD10M": 275.8,
+   "PRECTOTCORR": 2.59,
+   "RH2M": 86.85
+  },
+  {
+   "year": 2013,
+   "month": 1,
+   "T2M": 0.99,
+   "WS10M": 3.57,
+   "WD10M": 264.9,
+   "PRECTOTCORR": 3.11,
+   "RH2M": 83.89
+  },
+  {
+   "year": 2013,
+   "month": 2,
+   "T2M": 0.21,
+   "WS10M": 4.03,
+   "WD10M": 296.5,
+   "PRECTOTCORR": 1.57,
+   "RH2M": 80.93
+  },
+  {
+   "year": 2013,
+   "month": 3,
+   "T2M": 2.96,
+   "WS10M": 4.24,
+   "WD10M": 308.8,
+   "PRECTOTCORR": 2.54,
+   "RH2M": 78.48
+  },
+  {
+   "year": 2013,
+   "month": 4,
+   "T2M": 11.96,
+   "WS10M": 3.79,
+   "WD10M": 196.6,
+   "PRECTOTCORR": 1.97,
+   "RH2M": 76.82
+  },
+  {
+   "year": 2013,
+   "month": 5,
+   "T2M": 16.8,
+   "WS10M": 3.37,
+   "WD10M": 209.4,
+   "PRECTOTCORR": 3.15,
+   "RH2M": 78.41
+  },
+  {
+   "year": 2013,
+   "month": 6,
+   "T2M": 22.54,
+   "WS10M": 2.79,
+   "WD10M": 223.9,
+   "PRECTOTCORR": 5.4,
+   "RH2M": 79.0
+  },
+  {
+   "year": 2013,
+   "month": 7,
+   "T2M": 25.26,
+   "WS10M": 2.6,
+   "WD10M": 220.1,
+   "PRECTOTCORR": 3.69,
+   "RH2M": 76.02
+  },
+  {
+   "year": 2013,
+   "month": 8,
+   "T2M": 23.23,
+   "WS10M": 2.48,
+   "WD10M": 249.4,
+   "PRECTOTCORR": 2.57,
+   "RH2M": 71.98
+  },
+  {
+   "year": 2013,
+   "month": 9,
+   "T2M": 19.7,
+   "WS10M": 2.53,
+   "WD10M": 301.4,
+   "PRECTOTCORR": 1.15,
+   "RH2M": 64.0
+  },
+  {
+   "year": 2013,
+   "month": 10,
+   "T2M": 14.07,
+   "WS10M": 3.06,
+   "WD10M": 296.2,
+   "PRECTOTCORR": 4.65,
+   "RH2M": 77.71
+  },
+  {
+   "year": 2013,
+   "month": 11,
+   "T2M": 4.67,
+   "WS10M": 3.69,
+   "WD10M": 281.9,
+   "PRECTOTCORR": 2.16,
+   "RH2M": 75.29
+  },
+  {
+   "year": 2013,
+   "month": 12,
+   "T2M": 1.5,
+   "WS10M": 3.19,
+   "WD10M": 258.2,
+   "PRECTOTCORR": 4.21,
+   "RH2M": 88.89
+  },
+  {
+   "year": 2014,
+   "month": 1,
+   "T2M": -3.59,
+   "WS10M": 3.96,
+   "WD10M": 267.6,
+   "PRECTOTCORR": 1.85,
+   "RH2M": 81.62
+  },
+  {
+   "year": 2014,
+   "month": 2,
+   "T2M": -2.24,
+   "WS10M": 3.63,
+   "WD10M": 312.1,
+   "PRECTOTCORR": 3.49,
+   "RH2M": 86.23
+  },
+  {
+   "year": 2014,
+   "month": 3,
+   "T2M": 2.01,
+   "WS10M": 4.15,
+   "WD10M": 314.2,
+   "PRECTOTCORR": 3.05,
+   "RH2M": 81.83
+  },
+  {
+   "year": 2014,
+   "month": 4,
+   "T2M": 10.74,
+   "WS10M": 3.88,
+   "WD10M": 148.6,
+   "PRECTOTCORR": 4.91,
+   "RH2M": 79.45
+  },
+  {
+   "year": 2014,
+   "month": 5,
+   "T2M": 17.52,
+   "WS10M": 2.9,
+   "WD10M": 274.2,
+   "PRECTOTCORR": 4.19,
+   "RH2M": 79.83
+  },
+  {
+   "year": 2014,
+   "month": 6,
+   "T2M": 22.13,
+   "WS10M": 2.68,
+   "WD10M": 182.2,
+   "PRECTOTCORR": 3.32,
+   "RH2M": 80.73
+  },
+  {
+   "year": 2014,
+   "month": 7,
+   "T2M": 23.78,
+   "WS10M": 2.62,
+   "WD10M": 234.4,
+   "PRECTOTCORR": 2.7,
+   "RH2M": 72.08
+  },
+  {
+   "year": 2014,
+   "month": 8,
+   "T2M": 23.28,
+   "WS10M": 2.4,
+   "WD10M": 124.0,
+   "PRECTOTCORR": 3.45,
+   "RH2M": 69.92
+  },
+  {
+   "year": 2014,
+   "month": 9,
+   "T2M": 20.48,
+   "WS10M": 2.64,
+   "WD10M": 46.5,
+   "PRECTOTCORR": 1.38,
+   "RH2M": 68.65
+  },
+  {
+   "year": 2014,
+   "month": 10,
+   "T2M": 14.13,
+   "WS10M": 3.58,
+   "WD10M": 258.3,
+   "PRECTOTCORR": 3.05,
+   "RH2M": 74.73
+  },
+  {
+   "year": 2014,
+   "month": 11,
+   "T2M": 4.71,
+   "WS10M": 3.68,
+   "WD10M": 270.1,
+   "PRECTOTCORR": 2.36,
+   "RH2M": 72.04
+  },
+  {
+   "year": 2014,
+   "month": 12,
+   "T2M": 2.42,
+   "WS10M": 3.31,
+   "WD10M": 307.0,
+   "PRECTOTCORR": 2.74,
+   "RH2M": 85.03
+  },
+  {
+   "year": 2015,
+   "month": 1,
+   "T2M": -2.05,
+   "WS10M": 3.88,
+   "WD10M": 290.2,
+   "PRECTOTCORR": 2.51,
+   "RH2M": 81.66
+  },
+  {
+   "year": 2015,
+   "month": 2,
+   "T2M": -4.66,
+   "WS10M": 4.26,
+   "WD10M": 301.4,
+   "PRECTOTCORR": 1.47,
+   "RH2M": 77.33
+  },
+  {
+   "year": 2015,
+   "month": 3,
+   "T2M": 3.19,
+   "WS10M": 3.82,
+   "WD10M": 290.5,
+   "PRECTOTCORR": 3.13,
+   "RH2M": 79.96
+  },
+  {
+   "year": 2015,
+   "month": 4,
+   "T2M": 11.9,
+   "WS10M": 3.83,
+   "WD10M": 257.3,
+   "PRECTOTCORR": 3.1,
+   "RH2M": 75.74
+  },
+  {
+   "year": 2015,
+   "month": 5,
+   "T2M": 19.58,
+   "WS10M": 2.83,
+   "WD10M": 214.4,
+   "PRECTOTCORR": 2.31,
+   "RH2M": 76.98
+  },
+  {
+   "year": 2015,
+   "month": 6,
+   "T2M": 23.01,
+   "WS10M": 3.0,
+   "WD10M": 239.9,
+   "PRECTOTCORR": 7.06,
+   "RH2M": 79.1
+  },
+  {
+   "year": 2015,
+   "month": 7,
+   "T2M": 24.56,
+   "WS10M": 2.32,
+   "WD10M": 240.7,
+   "PRECTOTCORR": 3.22,
+   "RH2M": 74.6
+  },
+  {
+   "year": 2015,
+   "month": 8,
+   "T2M": 24.53,
+   "WS10M": 2.47,
+   "WD10M": 232.0,
+   "PRECTOTCORR": 1.62,
+   "RH2M": 60.28
+  },
+  {
+   "year": 2015,
+   "month": 9,
+   "T2M": 22.08,
+   "WS10M": 2.78,
+   "WD10M": 57.2,
+   "PRECTOTCORR": 3.4,
+   "RH2M": 65.22
+  },
+  {
+   "year": 2015,
+   "month": 10,
+   "T2M": 12.6,
+   "WS10M": 3.35,
+   "WD10M": 339.1,
+   "PRECTOTCORR": 3.04,
+   "RH2M": 77.41
+  },
+  {
+   "year": 2015,
+   "month": 11,
+   "T2M": 9.47,
+   "WS10M": 3.26,
+   "WD10M": 276.2,
+   "PRECTOTCORR": 2.1,
+   "RH2M": 79.62
+  },
+  {
+   "year": 2015,
+   "month": 12,
+   "T2M": 8.11,
+   "WS10M": 3.09,
+   "WD10M": 233.7,
+   "PRECTOTCORR": 3.13,
+   "RH2M": 88.07
+  },
+  {
+   "year": 2016,
+   "month": 1,
+   "T2M": -1.9,
+   "WS10M": 3.96,
+   "WD10M": 291.8,
+   "PRECTOTCORR": 3.06,
+   "RH2M": 81.72
+  },
+  {
+   "year": 2016,
+   "month": 2,
+   "T2M": 1.4,
+   "WS10M": 4.35,
+   "WD10M": 270.1,
+   "PRECTOTCORR": 3.78,
+   "RH2M": 82.24
+  },
+  {
+   "year": 2016,
+   "month": 3,
+   "T2M": 8.87,
+   "WS10M": 3.82,
+   "WD10M": 251.4,
+   "PRECTOTCORR": 1.25,
+   "RH2M": 80.92
+  },
+  {
+   "year": 2016,
+   "month": 4,
+   "T2M": 11.29,
+   "WS10M": 3.82,
+   "WD10M": 250.3,
+   "PRECTOTCORR": 1.56,
+   "RH2M": 73.26
+  },
+  {
+   "year": 2016,
+   "month": 5,
+   "T2M": 15.93,
+   "WS10M": 2.75,
+   "WD10M": 294.6,
+   "PRECTOTCORR": 4.85,
+   "RH2M": 82.45
+  },
+  {
+   "year": 2016,
+   "month": 6,
+   "T2M": 22.16,
+   "WS10M": 2.86,
+   "WD10M": 251.0,
+   "PRECTOTCORR": 3.93,
+   "RH2M": 75.0
+  },
+  {
+   "year": 2016,
+   "month": 7,
+   "T2M": 26.61,
+   "WS10M": 2.29,
+   "WD10M": 259.1,
+   "PRECTOTCORR": 3.85,
+   "RH2M": 66.7
+  },
+  {
+   "year": 2016,
+   "month": 8,
+   "T2M": 26.41,
+   "WS10M": 2.5,
+   "WD10M": 207.4,
+   "PRECTOTCORR": 2.1,
+   "RH2M": 67.16
+  },
+  {
+   "year": 2016,
+   "month": 9,
+   "T2M": 22.72,
+   "WS10M": 3.11,
+   "WD10M": 61.0,
+   "PRECTOTCORR": 4.3,
+   "RH2M": 67.36
+  },
+  {
+   "year": 2016,
+   "month": 10,
+   "T2M": 14.6,
+   "WS10M": 3.29,
+   "WD10M": 311.0,
+   "PRECTOTCORR": 0.91,
+   "RH2M": 76.71
+  },
+  {
+   "year": 2016,
+   "month": 11,
+   "T2M": 8.41,
+   "WS10M": 3.41,
+   "WD10M": 288.7,
+   "PRECTOTCORR": 1.37,
+   "RH2M": 69.65
+  },
+  {
+   "year": 2016,
+   "month": 12,
+   "T2M": 1.48,
+   "WS10M": 3.74,
+   "WD10M": 273.3,
+   "PRECTOTCORR": 1.9,
+   "RH2M": 77.02
+  },
+  {
+   "year": 2017,
+   "month": 1,
+   "T2M": 2.09,
+   "WS10M": 3.97,
+   "WD10M": 281.6,
+   "PRECTOTCORR": 2.74,
+   "RH2M": 82.55
+  },
+  {
+   "year": 2017,
+   "month": 2,
+   "T2M": 5.54,
+   "WS10M": 4.15,
+   "WD10M": 267.1,
+   "PRECTOTCORR": 0.87,
+   "RH2M": 77.23
+  },
+  {
+   "year": 2017,
+   "month": 3,
+   "T2M": 5.32,
+   "WS10M": 4.43,
+   "WD10M": 293.3,
+   "PRECTOTCORR": 2.9,
+   "RH2M": 74.06
+  },
+  {
+   "year": 2017,
+   "month": 4,
+   "T2M": 15.11,
+   "WS10M": 3.79,
+   "WD10M": 237.9,
+   "PRECTOTCORR": 2.53,
+   "RH2M": 76.16
+  },
+  {
+   "year": 2017,
+   "month": 5,
+   "T2M": 16.89,
+   "WS10M": 3.57,
+   "WD10M": 216.9,
+   "PRECTOTCORR": 5.7,
+   "RH2M": 77.66
+  },
+  {
+   "year": 2017,
+   "month": 6,
+   "T2M": 23.43,
+   "WS10M": 3.11,
+   "WD10M": 246.8,
+   "PRECTOTCORR": 1.51,
+   "RH2M": 66.6
+  },
+  {
+   "year": 2017,
+   "month": 7,
+   "T2M": 26.1,
+   "WS10M": 2.42,
+   "WD10M": 286.5,
+   "PRECTOTCORR": 5.66,
+   "RH2M": 68.12
+  },
+  {
+   "year": 2017,
+   "month": 8,
+   "T2M": 23.18,
+   "WS10M": 2.36,
+   "WD10M": 252.7,
+   "PRECTOTCORR": 3.28,
+   "RH2M": 72.37
+  },
+  {
+   "year": 2017,
+   "month": 9,
+   "T2M": 20.65,
+   "WS10M": 2.75,
+   "WD10M": 355.7,
+   "PRECTOTCORR": 1.48,
+   "RH2M": 67.76
+  },
+  {
+   "year": 2017,
+   "month": 10,
+   "T2M": 16.24,
+   "WS10M": 3.17,
+   "WD10M": 204.8,
+   "PRECTOTCORR": 3.23,
+   "RH2M": 69.95
+  },
+  {
+   "year": 2017,
+   "month": 11,
+   "T2M": 6.33,
+   "WS10M": 3.27,
+   "WD10M": 273.9,
+   "PRECTOTCORR": 1.43,
+   "RH2M": 78.34
+  },
+  {
+   "year": 2017,
+   "month": 12,
+   "T2M": 0.85,
+   "WS10M": 3.39,
+   "WD10M": 276.9,
+   "PRECTOTCORR": 0.63,
+   "RH2M": 75.12
+  },
+  {
+   "year": 2018,
+   "month": 1,
+   "T2M": -1.21,
+   "WS10M": 4.31,
+   "WD10M": 283.7,
+   "PRECTOTCORR": 1.52,
+   "RH2M": 74.94
+  },
+  {
+   "year": 2018,
+   "month": 2,
+   "T2M": 4.0,
+   "WS10M": 3.8,
+   "WD10M": 235.6,
+   "PRECTOTCORR": 4.24,
+   "RH2M": 84.98
+  },
+  {
+   "year": 2018,
+   "month": 3,
+   "T2M": 3.14,
+   "WS10M": 4.65,
+   "WD10M": 318.7,
+   "PRECTOTCORR": 1.74,
+   "RH2M": 76.3
+  },
+  {
+   "year": 2018,
+   "month": 4,
+   "T2M": 9.76,
+   "WS10M": 4.18,
+   "WD10M": 276.5,
+   "PRECTOTCORR": 3.34,
+   "RH2M": 73.01
+  },
+  {
+   "year": 2018,
+   "month": 5,
+   "T2M": 20.24,
+   "WS10M": 2.94,
+   "WD10M": 171.9,
+   "PRECTOTCORR": 6.51,
+   "RH2M": 82.53
+  },
+  {
+   "year": 2018,
+   "month": 6,
+   "T2M": 22.09,
+   "WS10M": 2.71,
+   "WD10M": 296.0,
+   "PRECTOTCORR": 6.04,
+   "RH2M": 81.69
+  },
+  {
+   "year": 2018,
+   "month": 7,
+   "T2M": 24.09,
+   "WS10M": 2.59,
+   "WD10M": 145.2,
+   "PRECTOTCORR": 6.99,
+   "RH2M": 77.09
+  },
+  {
+   "year": 2018,
+   "month": 8,
+   "T2M": 24.2,
+   "WS10M": 2.37,
+   "WD10M": 250.9,
+   "PRECTOTCORR": 4.65,
+   "RH2M": 82.27
+  },
+  {
+   "year": 2018,
+   "month": 9,
+   "T2M": 21.91,
+   "WS10M": 2.94,
+   "WD10M": 74.6,
+   "PRECTOTCORR": 7.78,
+   "RH2M": 86.54
+  },
+  {
+   "year": 2018,
+   "month": 10,
+   "T2M": 13.93,
+   "WS10M": 3.2,
+   "WD10M": 262.5,
+   "PRECTOTCORR": 2.5,
+   "RH2M": 82.82
+  },
+  {
+   "year": 2018,
+   "month": 11,
+   "T2M": 4.42,
+   "WS10M": 3.54,
+   "WD10M": 289.8,
+   "PRECTOTCORR": 5.66,
+   "RH2M": 85.24
+  },
+  {
+   "year": 2018,
+   "month": 12,
+   "T2M": 2.52,
+   "WS10M": 3.17,
+   "WD10M": 288.8,
+   "PRECTOTCORR": 4.65,
+   "RH2M": 88.11
+  },
+  {
+   "year": 2019,
+   "month": 1,
+   "T2M": -0.65,
+   "WS10M": 4.06,
+   "WD10M": 290.2,
+   "PRECTOTCORR": 2.62,
+   "RH2M": 85.81
+  },
+  {
+   "year": 2019,
+   "month": 2,
+   "T2M": 1.59,
+   "WS10M": 3.59,
+   "WD10M": 290.3,
+   "PRECTOTCORR": 3.43,
+   "RH2M": 87.16
+  },
+  {
+   "year": 2019,
+   "month": 3,
+   "T2M": 4.4,
+   "WS10M": 4.0,
+   "WD10M": 292.4,
+   "PRECTOTCORR": 3.34,
+   "RH2M": 81.32
+  },
+  {
+   "year": 2019,
+   "month": 4,
+   "T2M": 13.65,
+   "WS10M": 3.93,
+   "WD10M": 228.2,
+   "PRECTOTCORR": 2.5,
+   "RH2M": 80.06
+  },
+  {
+   "year": 2019,
+   "month": 5,
+   "T2M": 19.42,
+   "WS10M": 3.05,
+   "WD10M": 253.7,
+   "PRECTOTCORR": 4.65,
+   "RH2M": 82.14
+  },
+  {
+   "year": 2019,
+   "month": 6,
+   "T2M": 21.95,
+   "WS10M": 3.08,
+   "WD10M": 279.9,
+   "PRECTOTCORR": 3.53,
+   "RH2M": 77.96
+  },
+  {
+   "year": 2019,
+   "month": 7,
+   "T2M": 26.24,
+   "WS10M": 2.24,
+   "WD10M": 268.2,
+   "PRECTOTCORR": 3.7,
+   "RH2M": 70.17
+  },
+  {
+   "year": 2019,
+   "month": 8,
+   "T2M": 25.47,
+   "WS10M": 2.28,
+   "WD10M": 251.6,
+   "PRECTOTCORR": 2.78,
+   "RH2M": 64.7
+  },
+  {
+   "year": 2019,
+   "month": 9,
+   "T2M": 23.65,
+   "WS10M": 2.65,
+   "WD10M": 139.9,
+   "PRECTOTCORR": 0.33,
+   "RH2M": 61.19
+  },
+  {
+   "year": 2019,
+   "month": 10,
+   "T2M": 16.24,
+   "WS10M": 3.53,
+   "WD10M": 261.8,
+   "PRECTOTCORR": 2.75,
+   "RH2M": 65.96
+  },
+  {
+   "year": 2019,
+   "month": 11,
+   "T2M": 4.82,
+   "WS10M": 3.38,
+   "WD10M": 287.2,
+   "PRECTOTCORR": 0.99,
+   "RH2M": 71.12
+  },
+  {
+   "year": 2019,
+   "month": 12,
+   "T2M": 2.54,
+   "WS10M": 3.22,
+   "WD10M": 279.3,
+   "PRECTOTCORR": 2.53,
+   "RH2M": 84.59
+  },
+  {
+   "year": 2020,
+   "month": 1,
+   "T2M": 2.39,
+   "WS10M": 3.83,
+   "WD10M": 281.5,
+   "PRECTOTCORR": 2.5,
+   "RH2M": 82.19
+  },
+  {
+   "year": 2020,
+   "month": 2,
+   "T2M": 3.99,
+   "WS10M": 3.83,
+   "WD10M": 263.2,
+   "PRECTOTCORR": 2.32,
+   "RH2M": 79.3
+  },
+  {
+   "year": 2020,
+   "month": 3,
+   "T2M": 8.88,
+   "WS10M": 3.74,
+   "WD10M": 262.4,
+   "PRECTOTCORR": 1.9,
+   "RH2M": 78.44
+  },
+  {
+   "year": 2020,
+   "month": 4,
+   "T2M": 10.61,
+   "WS10M": 4.25,
+   "WD10M": 291.0,
+   "PRECTOTCORR": 4.37,
+   "RH2M": 74.52
+  },
+  {
+   "year": 2020,
+   "month": 5,
+   "T2M": 15.52,
+   "WS10M": 3.75,
+   "WD10M": 275.1,
+   "PRECTOTCORR": 1.74,
+   "RH2M": 75.41
+  },
+  {
+   "year": 2020,
+   "month": 6,
+   "T2M": 23.09,
+   "WS10M": 2.92,
+   "WD10M": 258.8,
+   "PRECTOTCORR": 2.98,
+   "RH2M": 68.93
+  },
+  {
+   "year": 2020,
+   "month": 7,
+   "T2M": 28.26,
+   "WS10M": 2.34,
+   "WD10M": 243.4,
+   "PRECTOTCORR": 2.88,
+   "RH2M": 60.9
+  },
+  {
+   "year": 2020,
+   "month": 8,
+   "T2M": 24.81,
+   "WS10M": 2.47,
+   "WD10M": 225.7,
+   "PRECTOTCORR": 5.85,
+   "RH2M": 75.72
+  },
+  {
+   "year": 2020,
+   "month": 9,
+   "T2M": 19.28,
+   "WS10M": 2.73,
+   "WD10M": 145.9,
+   "PRECTOTCORR": 2.61,
+   "RH2M": 75.6
+  },
+  {
+   "year": 2020,
+   "month": 10,
+   "T2M": 14.18,
+   "WS10M": 2.9,
+   "WD10M": 246.7,
+   "PRECTOTCORR": 4.44,
+   "RH2M": 79.25
+  },
+  {
+   "year": 2020,
+   "month": 11,
+   "T2M": 9.47,
+   "WS10M": 3.51,
+   "WD10M": 250.8,
+   "PRECTOTCORR": 3.97,
+   "RH2M": 80.86
+  },
+  {
+   "year": 2020,
+   "month": 12,
+   "T2M": 1.13,
+   "WS10M": 3.65,
+   "WD10M": 270.4,
+   "PRECTOTCORR": 3.68,
+   "RH2M": 86.76
+  },
+  {
+   "year": 2021,
+   "month": 1,
+   "T2M": 0.18,
+   "WS10M": 3.57,
+   "WD10M": 309.5,
+   "PRECTOTCORR": 1.45,
+   "RH2M": 84.07
+  },
+  {
+   "year": 2021,
+   "month": 2,
+   "T2M": -0.05,
+   "WS10M": 3.95,
+   "WD10M": 322.1,
+   "PRECTOTCORR": 3.45,
+   "RH2M": 85.51
+  },
+  {
+   "year": 2021,
+   "month": 3,
+   "T2M": 7.45,
+   "WS10M": 3.95,
+   "WD10M": 293.9,
+   "PRECTOTCORR": 2.03,
+   "RH2M": 77.21
+  },
+  {
+   "year": 2021,
+   "month": 4,
+   "T2M": 12.21,
+   "WS10M": 3.72,
+   "WD10M": 285.9,
+   "PRECTOTCORR": 1.85,
+   "RH2M": 74.91
+  },
+  {
+   "year": 2021,
+   "month": 5,
+   "T2M": 16.75,
+   "WS10M": 3.12,
+   "WD10M": 287.9,
+   "PRECTOTCORR": 2.33,
+   "RH2M": 72.47
+  },
+  {
+   "year": 2021,
+   "month": 6,
+   "T2M": 23.58,
+   "WS10M": 2.82,
+   "WD10M": 213.1,
+   "PRECTOTCORR": 3.1,
+   "RH2M": 71.61
+  },
+  {
+   "year": 2021,
+   "month": 7,
+   "T2M": 26.65,
+   "WS10M": 2.49,
+   "WD10M": 261.3,
+   "PRECTOTCORR": 2.03,
+   "RH2M": 61.18
+  },
+  {
+   "year": 2021,
+   "month": 8,
+   "T2M": 26.41,
+   "WS10M": 2.22,
+   "WD10M": 186.6,
+   "PRECTOTCORR": 4.23,
+   "RH2M": 67.87
+  },
+  {
+   "year": 2021,
+   "month": 9,
+   "T2M": 20.93,
+   "WS10M": 2.94,
+   "WD10M": 261.0,
+   "PRECTOTCORR": 4.49,
+   "RH2M": 74.62
+  },
+  {
+   "year": 2021,
+   "month": 10,
+   "T2M": 17.09,
+   "WS10M": 3.1,
+   "WD10M": 279.7,
+   "PRECTOTCORR": 2.54,
+   "RH2M": 77.03
+  },
+  {
+   "year": 2021,
+   "month": 11,
+   "T2M": 5.82,
+   "WS10M": 3.4,
+   "WD10M": 286.0,
+   "PRECTOTCORR": 0.72,
+   "RH2M": 74.0
+  },
+  {
+   "year": 2021,
+   "month": 12,
+   "T2M": 5.47,
+   "WS10M": 3.19,
+   "WD10M": 246.8,
+   "PRECTOTCORR": 0.51,
+   "RH2M": 77.29
+  },
+  {
+   "year": 2022,
+   "month": 1,
+   "T2M": -1.63,
+   "WS10M": 4.13,
+   "WD10M": 308.3,
+   "PRECTOTCORR": 2.12,
+   "RH2M": 77.12
+  },
+  {
+   "year": 2022,
+   "month": 2,
+   "T2M": 2.63,
+   "WS10M": 4.13,
+   "WD10M": 252.3,
+   "PRECTOTCORR": 1.63,
+   "RH2M": 76.03
+  },
+  {
+   "year": 2022,
+   "month": 3,
+   "T2M": 8.03,
+   "WS10M": 4.44,
+   "WD10M": 258.8,
+   "PRECTOTCORR": 1.73,
+   "RH2M": 72.59
+  },
+  {
+   "year": 2022,
+   "month": 4,
+   "T2M": 11.45,
+   "WS10M": 3.81,
+   "WD10M": 289.4,
+   "PRECTOTCORR": 2.03,
+   "RH2M": 69.23
+  },
+  {
+   "year": 2022,
+   "month": 5,
+   "T2M": 18.28,
+   "WS10M": 3.25,
+   "WD10M": 78.7,
+   "PRECTOTCORR": 4.36,
+   "RH2M": 76.27
+  },
+  {
+   "year": 2022,
+   "month": 6,
+   "T2M": 23.8,
+   "WS10M": 2.97,
+   "WD10M": 281.3,
+   "PRECTOTCORR": 2.31,
+   "RH2M": 61.97
+  },
+  {
+   "year": 2022,
+   "month": 7,
+   "T2M": 26.74,
+   "WS10M": 2.42,
+   "WD10M": 235.4,
+   "PRECTOTCORR": 3.16,
+   "RH2M": 65.38
+  },
+  {
+   "year": 2022,
+   "month": 8,
+   "T2M": 25.85,
+   "WS10M": 2.38,
+   "WD10M": 241.0,
+   "PRECTOTCORR": 2.51,
+   "RH2M": 64.17
+  },
+  {
+   "year": 2022,
+   "month": 9,
+   "T2M": 21.06,
+   "WS10M": 2.88,
+   "WD10M": 306.9,
+   "PRECTOTCORR": 2.62,
+   "RH2M": 66.93
+  },
+  {
+   "year": 2022,
+   "month": 10,
+   "T2M": 12.34,
+   "WS10M": 3.36,
+   "WD10M": 312.6,
+   "PRECTOTCORR": 2.04,
+   "RH2M": 71.83
+  },
+  {
+   "year": 2022,
+   "month": 11,
+   "T2M": 8.32,
+   "WS10M": 3.47,
+   "WD10M": 261.3,
+   "PRECTOTCORR": 2.42,
+   "RH2M": 75.45
+  },
+  {
+   "year": 2022,
+   "month": 12,
+   "T2M": 0.68,
+   "WS10M": 3.16,
+   "WD10M": 277.3,
+   "PRECTOTCORR": 3.08,
+   "RH2M": 83.23
+  },
+  {
+   "year": 2023,
+   "month": 1,
+   "T2M": 3.92,
+   "WS10M": 3.66,
+   "WD10M": 275.0,
+   "PRECTOTCORR": 1.14,
+   "RH2M": 84.88
+  },
+  {
+   "year": 2023,
+   "month": 2,
+   "T2M": 5.27,
+   "WS10M": 4.17,
+   "WD10M": 267.7,
+   "PRECTOTCORR": 1.84,
+   "RH2M": 77.95
+  },
+  {
+   "year": 2023,
+   "month": 3,
+   "T2M": 6.46,
+   "WS10M": 4.34,
+   "WD10M": 293.7,
+   "PRECTOTCORR": 1.41,
+   "RH2M": 74.2
+  },
+  {
+   "year": 2023,
+   "month": 4,
+   "T2M": 14.47,
+   "WS10M": 3.54,
+   "WD10M": 243.4,
+   "PRECTOTCORR": 2.65,
+   "RH2M": 68.69
+  },
+  {
+   "year": 2023,
+   "month": 5,
+   "T2M": 16.9,
+   "WS10M": 2.92,
+   "WD10M": 24.5,
+   "PRECTOTCORR": 1.04,
+   "RH2M": 65.97
+  },
+  {
+   "year": 2023,
+   "month": 6,
+   "T2M": 22.1,
+   "WS10M": 3.12,
+   "WD10M": 304.7,
+   "PRECTOTCORR": 2.31,
+   "RH2M": 60.51
+  },
+  {
+   "year": 2023,
+   "month": 7,
+   "T2M": 27.08,
+   "WS10M": 2.3,
+   "WD10M": 249.9,
+   "PRECTOTCORR": 3.02,
+   "RH2M": 64.21
+  },
+  {
+   "year": 2023,
+   "month": 8,
+   "T2M": 25.39,
+   "WS10M": 2.78,
+   "WD10M": 261.1,
+   "PRECTOTCORR": 1.8,
+   "RH2M": 60.96
+  },
+  {
+   "year": 2023,
+   "month": 9,
+   "T2M": 21.47,
+   "WS10M": 2.8,
+   "WD10M": 6.8,
+   "PRECTOTCORR": 4.21,
+   "RH2M": 68.34
+  },
+  {
+   "year": 2023,
+   "month": 10,
+   "T2M": 14.87,
+   "WS10M": 3.03,
+   "WD10M": 279.4,
+   "PRECTOTCORR": 1.02,
+   "RH2M": 70.29
+  },
+  {
+   "year": 2023,
+   "month": 11,
+   "T2M": 6.61,
+   "WS10M": 3.19,
+   "WD10M": 283.7,
+   "PRECTOTCORR": 2.04,
+   "RH2M": 71.56
+  },
+  {
+   "year": 2023,
+   "month": 12,
+   "T2M": 4.38,
+   "WS10M": 3.08,
+   "WD10M": 285.7,
+   "PRECTOTCORR": 4.5,
+   "RH2M": 85.68
+  },
+  {
+   "year": 2024,
+   "month": 1,
+   "T2M": 0.73,
+   "WS10M": 3.77,
+   "WD10M": 284.9,
+   "PRECTOTCORR": 4.91,
+   "RH2M": 86.69
+  },
+  {
+   "year": 2024,
+   "month": 2,
+   "T2M": 3.85,
+   "WS10M": 3.5,
+   "WD10M": 291.1,
+   "PRECTOTCORR": 1.88,
+   "RH2M": 83.09
+  },
+  {
+   "year": 2024,
+   "month": 3,
+   "T2M": 8.03,
+   "WS10M": 4.01,
+   "WD10M": 304.8,
+   "PRECTOTCORR": 3.55,
+   "RH2M": 79.73
+  },
+  {
+   "year": 2024,
+   "month": 4,
+   "T2M": 13.42,
+   "WS10M": 3.65,
+   "WD10M": 243.7,
+   "PRECTOTCORR": 2.26,
+   "RH2M": 79.08
+  },
+  {
+   "year": 2024,
+   "month": 5,
+   "T2M": 18.98,
+   "WS10M": 2.71,
+   "WD10M": 184.4,
+   "PRECTOTCORR": 3.05,
+   "RH2M": 81.31
+  },
+  {
+   "year": 2024,
+   "month": 6,
+   "T2M": 24.87,
+   "WS10M": 2.9,
+   "WD10M": 235.4,
+   "PRECTOTCORR": 1.47,
+   "RH2M": 64.06
+  },
+  {
+   "year": 2024,
+   "month": 7,
+   "T2M": 27.7,
+   "WS10M": 2.44,
+   "WD10M": 214.4,
+   "PRECTOTCORR": 2.19,
+   "RH2M": 60.87
+  },
+  {
+   "year": 2024,
+   "month": 8,
+   "T2M": 24.98,
+   "WS10M": 2.58,
+   "WD10M": 263.5,
+   "PRECTOTCORR": 5.08,
+   "RH2M": 68.42
+  },
+  {
+   "year": 2024,
+   "month": 9,
+   "T2M": 20.85,
+   "WS10M": 2.9,
+   "WD10M": 90.5,
+   "PRECTOTCORR": 3.08,
+   "RH2M": 72.7
+  },
+  {
+   "year": 2024,
+   "month": 10,
+   "T2M": 14.73,
+   "WS10M": 2.87,
+   "WD10M": 290.7,
+   "PRECTOTCORR": 0.29,
+   "RH2M": 67.78
+  },
+  {
+   "year": 2024,
+   "month": 11,
+   "T2M": 9.74,
+   "WS10M": 3.46,
+   "WD10M": 287.0,
+   "PRECTOTCORR": 1.32,
+   "RH2M": 71.61
+  },
+  {
+   "year": 2024,
+   "month": 12,
+   "T2M": 2.23,
+   "WS10M": 3.37,
+   "WD10M": 252.9,
+   "PRECTOTCORR": 2.34,
+   "RH2M": 78.44
+  },
+  {
+   "year": 2025,
+   "month": 1,
+   "T2M": -2.55,
+   "WS10M": 4.21,
+   "WD10M": 284.8,
+   "PRECTOTCORR": 1.34,
+   "RH2M": 77.81
+  },
+  {
+   "year": 2025,
+   "month": 2,
+   "T2M": 1.15,
+   "WS10M": 4.1,
+   "WD10M": 292.0,
+   "PRECTOTCORR": 2.31,
+   "RH2M": 77.4
+  },
+  {
+   "year": 2025,
+   "month": 3,
+   "T2M": 8.56,
+   "WS10M": 4.43,
+   "WD10M": 253.3,
+   "PRECTOTCORR": 1.47,
+   "RH2M": 72.02
+  },
+  {
+   "year": 2025,
+   "month": 4,
+   "T2M": 13.7,
+   "WS10M": 4.13,
+   "WD10M": 262.1,
+   "PRECTOTCORR": 2.01,
+   "RH2M": 72.43
+  },
+  {
+   "year": 2025,
+   "month": 5,
+   "T2M": 17.96,
+   "WS10M": 3.28,
+   "WD10M": 258.3,
+   "PRECTOTCORR": 6.62,
+   "RH2M": 76.42
+  },
+  {
+   "year": 2025,
+   "month": 6,
+   "T2M": 24.11,
+   "WS10M": 2.41,
+   "WD10M": 226.9,
+   "PRECTOTCORR": 4.21,
+   "RH2M": 76.64
+  },
+  {
+   "year": 2025,
+   "month": 7,
+   "T2M": 26.93,
+   "WS10M": 2.13,
+   "WD10M": 218.5,
+   "PRECTOTCORR": 4.29,
+   "RH2M": 71.37
+  },
+  {
+   "year": 2025,
+   "month": 8,
+   "T2M": 23.59,
+   "WS10M": 2.5,
+   "WD10M": 71.7,
+   "PRECTOTCORR": 0.81,
+   "RH2M": 60.32
+  },
+  {
+   "year": 2025,
+   "month": 9,
+   "T2M": 21.58,
+   "WS10M": 2.6,
+   "WD10M": 72.8,
+   "PRECTOTCORR": 1.99,
+   "RH2M": 62.95
+  },
+  {
+   "year": 2025,
+   "month": 10,
+   "T2M": 14.17,
+   "WS10M": 3.56,
+   "WD10M": 331.4,
+   "PRECTOTCORR": 1.78,
+   "RH2M": 65.04
+  },
+  {
+   "year": 2025,
+   "month": 11,
+   "T2M": 7.72,
+   "WS10M": 3.63,
+   "WD10M": 272.4,
+   "PRECTOTCORR": 0.93,
+   "RH2M": 66.85
+  },
+  {
+   "year": 2025,
+   "month": 12,
+   "T2M": 0.2,
+   "WS10M": 3.72,
+   "WD10M": 275.0,
+   "PRECTOTCORR": 1.19,
+   "RH2M": 75.96
+  }
+ ]
+}

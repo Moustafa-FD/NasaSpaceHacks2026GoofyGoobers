@@ -88,7 +88,11 @@ const Stats = (() => {
     const xs = [...x].sort((a, b) => a - b), ys = [...y].sort((a, b) => a - b);
     const med = (a) => (a.length % 2 ? a[(a.length - 1) / 2] : (a[a.length / 2 - 1] + a[a.length / 2]) / 2);
     const intercept = med(ys) - slope * med(xs);
-    return { n, S, Z, p, slope, intercept, tau: S / (n * (n - 1) / 2) };
+    // 95% CI for Sen's slope (Gilbert 1987): ranks of the ordered pairwise slopes
+    const N = slopes.length, Ca = 1.959964 * Math.sqrt(varS);
+    const M1 = Math.round((N - Ca) / 2), M2 = Math.round((N + Ca) / 2);
+    const slopeLo = slopes[Math.max(0, Math.min(N - 1, M1 - 1))], slopeHi = slopes[Math.max(0, Math.min(N - 1, M2))];
+    return { n, S, Z, p, slope, intercept, slopeLo, slopeHi, pivotX: med(xs), pivotY: med(ys), tau: S / (n * (n - 1) / 2) };
   }
 
   const lag1 = (a) => {

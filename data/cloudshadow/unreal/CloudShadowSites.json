@@ -267,7 +267,15 @@
           "lat": 35.0484,
           "lon": -90.1254
         }
-      ]
+      ],
+      "wind": {
+        "windFromDeg": 191.9,
+        "plumeTowardDeg": 11.9,
+        "meanWindSpeedMS": 3.87,
+        "vectorMeanSpeedMS": 1.56,
+        "months": 276,
+        "note": "Vector mean of monthly means: indicates the prevailing drift, not any single day."
+      }
     },
     {
       "id": "colossus2",
@@ -528,7 +536,15 @@
           "url": "https://www.bisnow.com/news/national/data-center/elon-musks-ai-firm-plans-second-memphis-data-center-128407"
         }
       ],
-      "neighbors": []
+      "neighbors": [],
+      "wind": {
+        "windFromDeg": 191.9,
+        "plumeTowardDeg": 11.9,
+        "meanWindSpeedMS": 3.87,
+        "vectorMeanSpeedMS": 1.56,
+        "months": 276,
+        "note": "Vector mean of monthly means: indicates the prevailing drift, not any single day."
+      }
     },
     {
       "id": "ashburn",
@@ -756,7 +772,15 @@
           "url": "https://biz.loudoun.gov/key-business-sectors/data-centers/"
         }
       ],
-      "neighbors": []
+      "neighbors": [],
+      "wind": {
+        "windFromDeg": 275.1,
+        "plumeTowardDeg": 95.1,
+        "meanWindSpeedMS": 3.3,
+        "vectorMeanSpeedMS": 2.4,
+        "months": 276,
+        "note": "Vector mean of monthly means: indicates the prevailing drift, not any single day."
+      }
     },
     {
       "id": "abilene",
@@ -997,7 +1021,15 @@
         }
       },
       "sources": [],
-      "neighbors": []
+      "neighbors": [],
+      "wind": {
+        "windFromDeg": 199.5,
+        "plumeTowardDeg": 19.5,
+        "meanWindSpeedMS": 4.97,
+        "vectorMeanSpeedMS": 3.81,
+        "months": 276,
+        "note": "Vector mean of monthly means: indicates the prevailing drift, not any single day."
+      }
     },
     {
       "id": "thedalles",
@@ -1219,7 +1251,15 @@
         }
       },
       "sources": [],
-      "neighbors": []
+      "neighbors": [],
+      "wind": {
+        "windFromDeg": 258.6,
+        "plumeTowardDeg": 78.6,
+        "meanWindSpeedMS": 2.6,
+        "vectorMeanSpeedMS": 2.01,
+        "months": 276,
+        "note": "Vector mean of monthly means: indicates the prevailing drift, not any single day."
+      }
     }
   ]
 }

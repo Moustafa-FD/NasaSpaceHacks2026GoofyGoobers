@@ -14,8 +14,9 @@ const readJson = (p, fallback) => { try { return JSON.parse(fs.readFileSync(path
 function loadAll() {
   const doc = readJson("sites.json", { sites: [], context: {} });
   const hls = readJson("hls_dates.json", {});
+  const wind = readJson("weather/summary.json", {});
   const series = Object.fromEntries(doc.sites.map((s) => [s.id, readJson(`series/${s.id}.json`, { vars: {} }).vars]));
-  return { ...doc, hls, series };
+  return { ...doc, hls, wind, series };
 }
 
 function analyzeOne(all, siteId, varId) {
@@ -41,7 +42,7 @@ function summarize(all) {
     const L = s.ledger || {}, results = {};
     for (const v of VARS) { const r = analyzeOne(all, s.id, v); if (r) results[v] = { beforeAfter: r.beforeAfter, trendPerDecade: r.trendPerDecade }; }
     return { id: s.id, name: s.name, place: s.place, lat: s.lat, lon: s.lon, onset: s.onset, headline: s.headline,
-      powerMW: L.power?.mw ?? null, results, hls: all.hls[s.id] || null, ledger: L, sources: s.sources || [], neighbors: s.neighbors || [] };
+      powerMW: L.power?.mw ?? null, results, hls: all.hls[s.id] || null, ledger: L, sources: s.sources || [], neighbors: s.neighbors || [], wind: all.wind[s.id] || null };
   });
 }
 

@@ -7,7 +7,8 @@ Or in the Output Log (Python):  import cloudshadow_setup; cloudshadow_setup.run(
 Creates /Game/CloudShadow/Maps/CloudShadow with:
   * CesiumGeoreference centred on xAI Colossus 1 (Memphis)
   * Cesium World Terrain + Bing aerial imagery (Overlay0)
-  * NASA GIBS overlays (Overlay1) - NO2 active, others ready to toggle
+  * Overlay1 = one cloud-free 30 m NASA HLS image per site per year (the timeline "terrain")
+  * Overlay2 = NASA data layers (NO2, heat, NDVI, night lights); NO2 2025 active
   * Google Photorealistic 3D Tiles (hidden, for close-ups)
   * Cesium SunSky + Dynamic Pawn
   * One glowing pillar per data center, height = reported power draw (MW)
@@ -24,8 +25,12 @@ MAP = "/Game/CloudShadow/Maps/CloudShadow"
 MAT = "/Game/CloudShadow/Materials/M_Pillar"
 MAT_NB = "/Game/CloudShadow/Materials/M_Neighbor"
 ORIGIN = dict(lat=35.0601, lon=-90.1564, height=100.0)  # xAI Colossus 1
-REPO = os.path.abspath(os.path.join(unreal.Paths.project_dir(), "..", "..", ".."))  # clients/unreal/CloudShadow -> repo root
+# clients/unreal/CloudShadow -> repo root (override with env var CLOUDSHADOW_REPO if the project lives elsewhere)
+REPO = os.environ.get("CLOUDSHADOW_REPO") or os.path.abspath(os.path.join(unreal.Paths.project_dir(), "..", "..", ".."))
 SITES_JSON = os.path.join(REPO, "data", "cloudshadow", "unreal", "CloudShadowSites.json")
+HLS_TIMELINE = os.path.join(REPO, "data", "cloudshadow", "hls_timeline.json")
+IMAGERY_KEY = "Overlay1"   # yearly terrain imagery
+DATA_KEY = "Overlay2"      # NASA data layer drawn on top
 
 GIBS = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best"
 # (component name, layer, date, max level, active at start)
@@ -35,11 +40,9 @@ OVERLAYS = [
     ("NASA_HeatDay_2025", "MODIS_Terra_L3_Land_Surface_Temp_8Day_Day", "2025-07-12", 7, False),
     ("NASA_HeatNight_2025", "MODIS_Terra_L3_Land_Surface_Temp_8Day_Night", "2025-07-12", 7, False),
     ("NASA_NDVI_2025", "MODIS_Terra_L3_NDVI_16Day", "2025-07-12", 9, False),
-    ("NASA_HLS_Colossus1_Before", "HLS_S30_Nadir_BRDF_Adjusted_Reflectance", "2023-06-29", 12, False),
-    ("NASA_HLS_Colossus1_After", "HLS_S30_Nadir_BRDF_Adjusted_Reflectance", "2025-07-08", 12, False),
-    ("NASA_HLS_Colossus2_Before", "HLS_S30_Nadir_BRDF_Adjusted_Reflectance", "2024-06-13", 12, False),
-    ("NASA_HLS_Colossus2_After", "HLS_L30_Nadir_BRDF_Adjusted_Reflectance", "2026-06-20", 12, False),
     ("NASA_LandDisturbance_2025", "OPERA_L3_DIST-ANN-HLS_Color_Index", "2025-01-01", 12, False),
+    ("NASA_NightLights", "VIIRS_Black_Marble", "2016-01-01", 8, False),
+    ("NASA_Aerosol_2025", "MODIS_Terra_Aerosol_Optical_Depth_3km", "2025-07-15", 6, False),
 ]
 ION_WORLD_TERRAIN = 1
 ION_BING_AERIAL = 2
@@ -157,11 +160,13 @@ def _build_globe():
              template_url="%s/%s/default/%s/%s/{z}/{y}/{x}.png" % (GIBS, layer, date, tms),
              projection=unreal.CesiumUrlTemplateRasterOverlayProjection.WEB_MERCATOR,
              minimum_level=0, maximum_level=zmax, tile_width=256, tile_height=256,
-             material_layer_key="Overlay1", auto_activate=active)
+             material_layer_key=DATA_KEY, auto_activate=active)
         if active:
             ov.refresh()
         else:
             ov.deactivate()
+
+    _build_timeline_imagery(terrain)
 
     google = _spawn(unreal.Cesium3DTileset, "Google Photorealistic 3D Tiles (toggle for close-ups)", "CloudShadow/Globe")
     _set(google, tileset_source=unreal.TilesetSource.FROM_CESIUM_ION, ion_asset_id=ION_GOOGLE_3D)
@@ -178,6 +183,57 @@ def _build_globe():
         pawn.set_actor_rotation(unreal.Rotator(0, -50, 35), False)  # roll, pitch, yaw
     except Exception as e:
         warn("Cloud Shadow: DynamicPawn not added (%s). Use Cesium panel > Quick Add > Dynamic Pawn." % e)
+
+
+def _build_timeline_imagery(terrain):
+    """One inactive overlay per site per year: HLS_<site>_<year> on Overlay1 (see hls_timeline.json)."""
+    if not os.path.exists(HLS_TIMELINE):
+        warn("Cloud Shadow: %s missing; run `npm run data:timeline-imagery`. Skipping yearly imagery." % HLS_TIMELINE)
+        return
+    tl = json.load(open(HLS_TIMELINE, encoding="utf-8"))
+    n = 0
+    for site_id, years in tl.items():
+        for year, im in sorted(years.items()):
+            ov = _add_component(terrain, unreal.CesiumUrlTemplateRasterOverlay, "HLS_%s_%s" % (site_id, year))
+            _set(ov, template_url=im["templateUrl"],
+                 projection=unreal.CesiumUrlTemplateRasterOverlayProjection.WEB_MERCATOR,
+                 minimum_level=0, maximum_level=12, tile_width=256, tile_height=256,
+                 material_layer_key=IMAGERY_KEY, auto_activate=False)
+            ov.deactivate()
+            n += 1
+    log("Cloud Shadow: %d yearly imagery overlays (HLS_<site>_<year>) added." % n)
+
+
+def _terrain():
+    for a in _actors().get_all_level_actors():
+        if a.get_actor_label() == "Cesium World Terrain":
+            return a
+    return None
+
+
+def set_year(site_id, year, data_layer=None):
+    """Editor helper (and reference for the Blueprint slider): show site_id's imagery for `year`.
+    Future years (no imagery) keep the most recent image; the slider UI should label them PROJECTED.
+    data_layer: optional overlay component name to show on top (e.g. "NASA_NO2_2025"); others are hidden."""
+    terrain = _terrain()
+    if not terrain:
+        warn("Cloud Shadow: build the level first.")
+        return
+    comps = terrain.get_components_by_class(unreal.CesiumUrlTemplateRasterOverlay)
+    prefix = "HLS_%s_" % site_id
+    years = sorted(int(c.get_name()[len(prefix):]) for c in comps if c.get_name().startswith(prefix))
+    if not years:
+        warn("Cloud Shadow: no yearly imagery for %s" % site_id)
+        return
+    shown = max([y for y in years if y <= year] or [years[0]])
+    for c in comps:
+        name = c.get_name()
+        if name.startswith("HLS_"):
+            (c.activate if name == "%s%d" % (prefix, shown) else c.deactivate)()
+        elif data_layer is not None and name.startswith("NASA_"):
+            (c.activate if name == data_layer else c.deactivate)()
+    log("Cloud Shadow: %s year %d -> imagery %d%s" % (site_id, year, shown, " (PROJECTED year, latest image)" if year > years[-1] else ""))
+    return shown
 
 
 def rebuild_sites():

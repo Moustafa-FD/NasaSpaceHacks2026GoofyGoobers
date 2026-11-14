@@ -125,8 +125,10 @@ https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/OPERA_L3_DIST-ANN-HLS_Color_I
    | PowerMW | Float | | AirTempP | Float |
    | NO2Change | Float | | NDVIChange | Float |
    | NO2P | Float | | NDVIP | Float |
-   | AODChange | Float | | Headline | String |
-   | AODP | Float | | | |
+   | AODChange | Float | | WindFromDeg | Float |
+   | AODP | Float | | PlumeTowardDeg | Float |
+   | | | | WindSpeedMS | Float |
+   | | | | Headline | String |
 
 2. **Import** `data/cloudshadow/unreal/CloudShadowSites.csv` by dragging it into the Content Browser. Choose **DataTable**, row struct `S_CloudShadowSite`.
 3. **BP_SiteMarker** (Actor): add a **Cylinder** mesh (emissive orange material), a **Text Render** (or a Widget component) and a **CesiumGlobeAnchor** component.

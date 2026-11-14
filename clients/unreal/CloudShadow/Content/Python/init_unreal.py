@@ -22,6 +22,10 @@ def _add_menu():
           reload + "cloudshadow_setup.run()")
     entry("RefreshSites", "Refresh site markers from data/", "Re-read data/cloudshadow/unreal/CloudShadowSites.json and rebuild the pillars.",
           reload + "cloudshadow_setup.rebuild_sites()")
+    for site, label in (("colossus1", "Colossus 1"), ("ashburn", "Ashburn")):
+        for yr in (2015, 2020, 2025):
+            entry("Year_%s_%d" % (site, yr), "Timeline: %s %d" % (label, yr), "Show that year's NASA 30 m imagery (editor preview)",
+                  reload + "cloudshadow_setup.set_year('%s', %d)" % (site, yr))
     entry("Check", "Check setup", "Print what's installed and what's missing to the Output Log.",
           reload + "cloudshadow_setup.check()")
     menus.refresh_all_widgets()
