@@ -26,7 +26,9 @@ export interface GroundEvidenceRequest { schemaVersion: "1.0"; kind: "ground-evi
 export interface WaterQualityRequest { schemaVersion: "1.0"; kind: "water-quality"; stationId: string; start: string; end: string; parameters?: Array<"00010" | "00095" | "00400" | "00300" | "63680"> }
 /** Part 2 trend input: a completed `series` run's variable, or an inline series (e.g. Giovanni or GIBS-derived). */
 export type TrendSeriesInput =
-  | { runId: string; variable: string }
+  | { runId: string; variable: string; model?: string }
+  /** Several completed Part 1 runs stitched in time (e.g. consecutive 2-year ERA5 land-water requests). */
+  | { runIds: string[]; variable: string; model?: string }
   | { series: { label: string; unit: string; source?: string; points: Array<{ date: string; value: number | null }> } };
 export interface TrendAnalysisRequest {
   schemaVersion: "1.0"; kind: "trend-analysis";
@@ -122,14 +124,17 @@ const TREND_MAX_POINTS = 20_000;
 function validateTrendInput(input: unknown, name: string): string[] {
   if (!input || typeof input !== "object" || Array.isArray(input)) return [`${name} must be an object`];
   const value = input as Record<string, unknown>;
-  const keys = Object.keys(value).sort().join(",");
-  if (keys === "runId,variable") {
+  const keys = Object.keys(value);
+  if (keys.includes("runId") || keys.includes("runIds")) {
     const errors: string[] = [];
-    if (typeof value.runId !== "string" || !/^[a-zA-Z0-9_-]{1,80}$/.test(value.runId)) errors.push(`${name}.runId must be a run ID`);
-    if (typeof value.variable !== "string" || !/^[A-Za-z0-9_]{1,40}$/.test(value.variable)) errors.push(`${name}.variable must be a variable ID`);
+    if (keys.some(key => !["runId", "runIds", "variable", "model"].includes(key)) || (keys.includes("runId") === keys.includes("runIds"))) return [`${name} needs exactly one of runId or runIds, plus variable and optional model`];
+    const ids = keys.includes("runIds") ? value.runIds : [value.runId];
+    if (!Array.isArray(ids) || ids.length < 1 || ids.length > 60 || new Set(ids).size !== ids.length || ids.some(id => typeof id !== "string" || !/^[a-zA-Z0-9_-]{1,80}$/.test(id))) errors.push(`${name}.runIds must be 1-60 unique run IDs`);
+    if (typeof value.variable !== "string" || !/^[A-Za-z0-9_.-]{1,60}$/.test(value.variable)) errors.push(`${name}.variable must be a variable or parameter ID`);
+    if (value.model !== undefined && (typeof value.model !== "string" || !/^[A-Za-z0-9_.-]{1,60}$/.test(value.model))) errors.push(`${name}.model must be a model ID`);
     return errors;
   }
-  if (keys !== "series") return [`${name} needs either {runId, variable} or {series}`];
+  if (keys.join(",") !== "series") return [`${name} needs {runId|runIds, variable} or {series}`];
   const series = value.series as Record<string, unknown>;
   if (!series || typeof series !== "object" || Array.isArray(series) || Object.keys(series).some(key => !["label", "unit", "source", "points"].includes(key))) return [`${name}.series has unknown or missing fields`];
   const errors: string[] = [];

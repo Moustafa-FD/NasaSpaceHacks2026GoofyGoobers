@@ -15,22 +15,82 @@ export interface ResolvedSeries {
 
 const sha256 = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 
-/** Resolve an inline series or a completed `series` run's variable, recording provenance and an input hash. */
+type Point = { date: string; value: number | null };
+interface Extracted { label: string; unit: string; evidence: string; points: Point[]; model?: string }
+
+/** Pull one variable out of any Part 1 result kind that carries a time series. */
+export function extractVariable(run: Record<string, any>, runId: string, variable: string, model?: string): Extracted {
+  const plain = (items: any[]) => items.map((item: any) => ({ date: String(item.date), value: typeof item.value === "number" && Number.isFinite(item.value) ? item.value : null }));
+  switch (run.kind) {
+    case "series":            // NASA POWER point series (monthly)
+    case "air-quality": {     // CAMS hourly concentrations
+      const found = (run.variables ?? []).find((item: any) => item.id === variable);
+      if (!found || !Array.isArray(found.series)) throw new Error(`run ${runId} (${run.kind}) has no variable ${variable}; available: ${(run.variables ?? []).map((v: any) => v.id).join(", ")}`);
+      return { label: String(found.label ?? variable), unit: String(found.unit ?? ""), evidence: String(run.evidence ?? "model-derived"), points: plain(found.series) };
+    }
+    case "land-water":        // ERA5 daily history
+    case "climate": {         // HighResMIP daily scenario
+      const models: any[] = run.models ?? [];
+      const chosen = model ? models.find(m => m.model === model) : models.length === 1 ? models[0] : undefined;
+      if (!chosen) throw new Error(`run ${runId} (${run.kind}) needs model: one of ${models.map(m => m.model).join(", ")}`);
+      const metric = (chosen.metrics ?? []).find((m: any) => m.id === variable);
+      if (!metric) throw new Error(`run ${runId} model ${chosen.model} has no metric ${variable}; available: ${(chosen.metrics ?? []).map((m: any) => m.id).join(", ")}`);
+      return { label: `${variable} (${chosen.model})`, unit: String(metric.units ?? ""), evidence: String(run.evidence ?? ""), points: plain(metric.series), model: chosen.model };
+    }
+    case "water-quality": {   // USGS station observations; variable = USGS parameter code
+      const records = (run.records ?? []).filter((r: any) => r.parameterCode === variable);
+      if (!records.length) throw new Error(`run ${runId} has no records for USGS parameter ${variable}`);
+      const units = [...new Set(records.map((r: any) => r.unit).filter(Boolean))];
+      if (units.length > 1) throw new Error(`run ${runId} parameter ${variable} mixes units ${units.join(", ")}`);
+      return { label: String(records[0].parameterName ?? variable), unit: String(units[0] ?? ""), evidence: String(run.evidence ?? "ground-observation"),
+        // Censored and non-numeric values stay missing: a censoring bound is not a measured value.
+        points: records.map((r: any) => ({ date: String(r.sourceTime ?? r.date), value: r.valueStatus === "numeric" && typeof r.value === "number" ? r.value : null })) };
+    }
+    default:
+      throw new Error(`run ${runId} is a ${run.kind} result, which has no time series to analyse`);
+  }
+}
+
+/** Sub-daily samples become daily means (the engine works at day/month/year resolution). */
+export function toDaily(points: Point[]): Point[] {
+  if (points.every(p => p.date.length <= 10)) return points;
+  const days = new Map<string, { sum: number; n: number }>();
+  for (const p of points) {
+    const iso = p.date.length > 10 ? new Date(p.date.endsWith("Z") || /[+-]\d\d:\d\d$/.test(p.date) ? p.date : `${p.date}Z`).toISOString().slice(0, 10) : p.date;
+    const day = days.get(iso) ?? { sum: 0, n: 0 };
+    if (p.value !== null) { day.sum += p.value; day.n += 1; }
+    days.set(iso, day);
+  }
+  return [...days.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([date, d]) => ({ date, value: d.n ? d.sum / d.n : null }));
+}
+
+/** Resolve an inline series or one/several completed Part 1 runs, recording provenance and an input hash. */
 export async function resolveTrendInput(store: EnvironmentStore, input: TrendSeriesInput, role: "target" | "control"): Promise<ResolvedSeries> {
   if ("series" in input) {
     const points = input.series.points.map(point => ({ date: point.date, value: point.value }));
     return { label: input.series.label, unit: input.series.unit, points, reference: { role, kind: "inline", source: input.series.source ?? null, inputSha256: sha256(points) } };
   }
-  const run = await store.read<Record<string, any>>(store.processedDirectory, `run-${input.runId}`);
-  if (!run) throw new Error(`${role}: run ${input.runId} has no completed result`);
-  if (run.kind !== "series" || !Array.isArray(run.variables)) throw new Error(`${role}: run ${input.runId} is not a completed point-series run`);
-  const variable = run.variables.find((item: Record<string, unknown>) => item.id === input.variable);
-  if (!variable || !Array.isArray(variable.series)) throw new Error(`${role}: run ${input.runId} has no variable ${input.variable}`);
-  const points = variable.series.map((item: { date: string; value: number | null }) => ({ date: item.date, value: item.value }));
+  const ids = "runIds" in input ? input.runIds : [input.runId];
+  const parts: Array<Extracted & { runId: string; run: Record<string, any> }> = [];
+  for (const runId of ids) {
+    const run = await store.read<Record<string, any>>(store.processedDirectory, `run-${runId}`);
+    if (!run) throw new Error(`${role}: run ${runId} has no completed result`);
+    parts.push({ ...extractVariable(run, runId, input.variable, input.model), runId, run });
+  }
+  const evidence = [...new Set(parts.map(p => p.evidence))], units = [...new Set(parts.map(p => p.unit))];
+  if (evidence.length > 1) throw new Error(`${role}: runs mix evidence types (${evidence.join(", ")}); observations, reanalysis and scenarios cannot be stitched into one trend`);
+  if (units.length > 1) throw new Error(`${role}: runs report different units (${units.join(", ")})`);
+  const merged = new Map<string, number | null>();
+  for (const part of parts) for (const p of toDaily(part.points)) {
+    if (merged.has(p.date) && merged.get(p.date) !== null && p.value !== null && Math.abs((merged.get(p.date) as number) - p.value) > 1e-9) throw new Error(`${role}: overlapping runs disagree on ${p.date}`);
+    if (!merged.has(p.date) || merged.get(p.date) === null) merged.set(p.date, p.value);
+  }
+  const points = [...merged.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([date, value]) => ({ date, value }));
   return {
-    label: String(variable.label ?? input.variable), unit: String(variable.unit ?? ""), points,
-    reference: { role, kind: "run", runId: input.runId, variable: input.variable, evidence: run.evidence ?? null, sourceUrl: run.sourceUrl ?? null,
-      rawSha256: run.rawSha256 ?? null, retrievedAt: run.retrievedAt ?? null, inputSha256: sha256(points) },
+    label: parts[0].label, unit: units[0], points,
+    reference: { role, kind: "run", runIds: ids, variable: input.variable, model: parts[0].model ?? null, resultKind: [...new Set(parts.map(p => p.run.kind))].join(","),
+      evidence: evidence[0], sources: parts.map(p => ({ runId: p.runId, sourceUrl: p.run.sourceUrl ?? p.run.station?.sourceUrl ?? null, rawSha256: p.run.rawSha256 ?? null, retrievedAt: p.run.retrievedAt ?? null })),
+      inputSha256: sha256(points) },
   };
 }
 

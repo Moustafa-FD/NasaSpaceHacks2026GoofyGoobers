@@ -82,7 +82,7 @@ The environmental API runs the same engine as a background job (`kind: "trend-an
   "cadence": "annual", "alpha": 0.05, "minYears": 10 }
 ```
 
-The `input` (and optional `control`) is either a completed `series` run's variable or an inline series `{ "series": { "label", "unit", "source", "points": [{ "date": "YYYY[-MM[-DD]]", "value": number|null }] } }` of up to 20,000 points. The result carries `evidence: "statistical-analysis"`, the method and tests used, input provenance (run ID, source URL, raw and input SHA-256), and the full report. With a control, it reports target, control and target-minus-control trends. Bridge: `apps/api/src/environment/trends.ts` → `python -m services.models.trends.worker`.
+The `input` (and optional `control`) is either `{runId | runIds, variable, model?}`, which reads completed Part 1 runs of kind `series`, `air-quality`, `land-water`, `climate` or `water-quality` (several runs are stitched in time; hourly data become daily means; mixing evidence types or units is refused), or an inline series `{ "series": { "label", "unit", "source", "points": [{ "date": "YYYY[-MM[-DD]]", "value": number|null }] } }` of up to 20,000 points. The result carries `evidence: "statistical-analysis"`, the method and tests used, input provenance (run ID, source URL, raw and input SHA-256), and the full report. With a control, it reports target, control and target-minus-control trends. Bridge: `apps/api/src/environment/trends.ts` → `python -m services.models.trends.worker`.
 
 Rules the engine enforces:
 
