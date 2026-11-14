@@ -2,10 +2,9 @@
 //
 // Dragging the slider changes, for the selected site:
 //   1. the ground      - real cloud-free NASA HLS 30 m image for that year (cross-faded)
-//   2. the heat dome   - translucent dome; height/colour = that year's night-heat signal (site − surroundings)
-//   3. the impact ring - 3D bar per year around the site (selected variable's local signal);
-//                        future years = ghost bars inside the 95% CI band
-//   4. the plume       - (sites with on-site turbines) 3D smoke blowing in that year's NASA POWER wind
+//   2. the heat value  - numerical HUD and trend strip, never floating fire/domes
+//   3. the trend strip - annual local signal in the timeline; projected values are dashed
+//   4. the plume       - subtle illustrative wisps for documented combustion only
 //   5. the wind field  - streaks drifting with that year's wind (speed/direction)
 //   6. the data layer  - the NASA overlay picked in the top bar follows the year
 // Future years (Phase = projected) get a "projection" grade + badge: they extend the measured trend, not a forecast.
@@ -14,19 +13,20 @@
 // Hooks into app.js through window.CloudShadow + "cs:ready" / "cs:site" events.
 
 import * as FX from "./fx.js";
+import { getMotionSpeed, setMotionSpeed } from "./motion.js";
+import { createSmokeSprite, globeSmokePolicy, plumeParticleAlpha } from "./smoke-policy.js";
 
 const FIRST = 2003, LAST = 2035;
-const RING_RADIUS_M = 5200;
-const RING_VARS = { LST_Night: "Night heat", NDVI: "Greenness", NO2_OMI: "NO₂ (20-yr)", LST_Day: "Day heat", AOD: "Particles" };
+const TREND_VARS = { LST_Night: "Night heat", NDVI: "Vegetation", NO2_OMI: "NO₂", LST_Day: "Day heat", AOD: "Particles" };
 const $ = (s) => document.querySelector(s);
 const fmt = (v, d = 2) => (v == null || !isFinite(v) ? "–" : (v > 0 ? "+" : "") + (+v).toFixed(d));
 
 let CS, viewer, hlsTimeline = {};
 const T = {
   site: null, rows: new Map(), meta: null, year: 2025, ringVar: "LST_Night",
-  layers: [], playing: false, playTimer: null,
-  dome: null, ring: [], ringLabels: [], valueLabel: null, plume: null, wind: null,
-  target: { domeH: 0, domeColor: null, plumeRate: 0, windDir: 0, windSpeed: 3 },
+  layers: [], playing: false, playTimer: null, localScene: false, siteLoad: 0,
+  plume: null, wind: null,
+  target: { windDir: 0, windSpeed: 0 },
 };
 
 // ------------------------------------------------------------------ helpers
@@ -37,27 +37,18 @@ const phaseOf = (y) => rowFor(y).Phase || (y > 2026 ? "projected" : "observed");
 const lastObservedYear = () => T.meta?.lastObservedYear ?? 2026;
 
 function enuAt(lat, lon, h = 0) { return Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(lon, lat, h)); }
-function offsetLatLon(lat, lon, bearingDeg, distM) {
-  const R = 6371000, b = Cesium.Math.toRadians(bearingDeg), φ1 = Cesium.Math.toRadians(lat), λ1 = Cesium.Math.toRadians(lon), δ = distM / R;
-  const φ2 = Math.asin(Math.sin(φ1) * Math.cos(δ) + Math.cos(φ1) * Math.sin(δ) * Math.cos(b));
-  const λ2 = λ1 + Math.atan2(Math.sin(b) * Math.sin(δ) * Math.cos(φ1), Math.cos(δ) - Math.sin(φ1) * Math.sin(φ2));
-  return [Cesium.Math.toDegrees(φ2), Cesium.Math.toDegrees(λ2)];
-}
-function softDot(size = 64) {
-  const c = document.createElement("canvas"); c.width = c.height = size;
-  const g = c.getContext("2d"), grd = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.4, "rgba(255,255,255,0.55)"); grd.addColorStop(1, "rgba(255,255,255,0)");
-  g.fillStyle = grd; g.fillRect(0, 0, size, size); return c;
-}
-const SMOKE = softDot(64);
+const SMOKE = createSmokeSprite(64);
 
 // ------------------------------------------------------------------ data
 async function loadSite(site) {
+  const loadId = ++T.siteLoad;
   T.site = site; T.rows.clear(); T.meta = null;
   try {
     const d = await (await fetch(`data/unreal/timeline/${site.id}.json`)).json();
+    if (loadId !== T.siteLoad) return;
     T.meta = d; for (const r of d.rows) T.rows.set(+r.Year, r);
   } catch (e) { console.warn("timeline data missing for", site.id, e); }
+  if (loadId !== T.siteLoad) return;
   T.ringVar = site.effects?.ringVar || "LST_Night";
   if (!T.rows.size) return;
   $("#tlRingVar").value = T.ringVar;
@@ -82,9 +73,14 @@ function setGround(year) {
   layer._csKey = key; layer.alpha = 0;
   if (projected) { layer.saturation = 0.25; layer.brightness = 0.85; layer.hue = 0.35; layer.contrast = 1.15; }
   T.layers.push(layer);
-  const start = performance.now(), dur = 450;
+  let last = performance.now(), elapsed = 0;
+  const dur = 450;
   const step = (t) => {
-    const k = Math.min(1, (t - start) / dur);
+    if (!viewer.imageryLayers.contains(layer)) return;
+    const speed = getMotionSpeed();
+    elapsed += Math.min(100, t - last) * speed; last = t;
+    // Manual scrubbing remains responsive when environmental motion is paused.
+    const k = speed === 0 ? 1 : Math.min(1, elapsed / dur);
     layer.alpha = k;
     for (const old of T.layers) if (old !== layer) old.alpha = Math.min(old.alpha, 1 - k);
     if (k < 1) requestAnimationFrame(step);
@@ -96,11 +92,8 @@ function setGround(year) {
 
 // ------------------------------------------------------------------ 2–5. 3D effects
 function clearEffects() {
-  if (T.dome) viewer.entities.remove(T.dome);
-  for (const e of [...T.ring, ...T.ringLabels]) viewer.entities.remove(e);
-  if (T.valueLabel) viewer.entities.remove(T.valueLabel);
   for (const ps of [T.plume, T.wind]) if (ps) viewer.scene.primitives.remove(ps);
-  T.dome = T.valueLabel = T.plume = T.wind = null; T.ring = []; T.ringLabels = [];
+  T.plume = T.wind = null;
 }
 
 function buildEffects() {
@@ -108,75 +101,24 @@ function buildEffects() {
   const { lat, lon } = T.site;
   const center = Cesium.Cartesian3.fromDegrees(lon, lat, 0);
 
-  // heat dome (animated toward target each frame)
-  let domeH = 600, domeCol = Cesium.Color.ORANGE.withAlpha(0.1);
-  T.dome = viewer.entities.add({
-    position: center,
-    ellipsoid: {
-      radii: new Cesium.CallbackProperty(() => {
-        domeH += (T.target.domeH - domeH) * 0.08;
-        return new Cesium.Cartesian3(2200, 2200, Math.max(150, domeH));
-      }, false),
-      material: new Cesium.ColorMaterialProperty(new Cesium.CallbackProperty(() => {
-        if (T.target.domeColor) domeCol = Cesium.Color.lerp(domeCol, T.target.domeColor, 0.08, new Cesium.Color());
-        return domeCol;
-      }, false)),
-      outline: false,
-    },
-  });
-
-  // impact ring: one bar per year, clockwise from north
-  const rows = [...T.rows.values()];
-  const v = T.ringVar, vdef = VARS[v] || { higherIsWorse: true, digits: 2, unit: "" };
-  const vals = rows.map((r) => [localOf(r, v), num(r[`${v}_LocalLo`]), num(r[`${v}_LocalHi`])]).flat().filter((x) => x != null);
-  const maxAbs = Math.max(1e-6, ...vals.map(Math.abs));
-  const years = LAST - FIRST + 1;
-  for (let y = FIRST; y <= LAST; y++) {
-    const r = rowFor(y), val = localOf(r, v);
-    const ang = ((y - FIRST) / years) * 360;
-    const [blat, blon] = offsetLatLon(lat, lon, ang, RING_RADIUS_M);
-    const h = val == null ? 0 : 150 + (Math.abs(val) / maxAbs) * 2600;
-    const worse = val != null && (val > 0) === vdef.higherIsWorse;
-    const projected = r.Phase === "projected";
-    const base = worse ? Cesium.Color.fromCssColorString("#ff7a2e") : Cesium.Color.fromCssColorString("#3d8fef");
-    const bar = viewer.entities.add({
-      position: Cesium.Cartesian3.fromDegrees(blon, blat, h / 2),
-      cylinder: { length: Math.max(h, 1), topRadius: 170, bottomRadius: 170, material: projected ? base.withAlpha(0.28) : base.withAlpha(0.9), outline: projected, outlineColor: Cesium.Color.fromCssColorString("#9fe8ff").withAlpha(0.8), shadows: Cesium.ShadowMode.ENABLED },
-      show: false,
-    });
-    bar._csYear = y; bar._csVal = val; bar._csH = h; bar._csPos = [blat, blon];
-    T.ring.push(bar);
-    if ((y - FIRST) % 5 === 2 || y === LAST) {
-      const [llat, llon] = offsetLatLon(lat, lon, ang, RING_RADIUS_M + 900);
-      T.ringLabels.push(viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(llon, llat, 30),
-        label: { text: String(y), font: "600 13px Inter, sans-serif", fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE, disableDepthTestDistance: Number.POSITIVE_INFINITY, distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 60000) },
-      }));
-    }
-  }
-  T.valueLabel = viewer.entities.add({
-    position: center,
-    label: { text: "", font: "700 15px Inter, sans-serif", fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK, outlineWidth: 4, style: Cesium.LabelStyle.FILL_AND_OUTLINE, showBackground: true, backgroundColor: Cesium.Color.fromCssColorString("#0b0e13").withAlpha(0.75), verticalOrigin: Cesium.VerticalOrigin.BOTTOM, disableDepthTestDistance: Number.POSITIVE_INFINITY, distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 80000) },
-  });
-
   // wind field: streaks drifting across the site at ~1.5 km
   const enu = enuAt(lat, lon, 0);
   const windVec = new Cesium.Cartesian3();
   const updateWindVec = () => {
-    const th = Cesium.Math.toRadians(T.target.windDir), sp = T.target.windSpeed * 60; // time-lapse ×60
+    const th = Cesium.Math.toRadians(T.target.windDir), sp = T.target.windSpeed * 6; // Gentle visual time-lapse; clock applies the speed slider.
     Cesium.Matrix4.multiplyByPointAsVector(enu, new Cesium.Cartesian3(Math.sin(th) * sp, Math.cos(th) * sp, 0), windVec);
   };
   updateWindVec(); T._updateWindVec = updateWindVec;
   T.wind = viewer.scene.primitives.add(new Cesium.ParticleSystem({
     image: SMOKE, startColor: Cesium.Color.WHITE.withAlpha(0.0), endColor: Cesium.Color.WHITE.withAlpha(0.0),
     startScale: 1, endScale: 1, minimumParticleLife: 6, maximumParticleLife: 9, minimumSpeed: 0, maximumSpeed: 1,
-    imageSize: new Cesium.Cartesian2(260, 260), sizeInMeters: true, emissionRate: 90, lifetime: 16,
+    imageSize: new Cesium.Cartesian2(180, 60), sizeInMeters: true, emissionRate: 18, lifetime: 16,
     emitter: new Cesium.BoxEmitter(new Cesium.Cartesian3(26000, 26000, 1400)),
     modelMatrix: enuAt(lat, lon, 1500),
     updateCallback: (p, dt) => {
       Cesium.Cartesian3.clone(windVec, p.velocity);
-      const k = p.age / p.life, a = Math.sin(Math.PI * k) * 0.22;
-      p.color = Cesium.Color.fromAlpha(Cesium.Color.WHITE, a, p.color);
+      const k = p.age / p.life, a = Math.sin(Math.PI * k) * 0.055;
+      p.color = Cesium.Color.fromAlpha(Cesium.Color.fromCssColorString("#b1c4ce"), a, p.color);
     },
   }));
 
@@ -184,15 +126,16 @@ function buildEffects() {
   if (T.site.effects?.plume) {
     const up = Cesium.Cartesian3.normalize(center, new Cesium.Cartesian3());
     T.plume = viewer.scene.primitives.add(new Cesium.ParticleSystem({
-      image: SMOKE, startColor: Cesium.Color.fromCssColorString("#ffd27a").withAlpha(0.75), endColor: Cesium.Color.fromCssColorString("#a33a1e").withAlpha(0.0),
-      startScale: 1.0, endScale: 7.0, minimumParticleLife: 8, maximumParticleLife: 14, minimumSpeed: 20, maximumSpeed: 45,
-      imageSize: new Cesium.Cartesian2(140, 140), sizeInMeters: true, emissionRate: 0, lifetime: 16,
+      image: SMOKE, startColor: Cesium.Color.fromCssColorString("#899fac").withAlpha(0.16), endColor: Cesium.Color.fromCssColorString("#b0bec5").withAlpha(0.0),
+      startScale: 0.5, endScale: 2.2, minimumParticleLife: 8, maximumParticleLife: 14, minimumSpeed: 3, maximumSpeed: 6,
+      imageSize: new Cesium.Cartesian2(120, 70), sizeInMeters: true, emissionRate: 0, lifetime: 16,
       emitter: new Cesium.ConeEmitter(Cesium.Math.toRadians(18)),
       modelMatrix: enuAt(lat, lon, 40),
       updateCallback: (p, dt) => {
         // rise + drift with the (time-lapsed) NASA POWER wind
-        const target = Cesium.Cartesian3.add(windVec, Cesium.Cartesian3.multiplyByScalar(up, 25, new Cesium.Cartesian3()), new Cesium.Cartesian3());
+        const target = Cesium.Cartesian3.add(windVec, Cesium.Cartesian3.multiplyByScalar(up, 8, new Cesium.Cartesian3()), new Cesium.Cartesian3());
         Cesium.Cartesian3.lerp(p.velocity, target, Math.min(1, dt * 0.6), p.velocity);
+        p.color.alpha = plumeParticleAlpha(p.age, p.life);
       },
     }));
   }
@@ -205,37 +148,14 @@ function buildEffects() {
 function applyYear(year, { instant = false } = {}) {
   T.year = year;
   const r = rowFor(year), phase = phaseOf(year), projected = phase === "projected";
-  // heat dome from night-heat local signal
-  const heat = localOf(r, "LST_Night");
-  if (heat != null) {
-    T.target.domeH = 300 + Math.max(0, heat + 0.6) * 1800;
-    T.target.domeColor = (heat > 0 ? Cesium.Color.fromCssColorString("#ff6a1f") : Cesium.Color.fromCssColorString("#3d8fef")).withAlpha(projected ? 0.07 : 0.11);
-  }
   // wind
   const wd = num(r.PlumeTowardDeg), ws = num(r.WS10M);
   if (wd != null) T.target.windDir = wd;
-  if (ws != null) T.target.windSpeed = ws;
+  T.target.windSpeed = wd != null && ws != null ? Math.max(0,ws) : 0;
   T._updateWindVec?.();
-  // plume: zero before onset; density follows the NO2 local signal (relative), last known for projected
+  // A fixed, bounded artistic trace; NO2 columns do not measure visible smoke.
   if (T.plume) {
-    const onsetYear = +String(T.site.onset).slice(0, 4);
-    let rate = 0;
-    if (year >= onsetYear) {
-      const ys = [...T.rows.keys()].filter((y) => y <= Math.min(year, lastObservedYear()) && localOf(rowFor(y), "NO2") != null);
-      const n = ys.length ? localOf(rowFor(ys[ys.length - 1]), "NO2") : null;
-      rate = 25 + Math.max(0, (n ?? 0.3)) * 90;
-      if (projected) rate *= 0.6;
-    }
-    T.plume.emissionRate = Math.min(140, rate);
-  }
-  // ring bars up to this year; label on the current bar
-  for (const bar of T.ring) bar.show = bar._csYear <= year && bar._csH > 0;
-  const cur = T.ring.find((b) => b._csYear === year);
-  const vdef = VARS[T.ringVar] || { digits: 2, unit: "" };
-  if (cur && T.valueLabel) {
-    T.valueLabel.position = Cesium.Cartesian3.fromDegrees(cur._csPos[1], cur._csPos[0], cur._csH + 250);
-    const lo = num(r[`${T.ringVar}_LocalLo`]), hi = num(r[`${T.ringVar}_LocalHi`]);
-    T.valueLabel.label.text = cur._csVal == null ? `${year}` : `${year}: ${fmt(cur._csVal, vdef.digits)} ${vdef.unit}${projected && lo != null ? `\n95% CI ${fmt(lo, vdef.digits)} … ${fmt(hi, vdef.digits)}` : ""}`;
+    T.plume.emissionRate = globeSmokePolicy(T.site,year,r,phase).particleRate;
   }
   setGround(year);
   FX.applyYear(year, r, phase);
@@ -243,6 +163,78 @@ function applyYear(year, { instant = false } = {}) {
   const kind = CS.getMapLayer?.();
   if (kind && VARS[kind]) CS.setMapLayer(kind, `${Math.min(year, lastObservedYear())}-07-15`);
   renderHud(year, r, phase);
+  renderTrendStrip();
+  applySceneVisibility();
+  const ndvi = num(r.NDVI_Site);
+  const health = ndvi != null && Number.isFinite(ndvi) ? Math.max(0.05, Math.min(1, (ndvi - 0.1) / 0.45)) : null;
+  // An illustrative visual response to source greenness, not an ecological mortality or yield model.
+  window.dispatchEvent(new CustomEvent("cs:year", { detail: { siteId: T.site?.id, year, phase, row: r, health } }));
+}
+
+function applySceneVisibility() {
+  const show = !T.localScene;
+  for (const object of [T.wind, T.plume]) if (object) object.show = show;
+}
+window.addEventListener("cs:scene-mode", (event) => {
+  T.localScene = !!event.detail?.active;
+  applySceneVisibility();
+});
+
+// A small screen-space annual chart keeps geographic height free of data encodings.
+function mountTrendStrip() {
+  const strip = document.createElement("div"); strip.id = "tlTrendMini";
+  strip.innerHTML = '<div class="tl-trend-select"></div><canvas id="tlTrendCanvas" role="img" aria-label="Annual local signal"></canvas><span id="tlTrendValue"></span><span class="tl-trend-key"><i></i>Observed <i class="projected"></i>Trend extension</span>';
+  const label = $("#tlRingVar").closest("label");
+  if (label.firstChild?.nodeType === Node.TEXT_NODE) label.firstChild.textContent = "Trend ";
+  label.title = "Annual signal: site minus surroundings. Dashed values extend the observed trend.";
+  strip.querySelector(".tl-trend-select").appendChild(label);
+  $("#tlTrack").before(strip);
+  const canvas = $("#tlTrendCanvas");
+  const yearAt = (event) => Math.max(FIRST, Math.min(LAST, Math.round(FIRST + ((event.clientX - canvas.getBoundingClientRect().left - 8) / Math.max(1, canvas.getBoundingClientRect().width - 16)) * (LAST - FIRST))));
+  canvas.addEventListener("pointerdown", (event) => setYear(yearAt(event)));
+  canvas.addEventListener("pointermove", (event) => {
+    const year = yearAt(event), v = VARS[T.ringVar], value = localOf(rowFor(year), T.ringVar);
+    canvas.title = `${year} · ${TREND_VARS[T.ringVar]}: ${fmt(value, v?.digits ?? 2)} ${v?.unit || ""} · ${phaseOf(year) === "projected" ? "trend extension" : "observed"}`;
+  });
+  if (typeof ResizeObserver !== "undefined") new ResizeObserver(() => renderTrendStrip()).observe(canvas);
+}
+function renderTrendStrip() {
+  const canvas = $("#tlTrendCanvas"); if (!canvas) return;
+  const v = VARS[T.ringVar] || { digits: 2, unit: "" }, current = localOf(rowFor(T.year), T.ringVar);
+  const points = Array.from({ length: LAST - FIRST + 1 }, (_, i) => {
+    const year = FIRST + i, row = rowFor(year);
+    return { year, value: localOf(row, T.ringVar), lo: num(row[`${T.ringVar}_LocalLo`]), hi: num(row[`${T.ringVar}_LocalHi`]), projected: phaseOf(year) === "projected" };
+  });
+  const values = points.flatMap((p) => [p.value, p.lo, p.hi]).filter(Number.isFinite);
+  const valueText = `${T.year} · ${fmt(current, v.digits)}${v.unit ? " " + v.unit : ""}`;
+  $("#tlTrendValue").textContent = valueText;
+  $("#tlTrendValue").title = `${TREND_VARS[T.ringVar]}: ${valueText}; site minus surroundings`;
+  canvas.setAttribute("aria-label", `${TREND_VARS[T.ringVar]}, annual site minus surroundings. ${valueText}. Solid: observed; dashed: trend extension. Missing years remain gaps.`);
+  const w = Math.max(120, Math.round(canvas.getBoundingClientRect().width)), h = 30;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  const g = canvas.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  if (!values.length) { g.fillStyle = "#79949d"; g.font = "9px Inter,sans-serif"; g.fillText("No annual data", 8, 18); return; }
+  let lo = Math.min(0, ...values), hi = Math.max(0, ...values);
+  const pad = (hi - lo || 1) * 0.1; lo -= pad; hi += pad;
+  const x = (year) => 8 + ((year - FIRST) / (LAST - FIRST)) * (w - 16);
+  const y = (value) => 3 + (1 - (value - lo) / (hi - lo)) * (h - 6);
+  const futureX = Math.min(w, x(lastObservedYear() + 0.5));
+  g.fillStyle = "#729eb510"; g.fillRect(futureX, 0, w - futureX, h);
+  g.strokeStyle = "#718c9455"; g.lineWidth = 1; g.setLineDash([2, 3]);
+  g.beginPath(); g.moveTo(0, y(0)); g.lineTo(w, y(0)); g.stroke(); g.setLineDash([]);
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1], b = points[i];
+    if (b.projected && [a.lo, a.hi, b.lo, b.hi].every(Number.isFinite)) {
+      g.fillStyle = "#8cb8d21a"; g.beginPath(); g.moveTo(x(a.year), y(a.lo)); g.lineTo(x(b.year), y(b.lo)); g.lineTo(x(b.year), y(b.hi)); g.lineTo(x(a.year), y(a.hi)); g.closePath(); g.fill();
+    }
+    if (![a.value, b.value].every(Number.isFinite)) continue;
+    g.strokeStyle = b.projected ? "#8db9cd" : "#80d9c0"; g.lineWidth = 1.6; g.setLineDash(b.projected ? [3, 3] : []);
+    g.beginPath(); g.moveTo(x(a.year), y(a.value)); g.lineTo(x(b.year), y(b.value)); g.stroke();
+  }
+  g.setLineDash([]); g.strokeStyle = "#dce9e655"; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(x(T.year), 0); g.lineTo(x(T.year), h); g.stroke();
+  if (Number.isFinite(current)) { g.fillStyle = "#e4fff5"; g.beginPath(); g.arc(x(T.year), y(current), 2.8, 0, Math.PI * 2); g.fill(); }
 }
 
 // ------------------------------------------------------------------ HUD
@@ -269,14 +261,26 @@ function renderHud(year, r, phase) {
 
 // ------------------------------------------------------------------ UI wiring
 function setYear(y) { applyYear(Math.max(FIRST, Math.min(LAST, Math.round(y)))); }
+function schedulePlayback() {
+  clearTimeout(T.playTimer); T.playTimer = null;
+  const speed = getMotionSpeed();
+  if (!T.playing || speed === 0) return;
+  T.playTimer = setTimeout(() => {
+    if (!T.playing || getMotionSpeed() === 0) return;
+    if (T.year >= LAST) { togglePlay(); return; }
+    setYear(T.year + 1); schedulePlayback();
+  }, 1500 / speed);
+}
+function paintPlayback() {
+  const button = $("#tlPlay");
+  button.textContent = T.playing ? "❚❚" : "▶";
+  button.setAttribute("aria-label", T.playing ? "Pause timeline" : "Play timeline");
+  button.title = T.playing && getMotionSpeed() === 0 ? "Timeline is waiting: increase motion speed to resume" : T.playing ? "Pause timeline" : "Play through the years";
+}
 function togglePlay() {
-  T.playing = !T.playing; $("#tlPlay").textContent = T.playing ? "❚❚" : "▶";
-  FX.orbit(T.playing);
-  clearInterval(T.playTimer);
-  if (T.playing) {
-    if (T.year >= LAST) setYear(FIRST);
-    T.playTimer = setInterval(() => { if (T.year >= LAST) return togglePlay(); setYear(T.year + 1); }, 900);
-  }
+  T.playing = !T.playing;
+  if (T.playing && T.year >= LAST) setYear(FIRST);
+  paintPlayback(); FX.orbit(T.playing); schedulePlayback();
 }
 function wireUi() {
   const s = $("#tlSlider");
@@ -285,13 +289,28 @@ function wireUi() {
   $("#tlTrack").style.setProperty("--now", nowPct + "%");
   s.addEventListener("input", () => setYear(+s.value));
   $("#tlPlay").addEventListener("click", togglePlay);
-  $("#tlRingVar").innerHTML = Object.entries(RING_VARS).map(([k, l]) => `<option value="${k}">${l}</option>`).join("");
-  $("#tlRingVar").addEventListener("change", (e) => { T.ringVar = e.target.value; buildEffects(); });
+  const speedSlider = $("#motionSpeed"), speedOutput = $("#motionValue");
+  const paintSpeed = () => {
+    const speed = getMotionSpeed();
+    speedSlider.value = speed; speedOutput.textContent = speed === 0 ? "Paused" : `${speed.toFixed(2).replace(/0$/, "")}×`;
+    speedSlider.setAttribute("aria-valuetext", speed === 0 ? "All motion paused" : `${speed} times animation speed`);
+    paintPlayback();
+  };
+  speedSlider.addEventListener("input", () => setMotionSpeed(+speedSlider.value));
+  window.addEventListener("cs:motion-speed", () => { paintSpeed(); schedulePlayback(); });
+  paintSpeed();
+  $("#tlRingVar").innerHTML = Object.entries(TREND_VARS).map(([k, l]) => `<option value="${k}">${l}</option>`).join("");
+  $("#tlRingVar").addEventListener("change", (e) => { T.ringVar = e.target.value; renderTrendStrip(); });
+  mountTrendStrip();
   const lightBtn = $("#tlLight"), qBtn = $("#tlQuality");
   const paintLight = () => (lightBtn.textContent = FX.lightMode() === "night" ? "☾ Night" : "☀ Golden hour");
-  const paintQ = () => (qBtn.textContent = FX.quality() === "high" ? "HQ" : "LQ");
+  const paintQ = () => {
+    qBtn.textContent = FX.getQualityLabel();
+    qBtn.title = "Graphics: Auto adapts to frame rate. Click to cycle Auto → High → Low → Auto.";
+  };
   lightBtn.addEventListener("click", () => { FX.setLight(FX.lightMode() === "night" ? "golden" : "night", T.year); paintLight(); });
-  qBtn.addEventListener("click", () => { FX.setQuality(FX.quality() === "high" ? "low" : "high"); paintQ(); });
+  qBtn.addEventListener("click", () => { FX.cycleQuality(); paintQ(); });
+  window.addEventListener("cs:quality", paintQ);
   paintLight(); paintQ();
   document.addEventListener("keydown", (e) => {
     if (e.target.tagName === "INPUT" && e.target !== s) return;
@@ -313,16 +332,15 @@ async function init(cs) {
     const { site, fly } = e.detail || {};
     if (!site) return;
     await loadSite(site);
-    if (fly) cs.flyTo(site.lat, site.lon, 21, -40, 20, 2.5);
+    if (fly && T.site?.id === site.id && !T.localScene) cs.flyTo(site.lat, site.lon, 21, -40, 20, 2.5);
   });
   if (cs.state.site) {
     await loadSite(cs.state.site);
-    if (!q.get("tour") && !q.get("embed")) cs.flyTo(cs.state.site.lat, cs.state.site.lon, 21, -40, 20, 0.1);
+    if (!q.get("tour") && !q.get("embed") && q.get("view") !== "3d" && !T.localScene) cs.flyTo(cs.state.site.lat, cs.state.site.lon, 21, -40, 20, 0.1);
   }
   window.CloudShadowTimeline = { setYear, get year() { return T.year; }, togglePlay };
   if (q.get("debug")) setTimeout(() => {
-    const shown = T.ring.filter((b) => b.show);
-    console.log("CSDEBUG ring", T.ring.length, "shown", shown.length, "h", shown.slice(0, 3).map((b) => b._csH | 0).join("/"),
+    console.log("CSDEBUG trend", T.ringVar, "annualRows", T.rows.size,
       "entities", viewer.entities.values.length, "prims", viewer.scene.primitives.length, "plumeRate", T.plume?.emissionRate,
       "globeTiles", viewer.scene.globe.tilesLoaded, "hdr", viewer.scene.highDynamicRange);
   }, 8000);
