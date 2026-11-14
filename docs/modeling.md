@@ -1,5 +1,7 @@
 # Modeling, evidence, and limits
 
+> **Archived starter modeling notes:** statements about the synthetic accounting demonstration and missing adapters below describe the inactive starter fixture, not the current repository. [Data and backend](data-and-backend.md) and [the current API](api.md) describe implemented environmental acquisitions, conditional climate/agricultural screening and their limits; [the web team guide](../apps/web/README.md) describes the separate existing NASA-series/statistics pipeline. The scientific evidence and validation safeguards remain relevant. Electricity-bill, employment/labor and population research sections are retained historical context, outside the current environmental/agriculture scope and not an active implementation plan.
+
 This is an implementation plan for the scientific and socioeconomic modules. It is not a declaration that these modules already work. See [the resource catalog](resources.md) for sources and access boundaries.
 
 ## What the starter actually does

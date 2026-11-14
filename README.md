@@ -60,7 +60,7 @@ Environmental changes observed near a data center do not necessarily establish t
 | **NASA data pipeline** | NASA GIBS tiles decoded with official colormaps: MODIS land-surface temperature (day/night), NDVI and aerosols; Sentinel-5P TROPOMI and Aura OMI NO₂; MERRA-2 air temperature; NASA POWER weather; yearly cloud-free HLS 30 m imagery | `scripts/` → `data/cloudshadow/` |
 | **Trend statistics** | Site vs. surrounding ring, seasons removed, **Mann-Kendall + Sen's slope (95% CI)**, before/after **Welch t-test** with autocorrelation-adjusted n (checked against SciPy) | `apps/web/js/stats.js` |
 | **Unreal project** | UE 5.8.3 + Cesium for Unreal, level with 70 yearly NASA imagery overlays and NASA data layers, built by script | `clients/unreal/CloudShadow/` |
-| **Scenario starter** | Node API + Python worker scaffold for future modeled scenarios (illustrative only) | `apps/api/`, `services/models/`, `packages/contracts/` |
+| **Data and backend** | Environmental Node `/v1` API, facility/emissions inventories, source adapters, cached data and background jobs; separate from the web explorer's datasets | `apps/api/`, `services/data/`, `packages/contracts/` · [Part 1 handoff](docs/data-and-backend.md) |
 | **Real wind flow (Part 2)** | NASA GEOS-FP analysis winds (+ temperature, sea-level pressure) as shared `flow-field/1.0` files: particle trails on the globe and the fluid sim/clouds follow the analysed wind of each frame, 2018 onward. Direction checked against Dulles airport observations (median ~9°). [docs/flow-fields.md](docs/flow-fields.md) | `services/models/fields/`, `apps/web/js/flowfield.js`, `data/cloudshadow/fields/` |
 | **Trend engine (Python, Part 2)** | Seasonal Mann-Kendall, Hamed-Rao correction, Sen's slope + CI, autocorrelation-adjusted t-test, control-region comparison and missing-data rules, run from a CLI on CSV files (not yet called by the API). Research on data access and wind/pressure sources: [docs/research/data-access-and-models.md](docs/research/data-access-and-models.md) | `services/models/trends/` |
 
@@ -75,17 +75,17 @@ Environmental changes observed near a data center do not necessarily establish t
 | `npm run web` | Web explorer + JSON API on http://localhost:8765 |
 | `npm run web:build` / `web:preview` | Static build in `dist/web/` (what GitHub Pages serves) / preview on :8080 |
 | `npm run data:nasa` / `data:weather` / `data:timeline-imagery` / `data:unreal` | Refresh NASA series / NASA POWER weather / yearly 30 m imagery / timeline + Unreal exports (Python + `pip install pillow`) |
-| `npm start`, `npm run check` | Scenario API on :3000 / all checks (CI) |
+| `npm start`, `npm run check` | Environmental Node API on :3000 / backend checks after `npm run data:setup` (CI) |
 
-Not yet covered with data: water quality, groundwater, soil and agriculture indicators. These are good next adapters (e.g. NASA SMAP soil moisture, GRACE-FO groundwater, crop-condition NDVI).
+The web explorer's committed case-study datasets do not yet cover water quality, groundwater, soil and agriculture indicators. The Node backend below adds separate station water-quality, modeled soil/water and agricultural climate-exposure data; these caches are not yet connected to the web explorer. Groundwater-specific products and calibrated crop-impact models remain future work.
 
 ### 1. Data and backend
 
 Our part supplies the environmental evidence and the Node.js gateway used by the analysis engine and Unreal client. Coverage is global where sources support it, with acquisition focused on **Canada and the USA**, recent records and available historical inventories. Agriculture is included; social, demographic and electricity-bill forecasting are outside our scope.
 
-**Implementation status — November 14, 2026:** the expanded backend is built and verified in the local implementation checkout, branch `codex/environment-data-backend`, commit `71d263d`. This documentation PR does not include that code or the downloaded data. The scenario API on `main` remains the earlier illustrative starter; the expanded Node operations below require the implementation checkout. They complement the separate web explorer, NASA pipeline and statistics work already on `main`.
+**Implementation status:** this backend PR includes the expanded Node environmental API alongside the existing web explorer, NASA pipeline, statistical methods and Unreal work. Downloaded source caches, run results and verification receipts remain local and are not shipped. The existing web datasets and the Node API caches are separate; no automatic bridge between them is implemented.
 
-**Implemented locally:**
+**Included in this backend:**
 
 - Global OpenStreetMap data-center location acquisition and searchable facility records.
 - Canadian NPRI releases and U.S. EPA NEI emissions inventories, preserving reporting IDs, units, estimation methods, missing values and provenance.
@@ -103,9 +103,13 @@ Our part supplies the environmental evidence and the Node.js gateway used by the
 | U.S. EPA NEI | 23,096 pollutant/unit records across 2008, 2011, 2014, 2017, 2020 and 2023; 309 distinct source facility IDs |
 | USGS water quality | 1,440 observations for one Potomac station on November 1, 2026, covering temperature, conductance, pH, dissolved oxygen and turbidity |
 
-The local implementation passed **130 tests** and live verification of **17 acquisition/example jobs**. These checks verify acquisition and API behavior, not scientific causation or predictive accuracy. Regulatory sector candidates are not independently confirmed data centers, and the snapshots are not complete facility censuses.
+On November 14, 2026, the reference implementation passed **130 tests** and live verification of **17 acquisition/example jobs**. These checks verify acquisition and API behavior, not scientific causation or predictive accuracy. Regulatory sector candidates are not independently confirmed data centers, and the snapshots are not complete facility censuses.
 
-**How Part 2 connects:** use the Node gateway to submit supported operations with `POST /v1/runs`, follow the returned HTTP status or WebSocket URL, and retrieve completed results. Browse cached locations and releases through `GET /v1/facilities` and `GET /v1/emissions`. Analysis code running in the backend can also use the typed adapters, cache and existing job executor in the implementation checkout. Keep reported emissions, environmental concentrations, measurements and climate scenarios distinct; facility identities are not automatically matched across sources.
+**How Part 2 connects:** use the Node gateway to submit supported operations with `POST /v1/runs`, follow the returned HTTP status or WebSocket URL, and retrieve completed results. Browse cached locations and releases through `GET /v1/facilities` and `GET /v1/emissions`. The API base is `http://127.0.0.1:3000`; analysis code can also use the typed adapters, cache and job executor in this checkout. Keep reported emissions, environmental concentrations, measurements and climate scenarios distinct; facility identities are not automatically matched across sources.
+
+**Run the Node backend:** install Node 24.12+ and Python 3.11+, then run `npm ci`, `npm run data:setup` and `npm start`. In another terminal use `npm run data:sync` for POWER history, `npm run data:expand` for bounded inventories/regional examples, and optional `npm run data:verify` / `npm run data:verify-expanded` after acquisition. `npm run check` runs offline checks after data dependencies are installed.
+
+**API behavior change:** `npm start` now serves environmental `/v1` operations, and `npm run demo` reads cached POWER series, requiring `data:sync` first. Old scenario request bodies are rejected; the accounting worker/schemas remain regression fixtures, with no economic outputs in the public environmental API. The web explorer still uses `npm run web` on port 8765 and its own `/api` contract. Give the two services distinct `PORT` values; browser integration still needs a proxy/CORS implementation.
 
 **Still needed in this Node API:** trend/significance job integration, verified facility matching, calibrated facility-impact and agricultural models, and noise propagation/prediction. Ground noise and vegetation records can be imported with provenance, but no noise dataset or numeric NDVI observations were acquired; the public ORNL vegetation service was unavailable during setup.
 

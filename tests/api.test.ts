@@ -1,66 +1,69 @@
 import test, { type TestContext } from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, dirname, resolve as resolvePath, basename } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { createConnection, type AddressInfo } from "node:net";
 import { WebSocket } from "ws";
 import { createApi } from "../apps/api/src/server.ts";
-import { pythonRunner, type ModelRunner } from "../apps/api/src/model-worker.ts";
-import type { ResultManifest, RunSnapshot, Scenario } from "../packages/contracts/src/index.ts";
+import { EnvironmentStore } from "../apps/api/src/environment/store.ts";
+import type { EnvironmentExecutor } from "../apps/api/src/environment/service.ts";
+import type { EnvironmentRequest, EnvironmentRun } from "../packages/contracts/src/environment.ts";
 
-const sample: Scenario = JSON.parse(await readFile(new URL("../data/examples/scenario.json", import.meta.url), "utf8"));
+const sample: EnvironmentRequest = { schemaVersion: "1.0", kind: "series", source: "power-grid", variables: ["T2M"], start: "2024-01", end: "2024-12", bbox: [-180, -90, 180, 90] };
+const fixture: EnvironmentExecutor = async (request, _signal, report) => {
+  report(50, "reading-fixture");
+  return { evidence: "test_fixture", request, metrics: [{ variable: "T2M", units: "C", series: [{ date: "2024-01", value: 0 }] }] };
+};
 
-async function launch(t: TestContext, options: Parameters<typeof createApi>[0] = {}) {
-  const api = createApi(options);
-  t.after(() => api.close());
-  await new Promise<void>(resolve => api.server.listen(0, "127.0.0.1", resolve));
-  const base = `http://127.0.0.1:${(api.server.address() as AddressInfo).port}`;
+async function launch(t: TestContext, executor: EnvironmentExecutor = fixture) {
+  const root = await mkdtemp(join(tmpdir(), "spaceapps-env-"));
+  const store = new EnvironmentStore(root);
+  let api = await createApi({ store, executor });
+  const listen = async () => {
+    await new Promise<void>(resolve => api.server.listen(0, "127.0.0.1", resolve));
+    return `http://127.0.0.1:${(api.server.address() as AddressInfo).port}`;
+  };
+  let base = await listen();
+  t.after(async () => {
+    await api.close();
+    if (dirname(resolvePath(root)) !== resolvePath(tmpdir()) || !basename(root).startsWith("spaceapps-env-")) throw new Error("Refusing unexpected temporary cleanup path");
+    await rm(root, { recursive: true, force: true });
+  });
   return {
-    base,
+    store,
+    get base() { return base; },
     get: (path: string) => fetch(new URL(path, base)),
-    post: (body: unknown) => fetch(new URL("/v1/runs", base), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    post: (body: unknown) => fetch(new URL("/v1/runs", base), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+    restart: async () => { await api.close(); api = await createApi({ store, executor }); base = await listen(); }
   };
 }
 
-async function terminal(get: (path: string) => Promise<Response>, path: string): Promise<RunSnapshot> {
+async function terminal(get: (path: string) => Promise<Response>, path: string): Promise<EnvironmentRun> {
   const deadline = Date.now() + 10_000;
   while (Date.now() < deadline) {
     const response = await get(path);
     assert.equal(response.status, 200);
-    const run = await response.json() as RunSnapshot;
+    const run = await response.json() as EnvironmentRun;
     if (run.status === "completed" || run.status === "failed") return run;
     await delay(20);
   }
-  throw new Error("Run did not reach a terminal state");
+  throw new Error("Environmental run did not reach a terminal state");
 }
 
-test("real Node-to-Python run preserves accounting units, provenance and unavailable domains", { timeout: 15_000 }, async t => {
+test("environmental jobs deliver results, late WebSocket snapshots, and restart persistence", async t => {
   const client = await launch(t);
   const response = await client.post(sample);
   assert.equal(response.status, 202);
   const job = await response.json() as { id: string; statusUrl: string; resultUrl: string; eventsUrl: string };
-  const completed = await terminal(client.get, job.statusUrl);
-  assert.equal(completed.status, "completed", completed.error?.message);
-  const resultResponse = await client.get(job.resultUrl);
-  assert.equal(resultResponse.status, 200);
-  const result = await resultResponse.json() as ResultManifest;
-  assert.equal(result.runId, job.id);
-  assert.equal(result.provenance.kind, "synthetic");
-  assert.equal(result.metrics.length, 4);
-  const first = Object.fromEntries(result.metrics.map(metric => [metric.id, metric.series[0].value]));
-  assert.equal(first.facility_electricity, 79_716_000);
-  assert.equal(first.cooling_water_use, 30_660_000);
-  assert.equal(first.grid_emissions, 19_929);
-  assert.ok(Math.abs(first.facility_electricity_bill - 7_971_600) < 0.001);
-  assert.ok(result.unavailable.some(item => item.domain === "noise"));
-  assert.ok(result.unavailable.some(item => item.domain === "water-quality"));
-  assert.deepEqual(result.layers, []);
-  assert.ok(result.metrics.every(metric => metric.uncertainty.status === "not_quantified"));
-
-  // The run already finished: reconnecting must still receive its terminal snapshot.
-  const url = new URL(job.eventsUrl, client.base);
-  url.protocol = "ws:";
-  const snapshot = await new Promise<RunSnapshot>((resolve, reject) => {
+  const run = await terminal(client.get, job.statusUrl);
+  assert.equal(run.status, "completed", run.error?.message);
+  const result = await (await client.get(job.resultUrl)).json() as { evidence: string; metrics: Array<{ series: Array<{ value: number }> }> };
+  assert.equal(result.evidence, "test_fixture");
+  assert.equal(result.metrics[0].series[0].value, 0);
+  const url = new URL(job.eventsUrl, client.base); url.protocol = "ws:";
+  const snapshot = await new Promise<EnvironmentRun>((resolve, reject) => {
     const socket = new WebSocket(url);
     t.after(() => socket.terminate());
     socket.once("error", reject);
@@ -70,79 +73,83 @@ test("real Node-to-Python run preserves accounting units, provenance and unavail
       finally { socket.close(); }
     });
   });
-  assert.equal(snapshot.id, job.id);
   assert.equal(snapshot.status, "completed");
+  await client.restart();
+  assert.equal((await (await client.get(job.statusUrl)).json() as EnvironmentRun).status, "completed");
+  assert.deepEqual(await (await client.get(job.resultUrl)).json(), result);
 });
 
-test("invalid scenarios are rejected before a worker can run", async t => {
-  let called = false;
-  const runner: ModelRunner = async () => { called = true; throw new Error("Must not run"); };
-  const client = await launch(t, { runner });
-  for (const mutate of [
-    (scenario: Scenario) => { scenario.years.end = scenario.years.start - 1; },
-    (scenario: Scenario) => { scenario.region.bbox = [10, 20, -10, 30]; },
-    (scenario: Scenario) => { scenario.assumptions.pue = 0.9; },
-    (scenario: Scenario) => { (scenario.assumptions as unknown as Record<string, unknown>).utilization = true; },
-    (scenario: Scenario) => { (scenario as unknown as Record<string, unknown>).unrecognized = 123; }
-  ]) {
-    const scenario = structuredClone(sample);
-    mutate(scenario);
-    assert.equal((await client.post(scenario)).status, 422);
-  }
-  assert.equal(called, false);
+test("invalid environmental and obsolete accounting requests never execute", async t => {
+  let calls = 0;
+  const client = await launch(t, async (...args) => { calls++; return fixture(...args); });
+  for (const request of [
+    { ...sample, end: "2099-01" },
+    { ...sample, bbox: [10, 20, -10, 30] },
+    { ...sample, point: { latitude: true, longitude: 0 }, bbox: undefined },
+    { ...sample, source: "https://untrusted.example/data" },
+    { ...sample, variables: ["PM25"] },
+    { ...sample, unrecognized: 1 },
+    { schemaVersion: "1.0", mode: "illustrative", assumptions: { electricityPricePerKwh: 1 } },
+    { schemaVersion: "1.0", kind: "grid", source: "power-grid", date: "2024-01", variables: ["T2M", "RH2M"] }
+  ]) assert.equal((await client.post(request)).status, 422);
+  assert.equal(calls, 0);
 });
 
-test("malformed and oversized bodies return explicit client errors", async t => {
+test("malformed and oversized requests have bounded client errors", async t => {
   const client = await launch(t);
-  const malformed = await fetch(new URL("/v1/runs", client.base), { method: "POST", body: "{broken" });
-  assert.equal(malformed.status, 400);
-  const oversized = await fetch(new URL("/v1/runs", client.base), { method: "POST", body: JSON.stringify({ text: "x".repeat(70_000) }) });
-  assert.equal(oversized.status, 413);
+  assert.equal((await fetch(new URL("/v1/runs", client.base), { method: "POST", body: "{broken" })).status, 400);
+  assert.equal((await fetch(new URL("/v1/runs", client.base), { method: "POST", body: JSON.stringify({ text: "x".repeat(70_000) }) })).status, 413);
 });
 
-test("results remain unavailable while a worker is running, then failures become terminal", async t => {
-  let fail!: (error: Error) => void;
-  const runner: ModelRunner = () => new Promise((_resolve, reject) => { fail = reject; });
-  const client = await launch(t, { runner });
+test("failed data operations have persistent terminal errors and unavailable results", async t => {
+  let rejectWorker!: (reason: Error) => void;
+  let workerStarted!: () => void;
+  const started = new Promise<void>(resolve => { workerStarted = resolve; });
+  const client = await launch(t, async () => new Promise((_resolve, reject) => { rejectWorker = reject; workerStarted(); }));
   const response = await client.post(sample);
   const job = await response.json() as { statusUrl: string; resultUrl: string };
   assert.equal((await client.get(job.resultUrl)).status, 409);
-  fail(new Error("Fixture model is intentionally unavailable"));
+  await started;
+  rejectWorker(new Error("Source login required; no fabricated fallback"));
   const run = await terminal(client.get, job.statusUrl);
   assert.equal(run.status, "failed");
-  assert.equal(run.error?.code, "MODEL_FAILED");
+  assert.equal(run.error?.code, "DATA_ACQUISITION_FAILED");
   assert.equal((await client.get(job.resultUrl)).status, 409);
+  await client.restart();
+  assert.equal((await (await client.get(job.statusUrl)).json() as EnvironmentRun).status, "failed");
 });
 
-test("capacity limits are explicit instead of silently deleting old results", async t => {
-  const client = await launch(t, { maxRuns: 1 });
-  const first = await client.post(sample);
-  assert.equal(first.status, 202);
-  const job = await first.json() as { statusUrl: string };
-  await terminal(client.get, job.statusUrl);
-  assert.equal((await client.post(sample)).status, 503);
-  assert.equal((await client.get(job.statusUrl)).status, 200);
-});
-
-test("health, registry, and missing run behavior are discoverable", async t => {
+test("inventory distinguishes metadata, incomplete downloaded coverage and unavailable domains", async t => {
   const client = await launch(t);
-  assert.deepEqual(await (await client.get("/health")).json(), { status: "ok", schemaVersion: "1.0", mode: "illustrative" });
-  const registry = await (await client.get("/v1/domains")).json() as { domains: Array<{ id: string; status: string }> };
-  assert.equal(registry.domains.find(domain => domain.id === "noise")?.status, "planned");
-  assert.equal(registry.domains.filter(domain => domain.status === "illustrative").length, 4);
+  await client.store.write(client.store.processedDirectory, "catalog", { access: "metadata_only", records: [{ shortName: "OMNO2d" }] });
+  await client.store.write(join(client.store.rawDirectory, "power-grid"), "inventory", { complete: false, variables: { T2M: { status: "partial" } } });
+  const inventory = await (await client.get("/v1/inventory")).json() as { globalData: { complete: boolean }; catalog: { access: string } };
+  assert.equal(inventory.globalData.complete, false);
+  assert.equal(inventory.catalog.access, "metadata_only");
+  const domains = await (await client.get("/v1/domains")).json() as { domains: Array<{ id: string }> };
+  assert.ok(domains.domains.some(domain => domain.id === "noise"));
+  assert.ok(!domains.domains.some(domain => domain.id === "population" || domain.id === "household-bills"));
+  const sources = await (await client.get("/v1/sources")).json() as { sources: Array<{ id: string; access: string }> };
+  assert.equal(sources.sources.find(source => source.id === "giovanni")?.access, "earthdata_login_required");
+});
+
+test("unfinished saved runs are marked interrupted after restart", async t => {
+  const client = await launch(t);
+  const id = "00000000-0000-0000-0000-000000000001";
+  await client.store.write(client.store.runsDirectory, id, { id, status: "running", progress: 20, stage: "sync:T2M", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", request: sample });
+  await client.restart();
+  const run = await (await client.get(`/v1/runs/${id}`)).json() as EnvironmentRun;
+  assert.equal(run.status, "failed");
+  assert.equal(run.error?.code, "INTERRUPTED");
+});
+
+test("health and unknown-run behavior match the environmental API", async t => {
+  const client = await launch(t);
+  assert.equal((await (await client.get("/health")).json() as { mode: string }).mode, "environmental");
   assert.equal((await client.get("/v1/runs/00000000-0000-0000-0000-000000000000")).status, 404);
 });
 
-test("an unavailable Python executable fails the job rather than returning invented output", async t => {
-  const client = await launch(t, { runner: pythonRunner("goofy-goobers-python-that-does-not-exist", 1000) });
-  const response = await client.post(sample);
-  const job = await response.json() as { statusUrl: string };
-  const run = await terminal(client.get, job.statusUrl);
-  assert.equal(run.status, "failed");
-  assert.equal(run.error?.code, "MODEL_FAILED");
-});
-
-test("malformed WebSocket upgrade URLs do not crash the API", async t => {
+test("malformed WebSocket request-targets do not crash the API", async t => {
   const client = await launch(t);
   const response = await new Promise<string>((resolve, reject) => {
     const socket = createConnection({ host: "127.0.0.1", port: Number(new URL(client.base).port) });

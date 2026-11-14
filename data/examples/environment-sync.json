@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "sync",
+  "variables": ["T2M", "PRECTOTCORR", "RH2M", "WS2M"],
+  "maxCacheMiB": 768,
+  "refreshCatalog": true
+}
