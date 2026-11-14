@@ -345,8 +345,9 @@ def mann_kendall(times: Sequence[float], values: Sequence[float], *, alpha: floa
             if abs(r) > bound:
                 total += (n - lag) * (n - lag - 1) * (n - lag - 2) * r
         factor = 1.0 + 2.0 / (n * (n - 1) * (n - 2)) * total
-        if factor <= 0:
-            factor = 1.0
+        # Conservative: significant negative autocorrelation can push the factor below 1, which would
+        # shrink the variance and overstate significance. Only allow the correction to widen uncertainty.
+        factor = max(1.0, factor)
         var_s *= factor
     z = _mk_z(s, var_s)
     tau = s / (n * (n - 1) / 2.0)

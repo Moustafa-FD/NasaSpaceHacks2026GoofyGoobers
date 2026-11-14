@@ -61,6 +61,13 @@ python -m services.models.trends.cli data/examples/trends/synthetic-target-month
 python -m services.models.trends.cli --list-variables
 ```
 
+Real NASA inputs: `giovanni.py` downloads Giovanni area-averaged CSVs (through NASA Harmony) for each case-study site. It covers GPM rainfall, GLDAS topsoil moisture and evapotranspiration, GRACE-assimilated groundwater, and OMI tropospheric NO₂. Requirements: `EARTHDATA_TOKEN` in `.env`, and the Earthdata account must have accepted the GES DISC licence and signed in to Giovanni once. Files go to `data/raw/giovanni/<site>/` (ignored by Git) with provenance JSON. Re-runs skip existing files, and the run stops before the monthly Giovanni quota passes `--max-quota` (default 80%).
+
+```sh
+python -m services.models.trends.giovanni                      # default variables, all sites
+python -m services.models.trends.cli data/raw/giovanni/ashburn/GPM_3IMERGM_07_precipitation.csv --units "mm/hr"
+```
+
 Rules the engine enforces:
 
 - Records shorter than `--min-years` (default 10) or with more than 20% missing steps return `status: "insufficient_data"` with reasons and **no** trend numbers.

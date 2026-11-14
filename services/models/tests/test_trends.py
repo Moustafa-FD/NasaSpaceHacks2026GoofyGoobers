@@ -111,6 +111,15 @@ class MannKendallSenTests(unittest.TestCase):
         self.assertGreater(corrected.variance_correction_factor, 1.0)
         self.assertGreater(corrected.p_value, original.p_value)
 
+    def test_hamed_rao_never_narrows_uncertainty(self):
+        values = [1 if i % 2 else -1 for i in range(40)]  # strongly alternating: negative lag-1 autocorrelation
+        values = [v + 0.01 * i for i, v in enumerate(values)]
+        times = list(range(40))
+        original = stats.mann_kendall(times, values)
+        corrected = stats.mann_kendall(times, values, hamed_rao=True)
+        self.assertEqual(corrected.variance_correction_factor, 1.0)
+        self.assertAlmostEqual(corrected.var_s, original.var_s)
+
     def test_seasonal_single_season_matches_plain(self):
         pairs = [(2000 + i, v) for i, v in enumerate([3, 1, 4, 1, 5, 9, 2, 6])]
         seasonal, _ = stats.seasonal_mann_kendall([pairs])

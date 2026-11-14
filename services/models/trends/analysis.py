@@ -37,6 +37,13 @@ def _fmt(value: float | None) -> str:
     return "n/a" if value is None else f"{value:.3g}"
 
 
+def _fmt_p(value: float | None) -> str:
+    """p-values below double precision of the normal tail print as an upper bound, never as 0."""
+    if value is None:
+        return "n/a"
+    return "< 1e-16" if value < 1e-16 else f"= {value:.3g}"
+
+
 def _sen_block(sen: stats.SenSlope) -> dict[str, Any]:
     return {
         "slopePerDecade": _per_decade(sen.slope),
@@ -85,17 +92,17 @@ def _verdict(mk: stats.MannKendall, sen: stats.SenSlope, lin: stats.LinearTrend,
         direction = "increasing" if sen.slope > 0 else "decreasing"
         summary = (f"{direction.capitalize()} by about {_fmt(_per_decade(sen.slope))}{unit_text} per decade "
                    f"(Sen's slope; {confidence} CI {_fmt(_per_decade(sen.ci_low))} to "
-                   f"{_fmt(_per_decade(sen.ci_high))}). Mann-Kendall p = {_fmt(mk.p_value)}, "
+                   f"{_fmt(_per_decade(sen.ci_high))}). Mann-Kendall p {_fmt_p(mk.p_value)}, "
                    f"significant at the {confidence} level.")
     else:
         direction = "no significant trend"
         leaning = "upward" if sen.slope > 0 else "downward" if sen.slope < 0 else "flat"
         summary = (f"No statistically significant trend at the {confidence} level "
-                   f"(Mann-Kendall p = {_fmt(mk.p_value)}). The estimate leans {leaning} at "
+                   f"(Mann-Kendall p {_fmt_p(mk.p_value)}). The estimate leans {leaning} at "
                    f"{_fmt(_per_decade(sen.slope))}{unit_text} per decade; a longer record may change this.")
     if lin.p_value is not None:
         agree = (lin.p_value < alpha) == (mk.p_value < alpha)
-        summary += (f" The least-squares t-test (p = {_fmt(lin.p_value)}) "
+        summary += (f" The least-squares t-test (p {_fmt_p(lin.p_value)}) "
                     f"{'agrees' if agree else 'disagrees; treat the result cautiously'}.")
     return direction, summary
 

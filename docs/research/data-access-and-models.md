@@ -60,6 +60,27 @@ Sites (tentative, team to confirm): **Ashburn, VA** (39.04, −77.49), inside th
 1. *Ties from rounded values.* POWER publishes 2 decimals, so differences repeat. Sen's slope can then be exactly 0 while Mann-Kendall gives p < 0.05, and the summary wording becomes contradictory. Fix: report the data's resolution, and word the summary from both statistics.
 2. *Wind direction is circular.* Degrees cannot be trend-tested linearly (359° and 1° are neighbours). `WD10M` was excluded. Use u/v components (NLDAS `Wind_E`/`Wind_N`, MERRA-2 `U10M`/`V10M`) or circular statistics.
 
+## 3b. Giovanni results for all five sites (real NASA data)
+
+After the GES DISC licence was accepted, `python -m services.models.trends.giovanni` downloaded 25 area-averaged series (5 sites × 5 variables; site box ±0.25°) in about 8 minutes. Giovanni quota use stayed at 0%. Trends below use **annual values with the Hamed-Rao correction and the autocorrelation-adjusted t-test**. Monthly seasonal Mann-Kendall assumes years are independent, and it overstated significance for storage variables (Ashburn groundwater: monthly p < 1e-16, annual p ≈ 0.05).
+
+| Variable (Giovanni ID) | Ashburn | Colossus 1 / 2 (Memphis) | Abilene | The Dalles |
+| --- | --- | --- | --- | --- |
+| Tropospheric NO₂, OMI (`OMNO2d_003_…TropCloudScreened`), 2005–2025 | **−1.63×10¹⁵ molec/cm²/decade**, p < 0.001 (both tests) | **−5.5 / −6.1×10¹⁴**, p < 0.02 (both tests) | n.s. | n.s. |
+| Groundwater storage, GRACE-DA (`GRACEDADM_CLSM0125US_7D_4_0_gws_inst`), 2003–2025 | −19.3 mm/decade, **borderline** (MK-HR p = 0.0497; t-test p = 0.27) | n.s. | n.s. (−17.2) | n.s. |
+| Topsoil moisture 0–10 cm, GLDAS (`…SoilMoi0_10cm_inst`), 2001–2025 | n.s. | **−1.23 kg/m²/decade** (p = 0.047; t-test 0.07) / n.s. | **−1.36**, p = 0.038 (t-test 0.013) | n.s. |
+| Precipitation, GPM IMERG monthly, 2001–2025 | n.s. | n.s. | n.s. | n.s. |
+| Evapotranspiration, GLDAS | rising at 4 sites on monthly tests; annual not yet run | | | |
+
+Reading these honestly:
+
+- **NO₂ fell strongly at Ashburn and Memphis.** This matches the national decline from vehicle and power-plant controls. Any data-center contribution would have to show up as a **site-minus-surroundings** difference, which is how the web app's ring analysis works, not as the raw regional trend.
+- Groundwater and soil-moisture products are **regional** (GRACE effective resolution ~300 km; GLDAS 0.25°). They describe the water setting a facility sits in; they don't measure its withdrawals.
+- **Engine changes from this run:**
+  - The Hamed-Rao correction may now only widen uncertainty. At Abilene, negative autocorrelation had shrunk the variance and given p = 9e-6.
+  - p-values below double precision print as "< 1e-16".
+  - For persistent storage variables (groundwater, soil moisture), use `--cadence annual`.
+
 ## 4. One-time CSV downloads versus a continuous loop
 
 **Recommendation: versioned snapshots plus a bounded incremental refresh. Do not run a perpetual loop.**
