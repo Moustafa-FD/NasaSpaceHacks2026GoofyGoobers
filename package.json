@@ -12,7 +12,14 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/api.test.ts",
     "test:models": "python -m unittest discover -s services/models/tests -v",
-    "check": "npm run typecheck && npm test && npm run test:models"
+    "check": "npm run typecheck && npm test && npm run test:models",
+    "web": "node apps/web/server.cjs",
+    "web:build": "node scripts/build_web.cjs",
+    "web:preview": "node scripts/build_web.cjs && python -m http.server 8080 --directory dist/web",
+    "data:nasa": "python scripts/precompute.py",
+    "data:weather": "python scripts/fetch_weather.py",
+    "data:unreal": "node scripts/export_unreal.cjs && node scripts/export_timeline.cjs",
+    "data:timeline-imagery": "python scripts/hls_timeline.py"
   },
   "dependencies": { "ajv": "^8.17.1", "ws": "^8.18.0" },
   "devDependencies": { "@types/node": "^24.0.0", "@types/ws": "^8.18.0", "typescript": "~5.9.3" }

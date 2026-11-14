@@ -7,6 +7,12 @@ An environmental and agricultural trend explorer developed by **Team Goofy Goobe
 
 **Challenge:** [Be An Earth System Trend Detective!](https://www.spaceappschallenge.org/2026/challenges/earth-system-trend-detective/)
 
+## 👉 Teammates: start here
+
+- **The product judges open = the web app** in `apps/web/`. Run `npm run web` → http://localhost:8765. **Team guide (code map, data, to-do board, deploy): [apps/web/README.md](apps/web/README.md).**
+- **Demo video = Unreal Engine + Cesium** (`clients/unreal/CloudShadow/`, Andres, Windows laptop). Plan in [CLAUDE.md](CLAUDE.md) and [clients/unreal/CLOUDSHADOW_SETUP.md](clients/unreal/CLOUDSHADOW_SETUP.md).
+- Deadline **Sun Nov 15, 11:59 pm**. Public link via GitHub Pages (setup in the guide §5).
+
 ## About Footprint Atlas
 
 Footprint Atlas is an interactive environmental mapping and analysis platform designed to investigate the environmental footprint of data centers around the world.
@@ -47,11 +53,35 @@ Environmental changes observed near a data center do not necessarily establish t
 
 ## Current scope
 
+### What works today
+| Part | What it does | Where |
+|---|---|---|
+| **Web explorer (the product)** | CesiumJS 3D globe with 5 case studies (xAI Colossus 1 & 2 in Memphis, Data Center Alley in Ashburn VA, Stargate Abilene TX, Google The Dalles OR). **Timeline slider 2003 → 2035**: yearly NASA 30 m ground imagery, 3D ring of yearly local signals, heat dome + embers, GPU fluid weather field driven by NASA wind, turbine plume, clouds/rain, golden-hour/night lighting with NASA city lights; projected years shown as "if the trend continues" with 95% CIs. Plus click-anywhere live analysis, guided tour, trend statistics and a sourced ledger. | `apps/web/` → `npm run web` · guide: [apps/web/README.md](apps/web/README.md) |
+| **NASA data pipeline** | NASA GIBS tiles decoded with official colormaps: MODIS land-surface temperature (day/night), NDVI and aerosols; Sentinel-5P TROPOMI and Aura OMI NO₂; MERRA-2 air temperature; NASA POWER weather; yearly cloud-free HLS 30 m imagery | `scripts/` → `data/cloudshadow/` |
+| **Trend statistics** | Site vs. surrounding ring, seasons removed, **Mann-Kendall + Sen's slope (95% CI)**, before/after **Welch t-test** with autocorrelation-adjusted n (checked against SciPy) | `apps/web/js/stats.js` |
+| **Unreal project** | UE 5.8.3 + Cesium for Unreal, level with 70 yearly NASA imagery overlays and NASA data layers, built by script | `clients/unreal/CloudShadow/` |
+| **Scenario starter** | Node API + Python worker scaffold for future modeled scenarios (illustrative only) | `apps/api/`, `services/models/`, `packages/contracts/` |
+
+**Findings so far** (details, caveats and method in [docs/cloud-shadow.md](docs/cloud-shadow.md)):
+- **Ashburn, VA:** the region's air warmed **+0.71 °C/decade** (MERRA-2, p = 0.001), and the data-center area's **night-time surface heat** warmed a further **+0.25 °C/decade** beyond its surroundings (p = 0.001).
+- **Memphis, TN:** greenness fell at xAI Colossus 1 (p < 0.001) and Colossus 2 (p = 0.047); NO₂ near Colossus 1 rose after the mid-2024 turbines, but the change is **borderline** (p = 0.051).
+- Particle haze (aerosol optical depth): no significant increase at any site.
+
+### Run it
+| Command | Purpose |
+|---|---|
+| `npm run web` | Web explorer + JSON API on http://localhost:8765 |
+| `npm run web:build` / `web:preview` | Static build in `dist/web/` (what GitHub Pages serves) / preview on :8080 |
+| `npm run data:nasa` / `data:weather` / `data:timeline-imagery` / `data:unreal` | Refresh NASA series / NASA POWER weather / yearly 30 m imagery / timeline + Unreal exports (Python + `pip install pillow`) |
+| `npm start`, `npm run check` | Scenario API on :3000 / all checks (CI) |
+
+Not yet covered with data: water quality, groundwater, soil and agriculture indicators. These are good next adapters (e.g. NASA SMAP soil moisture, GRACE-FO groundwater, crop-condition NDVI).
+
 ### 1. Data and backend
 
 Our part supplies the environmental evidence and the Node.js gateway used by the analysis engine and Unreal client. Coverage is global where sources support it, with acquisition focused on **Canada and the USA**, recent records and available historical inventories. Agriculture is included; social, demographic and electricity-bill forecasting are outside our scope.
 
-**Implementation status — November 14, 2026:** the expanded backend is built and verified in the local implementation checkout, branch `codex/environment-data-backend`, commit `71d263d`. This documentation PR does not include that code or the downloaded data. The current `main` code remains the earlier illustrative starter; the operations below require the implementation checkout.
+**Implementation status — November 14, 2026:** the expanded backend is built and verified in the local implementation checkout, branch `codex/environment-data-backend`, commit `71d263d`. This documentation PR does not include that code or the downloaded data. The scenario API on `main` remains the earlier illustrative starter; the expanded Node operations below require the implementation checkout. They complement the separate web explorer, NASA pipeline and statistics work already on `main`.
 
 **Implemented locally:**
 
@@ -75,6 +105,6 @@ The local implementation passed **130 tests** and live verification of **17 acqu
 
 **How Part 2 connects:** use the Node gateway to submit supported operations with `POST /v1/runs`, follow the returned HTTP status or WebSocket URL, and retrieve completed results. Browse cached locations and releases through `GET /v1/facilities` and `GET /v1/emissions`. Analysis code running in the backend can also use the typed adapters, cache and existing job executor in the implementation checkout. Keep reported emissions, environmental concentrations, measurements and climate scenarios distinct; facility identities are not automatically matched across sources.
 
-**Still needed:** numerical trend/significance workers, verified facility matching, calibrated facility-impact and agricultural models, and noise propagation/prediction. Ground noise and vegetation records can be imported with provenance, but no noise dataset or numeric NDVI observations were acquired; the public ORNL vegetation service was unavailable during setup.
+**Still needed in this Node API:** trend/significance job integration, verified facility matching, calibrated facility-impact and agricultural models, and noise propagation/prediction. Ground noise and vegetation records can be imported with provenance, but no noise dataset or numeric NDVI observations were acquired; the public ORNL vegetation service was unavailable during setup.
 
 See **[1. Data and backend — technical handoff](docs/data-and-backend.md)** for setup prerequisites, exact request/result examples, data locations, source limits and the extension points Part 2 should use.

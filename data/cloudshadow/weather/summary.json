@@ -1,0 +1,42 @@
+{
+ "colossus1": {
+  "windFromDeg": 191.9,
+  "plumeTowardDeg": 11.9,
+  "meanWindSpeedMS": 3.87,
+  "vectorMeanSpeedMS": 1.56,
+  "months": 276,
+  "note": "Vector mean of monthly means: indicates the prevailing drift, not any single day."
+ },
+ "colossus2": {
+  "windFromDeg": 191.9,
+  "plumeTowardDeg": 11.9,
+  "meanWindSpeedMS": 3.87,
+  "vectorMeanSpeedMS": 1.56,
+  "months": 276,
+  "note": "Vector mean of monthly means: indicates the prevailing drift, not any single day."
+ },
+ "ashburn": {
+  "windFromDeg": 275.1,
+  "plumeTowardDeg": 95.1,
+  "meanWindSpeedMS": 3.3,
+  "vectorMeanSpeedMS": 2.4,
+  "months": 276,
+  "note": "Vector mean of monthly means: indicates the prevailing drift, not any single day."
+ },
+ "abilene": {
+  "windFromDeg": 199.5,
+  "plumeTowardDeg": 19.5,
+  "meanWindSpeedMS": 4.97,
+  "vectorMeanSpeedMS": 3.81,
+  "months": 276,
+  "note": "Vector mean of monthly means: indicates the prevailing drift, not any single day."
+ },
+ "thedalles": {
+  "windFromDeg": 258.6,
+  "plumeTowardDeg": 78.6,
+  "meanWindSpeedMS": 2.6,
+  "vectorMeanSpeedMS": 2.01,
+  "months": 276,
+  "note": "Vector mean of monthly means: indicates the prevailing drift, not any single day."
+ }
+}
