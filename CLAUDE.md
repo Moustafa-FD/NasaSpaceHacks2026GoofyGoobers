@@ -11,7 +11,8 @@
 The environmental footprint of AI data centers, measured with NASA data and shown in a cinematic 3D globe. Lead story: **xAI Colossus, South Memphis** (on-site methane gas turbines; Boxtown neighborhood ~3 km ESE). Other sites: xAI Colossus 2 (Memphis), Data Center Alley (Ashburn VA), Stargate Abilene TX, Google The Dalles OR.
 
 ## Decisions already made (don't relitigate)
-- **Unreal Engine is the product and the demo** (team decision, Nov 14). Core interaction = a **timeline slider (past → present → future)** per site; flashy, cinematic, data-driven: Niagara Fluids plumes, heat shimmer, volumetric weather. The web app (`apps/web`) stays as the **analysis backend/API** and a fallback, not the showcase.
+- **Final split (Nov 14, ~2:30 pm):** judges need a link they can open, so **the web app (`apps/web`) is the product**, built on by the team (guide: `apps/web/README.md`). **Unreal = Andres's cinematic demo video** (30 s, Movie Render Queue) on the Windows laptop; it is *not* submitted as an app. Core idea in both = a **timeline slider (past → present → future)** per site with flashy, data-driven effects.
+- If you are Claude on the **Windows laptop with Andres**: focus on the **Unreal** production plan below. Don't restructure the web app; the team owns it.
 - **Focus = weather/heat + air pollution.** Jobs, taxes and bills were deliberately dropped from our part (no NASA data → weak "Relevance"). The teammate scaffold keeps those domains as *unavailable*; leave that alone.
 - **Honest numbers, flashy visuals.** Any number on screen comes from `data/cloudshadow/` with its p-value; borderline stays "borderline". Fluid sims and effects are *visualizations* driven by data (direction, relative intensity); never present them as measured concentrations. Satellite change near a facility = evidence, not proof of attribution.
 - MERRA-2 / NASA POWER regional weather is the **climate control**: a site signal must beat the regional trend.

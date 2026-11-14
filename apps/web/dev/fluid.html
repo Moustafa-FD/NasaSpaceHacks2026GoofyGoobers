@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fluid Playground</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; background: #0b0e13; color: #eef1f5; font: 14px/1.4 system-ui, sans-serif; display: flex; gap: 20px; padding: 16px; flex-wrap: wrap; }
+    canvas { width: min(640px, 100%); aspect-ratio: 1; background: #20301f; border-radius: 10px; image-rendering: auto; }
+    .controls { display: grid; gap: 10px; min-width: 260px; align-content: start; }
+    label { display: grid; gap: 4px; color: #b6bfcc; font-size: 13px; }
+    output { color: #ff9a4d; font-family: monospace; }
+    h1 { font-size: 16px; margin: 0 0 6px; }
+    p { color: #7d8897; font-size: 12px; margin: 0; max-width: 300px; }
+  </style>
+</head>
+<body>
+  <canvas id="view" width="640" height="640"></canvas>
+  <div class="controls">
+    <h1>Fluid playground</h1>
+    <p>Tune <code>js/fluid-gpu.js</code> without the globe. In the app these inputs come from the timeline row for the year (NASA POWER wind, night-heat, NO₂, precipitation).</p>
+    <label>Wind toward (°) <input id="dir" type="range" min="0" max="359" value="12" /><output id="dirV"></output></label>
+    <label>Wind speed (m/s) <input id="spd" type="range" min="0" max="10" step="0.1" value="3.9" /><output id="spdV"></output></label>
+    <label>Heat <input id="heat" type="range" min="0" max="3" step="0.05" value="1" /><output id="heatV"></output></label>
+    <label>Pollution <input id="pol" type="range" min="0" max="2" step="0.05" value="0.6" /><output id="polV"></output></label>
+    <label>Moisture <input id="moi" type="range" min="0" max="2" step="0.05" value="0.6" /><output id="moiV"></output></label>
+    <label><span><input id="proj" type="checkbox" /> Projected (future) grade</span></label>
+    <p id="mode"></p><p id="fps"></p>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/Cesium.js"></script>
+  <script type="module">
+    import { attachFluid } from "../js/fluid-gpu.js";
+    // minimal stand-in for a Cesium viewer: we only need the draped texture
+    let ent = null;
+    const fakeViewer = { entities: { add: (e) => (ent = e), remove() {} } };
+    const fluid = attachFluid(fakeViewer, { lat: 35.06, lon: -90.16 });
+    document.getElementById("mode").textContent = fluid.gpu ? "Mode: GPU (WebGL2)" : "Mode: CPU fallback";
+    const ids = ["dir", "spd", "heat", "pol", "moi"];
+    function apply() {
+      const v = Object.fromEntries(ids.map((i) => [i, +document.getElementById(i).value]));
+      ids.forEach((i) => (document.getElementById(i + "V").textContent = v[i]));
+      fluid.setWeather({ windTowardDeg: v.dir, windSpeed: v.spd, heat: v.heat, pollution: v.pol, moisture: v.moi, projected: document.getElementById("proj").checked });
+    }
+    ids.concat("proj").forEach((i) => document.getElementById(i).addEventListener("input", apply));
+    apply();
+    const view = document.getElementById("view").getContext("2d");
+    let frames = 0, t0 = performance.now();
+    (function draw(now) {
+      const img = ent?.rectangle?.material?.image?.getValue?.();
+      if (img) { view.clearRect(0, 0, 640, 640); view.drawImage(img, 0, 0, 640, 640); }
+      frames++; if (now - t0 > 1000) { document.getElementById("fps").textContent = `${frames} fps`; frames = 0; t0 = now; }
+      requestAnimationFrame(draw);
+    })(performance.now());
+  </script>
+</body>
+</html>

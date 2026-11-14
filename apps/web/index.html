@@ -97,6 +97,27 @@
     </footer>
   </aside>
 
+  <!-- timeline slider: past → present → future (js/timeline.js) -->
+  <div id="tlFutureTint" aria-hidden="true"></div>
+  <section id="timeline" aria-label="Timeline">
+    <button id="tlPlay" class="primary" title="Play through the years">▶</button>
+    <div class="tl-main">
+      <div class="tl-top">
+        <span id="tlYear" class="tl-year">2025</span>
+        <span id="tlPhase" class="tl-phase observed">OBSERVED</span>
+        <div id="tlChips" class="tl-chips"></div>
+        <label class="tl-ring" title="Variable shown by the 3D ring of yearly bars">Ring <select id="tlRingVar"></select></label>
+        <button id="tlLight" class="tl-btn" title="Lighting: golden hour / night (NASA city lights)">☀ Golden hour</button>
+        <button id="tlQuality" class="tl-btn" title="Graphics quality (bloom, shadows, particle counts)">HQ</button>
+      </div>
+      <div id="tlTrack" class="tl-track">
+        <input type="range" id="tlSlider" step="1" aria-label="Year" />
+        <div class="tl-zones"><span>PAST · measured</span><span>NOW</span><span>FUTURE · if the trend continues</span></div>
+      </div>
+      <div id="tlImagery" class="tl-imagery"></div>
+    </div>
+  </section>
+
   <div id="tourCard" hidden><div id="tourText"></div><div class="tour-nav"><button id="tourPrev">‹</button><span id="tourStep"></span><button id="tourNext" class="primary">Next ›</button><button id="tourEnd">✕</button></div></div>
   <div id="toast" hidden></div>
 
@@ -105,5 +126,6 @@
   <script src="js/stats.js"></script>
   <script src="js/layers.js"></script>
   <script src="js/app.js"></script>
+  <script type="module" src="js/timeline.js"></script>
 </body>
 </html>

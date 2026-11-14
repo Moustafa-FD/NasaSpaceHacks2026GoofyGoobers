@@ -197,6 +197,7 @@
     state.varId = varId || s.watchFor?.[0] || "LST_Day";
     renderChips(); renderStory(); renderTabs(); renderLedger(); runAnalysis();
     if (fly) flyTo(s.lat, s.lon, 40, -45);
+    window.dispatchEvent(new CustomEvent("cs:site", { detail: { site: s, fly } }));
   }
 
   // ------------------------------------------------------------ analysis + charts
@@ -394,5 +395,6 @@
   if (q.get("site") && S[q.get("site")]) selectSite(S[q.get("site")], { varId: q.get("var") || undefined });
   if (q.get("tour") != null) showTour(+q.get("tour"));
   if (q.get("embed")) { $("#globe").style.display = "none"; $("#topbar").style.display = "none"; $("#panel").style.width = "100%"; }
-  window.CloudShadow = { selectSite: (id, v) => S[id] && selectSite(S[id], { varId: v }), viewer, state };
+  window.CloudShadow = { selectSite: (id, v) => S[id] && selectSite(S[id], { varId: v }), viewer, state, sites: SITES, flyTo, setMapLayer, getMapLayer: () => state.mapLayer };
+  window.dispatchEvent(new CustomEvent("cs:ready", { detail: window.CloudShadow }));
 })();

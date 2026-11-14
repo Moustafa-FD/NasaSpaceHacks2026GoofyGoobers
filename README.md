@@ -6,6 +6,12 @@ Explore how environmental and community conditions change around data-center clu
 
 The full intended scope includes **air pollution and air quality; water use, availability and quality; electricity consumption; facility and household electricity bills; employment and unemployment rates; population and growth rates; land/ecosystem indicators; and noise pollution**. Historical NASA observations and trend significance remain central to the challenge. Future estimates must distinguish assumptions from observations and association from causation.
 
+## 👉 Teammates: start here
+
+- **The product judges open = the web app** in `apps/web/`. Run `npm run web` → http://localhost:8765. **Team guide (code map, data, to-do board, deploy): [apps/web/README.md](apps/web/README.md).**
+- **Demo video = Unreal Engine** (`clients/unreal/CloudShadow/`, Andres, Windows laptop). Plan in [CLAUDE.md](CLAUDE.md) and [clients/unreal/CLOUDSHADOW_SETUP.md](clients/unreal/CLOUDSHADOW_SETUP.md).
+- Deadline **Sun Nov 15, 11:59 pm**. Public link via GitHub Pages once merged to `main` (see the guide §5).
+
 ## What works today: Cloud Shadow (NASA trend detective)
 
 A working, real-data slice of part 1 + part 3, focused on the challenge's core (**trend + significance from NASA data**) for **air pollution and weather/heat** around data centers:
@@ -14,7 +20,7 @@ A working, real-data slice of part 1 + part 3, focused on the challenge's core (
 |---|---|---|
 | **NASA adapter** | Pulls NASA GIBS tiles (no login) and decodes them into physical values with the official GIBS colormaps: MODIS land-surface temperature (day/night), MODIS NDVI, MODIS aerosol optical depth, Sentinel-5P TROPOMI NO₂, Aura OMI NO₂, MERRA-2 air temperature | `scripts/precompute.py` → `data/cloudshadow/` |
 | **Trend statistics** | Site (3×3 px) vs. surrounding ring; seasons removed; **Mann-Kendall + Sen's slope**; before/after **Welch t-test** with autocorrelation-adjusted n and 95% CI (checked against SciPy) | `apps/web/js/stats.js` |
-| **Web explorer** | CesiumJS globe, 5 case studies (xAI Colossus 1 & 2 Memphis, Ashburn VA, Stargate Abilene, Google The Dalles), click-anywhere live analysis, guided tour, before/after imagery swipe, sourced pollution/noise/water ledger | `apps/web/` → `npm run web` → http://localhost:8765 |
+| **Web explorer (the product)** | CesiumJS 3D globe, 5 case studies (xAI Colossus 1 & 2 Memphis, Ashburn VA, Stargate Abilene, Google The Dalles). **Timeline slider 2003 → 2035**: yearly NASA 30 m ground imagery, 3D impact ring, heat dome + embers, GPU fluid weather field (NASA wind), turbine plume, clouds/rain, golden-hour/night lighting with NASA city lights, projected years with 95% CI. Plus click-anywhere live analysis, guided tour, trend stats, sourced ledger | `apps/web/` → `npm run web`; guide: [apps/web/README.md](apps/web/README.md) |
 | **Unreal project** | UE 5.8.3 + Cesium for Unreal project with a one-click level builder (NASA overlays, site pillars) | `clients/unreal/CloudShadow/`, see [setup](clients/unreal/CLOUDSHADOW_SETUP.md) |
 
 Strongest result so far: in Ashburn's Data Center Alley the region's air warmed **+0.71 °C/decade** (MERRA-2, p = 0.001) and the site's **night-time surface heat** warmed a further **+0.25 °C/decade** beyond its surroundings (p = 0.001). Memphis NO₂ near Colossus rose after mid-2024 but is **borderline** (p = 0.051). Full findings, caveats and method: **[docs/cloud-shadow.md](docs/cloud-shadow.md)**. Satellite changes near a facility are evidence, not proof of attribution.
@@ -131,6 +137,8 @@ Commands:
 | `npm run test:models` | Check hand-computed accounting, units, leap years and invalid inputs |
 | `npm run check` | Run all required checks |
 | `npm run web` | Cloud Shadow explorer + NASA trend API on http://localhost:8765 |
+| `npm run web:build` / `web:preview` | Static build in `dist/web/` (what GitHub Pages serves) / preview it on :8080 |
+| `npm run data:weather` / `data:timeline-imagery` | NASA POWER weather / yearly cloud-free 30 m imagery per site |
 | `npm run data:nasa` | Refresh NASA series (needs `pip install pillow`; ~10 min first run, cached after) |
 | `npm run data:unreal` | Re-export results for the Unreal DataTable |
 

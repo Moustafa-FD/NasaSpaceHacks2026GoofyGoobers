@@ -5,7 +5,8 @@
 // Writes data/cloudshadow/unreal/timeline/<site>.csv  (+ <site>.json with metadata)
 //   One row per year, FIRST_YEAR..LAST_PROJECTED_YEAR.
 //   Phase = observed | present | projected
-//   For each variable V:  V_Site, V_Surround (annual means), V_SiteLo, V_SiteHi (projected band only)
+//   For each variable V:  V_Site, V_Surround (annual means), V_SiteLo, V_SiteHi (projected band only),
+//                         V_Local (= site - surroundings, the data-center signal), V_LocalLo, V_LocalHi (projected band)
 //   Weather (NASA POWER): T2M, WS10M, PlumeTowardDeg, PrecipMMDay (projected years = last-10-year climatology)
 //   Imagery: ImageryLayer, ImageryDate, ImageryUrl (cloud-free 30 m HLS for that year, if any)
 //
@@ -37,13 +38,19 @@ for (const s of all.sites) {
     const annual = (vals, minM) => { const an = Stats.annual(d.t, Stats.deseasonalize(d.t, vals), minM); const L = level(vals); return { ...an, y: an.y.map((y) => y + L) }; };
     const annS = annual(d.site, 6), annR = annual(d.ref, 6);
     const site = new Map(annS.years.map((y, i) => [y, annS.y[i]])), ref = new Map(annR.years.map((y, i) => [y, annR.y[i]]));
-    let proj = null;
+    const loc = new Map(annS.years.filter((y) => ref.has(y)).map((y) => [y, site.get(y) - ref.get(y)]));
+    const locYears = [...loc.keys()];
+    let proj = null, projLocal = null;
+    if (locYears.length >= MIN_YEARS_FOR_PROJECTION) {
+      projLocal = Stats.mannKendall(locYears.map((y) => y + 0.5), locYears.map((y) => loc.get(y)));
+    }
     if (annS.years.length >= MIN_YEARS_FOR_PROJECTION) {
       const mk = Stats.mannKendall(annS.x, annS.y);
       proj = mk;
-      meta.projections[v] = { slopePerDecade: mk.slope * 10, ci95PerDecade: [mk.slopeLo * 10, mk.slopeHi * 10], p: mk.p, years: annS.years.length };
+      meta.projections[v] = { slopePerDecade: mk.slope * 10, ci95PerDecade: [mk.slopeLo * 10, mk.slopeHi * 10], p: mk.p, years: annS.years.length,
+        local: projLocal ? { slopePerDecade: projLocal.slope * 10, ci95PerDecade: [projLocal.slopeLo * 10, projLocal.slopeHi * 10], p: projLocal.p } : null };
     }
-    perVar[v] = { site, ref, proj, lastYear: annS.years[annS.years.length - 1] };
+    perVar[v] = { site, ref, loc, proj, projLocal, lastYear: annS.years[annS.years.length - 1] };
     if (annS.years.length) lastObserved = Math.max(lastObserved, annS.years[annS.years.length - 1]);
   }
   // NASA POWER weather by year (observed) + climatology of the last 10 years for projected rows
@@ -60,7 +67,7 @@ for (const s of all.sites) {
   const wYears = [...wy.keys()].sort();
   const clim = wAnnual(wYears.slice(-10).flatMap((y) => wy.get(y)));
 
-  const header = ["Year", "Phase", ...VARS.flatMap((v) => [`${v}_Site`, `${v}_Surround`, `${v}_SiteLo`, `${v}_SiteHi`]),
+  const header = ["Year", "Phase", ...VARS.flatMap((v) => [`${v}_Site`, `${v}_Surround`, `${v}_SiteLo`, `${v}_SiteHi`, `${v}_Local`, `${v}_LocalLo`, `${v}_LocalHi`]),
     "T2M", "WS10M", "PlumeTowardDeg", "PrecipMMDay", "ImageryLayer", "ImageryDate", "ImageryUrl"];
   const lines = [header.join(",")];
   meta.rows = [];
@@ -69,13 +76,14 @@ for (const s of all.sites) {
     const cols = [y, phase];
     for (const v of VARS) {
       const pv = perVar[v];
-      if (!pv) { cols.push("", "", "", ""); continue; }
-      if (y <= pv.lastYear) { cols.push(r(pv.site.get(y)), r(pv.ref.get(y)), "", ""); continue; }
-      if (pv.proj && phase === "projected") {
-        const { slope, slopeLo, slopeHi, pivotX, pivotY } = pv.proj, x = y + 0.5;
-        const c = pivotY + slope * (x - pivotX), lo = pivotY + slopeLo * (x - pivotX), hi = pivotY + slopeHi * (x - pivotX);
-        cols.push(r(c), "", r(Math.min(lo, hi)), r(Math.max(lo, hi)));
-      } else cols.push("", "", "", "");
+      if (!pv) { cols.push("", "", "", "", "", "", ""); continue; }
+      if (y <= pv.lastYear) { cols.push(r(pv.site.get(y)), r(pv.ref.get(y)), "", "", r(pv.loc.get(y)), "", ""); continue; }
+      const line = (mk, x) => {
+        const c = mk.pivotY + mk.slope * (x - mk.pivotX), lo = mk.pivotY + mk.slopeLo * (x - mk.pivotX), hi = mk.pivotY + mk.slopeHi * (x - mk.pivotX);
+        return [r(c), r(Math.min(lo, hi)), r(Math.max(lo, hi))];
+      };
+      if (phase === "projected" && pv.proj) { const [c, lo, hi] = line(pv.proj, y + 0.5); cols.push(c, "", lo, hi); } else cols.push("", "", "", "");
+      if (phase === "projected" && pv.projLocal) cols.push(...line(pv.projLocal, y + 0.5)); else cols.push("", "", "");
     }
     const wa = phase === "projected" ? clim : (wAnnual(wy.get(y)) || (phase === "present" ? clim : null));
     cols.push(r(wa?.T2M, 2), r(wa?.WS10M, 2), r(wa?.Plume, 1), r(wa?.Precip, 2));

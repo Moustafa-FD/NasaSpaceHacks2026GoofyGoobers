@@ -36,3 +36,6 @@ Binaries/
 # Cesium for Unreal: local request cache and per-user ion server asset (stores the ion access token)
 cesium-request-cache.sqlite*
 clients/unreal/**/Content/CesiumSettings/
+
+# static web build output (npm run web:build)
+dist/

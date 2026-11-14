@@ -81,6 +81,11 @@
             "https://www.cnn.com/2025/05/19/climate/xai-musk-memphis-turbines-pollution"
           ]
         }
+      },
+      "effects": {
+        "plume": true,
+        "plumeNote": "On-site gas turbines from mid-2024 (visualization; wind = NASA POWER, density follows the TROPOMI NO2 signal)",
+        "ringVar": "NDVI"
       }
     },
     {
@@ -152,6 +157,11 @@
             "https://www.mississippifreepress.org/southaven-residents-sue-xai-alleging-near-constant-noise-from-gas-turbines-is-causing-harm/"
           ]
         }
+      },
+      "effects": {
+        "plume": false,
+        "plumeNote": null,
+        "ringVar": "NDVI"
       }
     },
     {
@@ -201,6 +211,11 @@
             "https://www.city-journal.org/article/loudoun-county-virginia-data-centers-construction"
           ]
         }
+      },
+      "effects": {
+        "plume": false,
+        "plumeNote": null,
+        "ringVar": "LST_Night"
       }
     },
     {
@@ -252,6 +267,11 @@
             "https://saveabilene.com/stargate.html"
           ]
         }
+      },
+      "effects": {
+        "plume": false,
+        "plumeNote": null,
+        "ringVar": "NDVI"
       }
     },
     {
@@ -294,6 +314,11 @@
             "https://www.datacenterdynamics.com/en/news/we-now-know-how-much-water-googles-oregon-data-centers-use-after-city-drops-lawsuit-against-journalists/"
           ]
         }
+      },
+      "effects": {
+        "plume": false,
+        "plumeNote": null,
+        "ringVar": "LST_Night"
       }
     }
   ],
