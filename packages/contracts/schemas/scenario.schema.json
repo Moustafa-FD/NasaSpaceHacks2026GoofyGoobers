@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:goofy-goobers:scenario:1.0",
+  "title": "Illustrative scenario v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "mode", "name", "region", "years", "assumptions"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "mode": { "const": "illustrative" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "\\S" },
+    "region": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "name", "bbox"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 80, "pattern": "^[a-zA-Z0-9_-]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "\\S" },
+        "bbox": {
+          "description": "WGS84 [west,south,east,north]; API also checks ordering; dateline crossing is not supported yet",
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "items": [
+            { "type": "number", "minimum": -180, "maximum": 180 },
+            { "type": "number", "minimum": -90, "maximum": 90 },
+            { "type": "number", "minimum": -180, "maximum": 180 },
+            { "type": "number", "minimum": -90, "maximum": 90 }
+          ], "additionalItems": false
+        }
+      }
+    },
+    "years": {
+      "type": "object", "additionalProperties": false, "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "integer", "minimum": 2000, "maximum": 2100 },
+        "end": { "type": "integer", "minimum": 2000, "maximum": 2100 }
+      }
+    },
+    "assumptions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["itLoadMw", "utilization", "pue", "annualGrowthRate", "gridKgCo2ePerKwh", "wueLitresPerItKwh", "electricityPricePerKwh", "currency"],
+      "properties": {
+        "itLoadMw": { "type": "number", "exclusiveMinimum": 0, "maximum": 100000 },
+        "utilization": { "type": "number", "minimum": 0, "maximum": 1 },
+        "pue": { "type": "number", "minimum": 1, "maximum": 3 },
+        "annualGrowthRate": { "type": "number", "minimum": -0.2, "maximum": 0.25 },
+        "gridKgCo2ePerKwh": { "type": "number", "minimum": 0, "maximum": 5 },
+        "wueLitresPerItKwh": { "type": "number", "minimum": 0, "maximum": 20 },
+        "electricityPricePerKwh": { "type": "number", "minimum": 0, "maximum": 5 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+      }
+    }
+  }
+}

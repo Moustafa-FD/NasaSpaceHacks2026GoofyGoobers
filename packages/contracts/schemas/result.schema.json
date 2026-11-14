@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:goofy-goobers:result:1.0",
+  "title": "Illustrative result manifest v1.0",
+  "type": "object", "additionalProperties": false,
+  "required": ["schemaVersion", "runId", "mode", "modelVersion", "scenarioName", "region", "years", "provenance", "metrics", "unavailable", "layers"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" }, "runId": { "type": "string", "minLength": 1 },
+    "mode": { "const": "illustrative" }, "modelVersion": { "type": "string", "minLength": 1 },
+    "scenarioName": { "type": "string" },
+    "region": { "$ref": "urn:goofy-goobers:scenario:1.0#/properties/region" },
+    "years": { "$ref": "urn:goofy-goobers:scenario:1.0#/properties/years" },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "sourceIds", "assumptions", "warnings"],
+      "properties": {
+        "kind": { "const": "synthetic" },
+        "sourceIds": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "assumptions": { "$ref": "urn:goofy-goobers:scenario:1.0#/properties/assumptions" },
+        "warnings": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+      }
+    },
+    "metrics": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "label", "domain", "unit", "status", "spatialResolution", "temporalResolution", "uncertainty", "series"],
+        "properties": {
+          "id": { "type": "string" }, "label": { "type": "string" }, "domain": { "type": "string" },
+          "unit": { "type": "string" }, "status": { "const": "illustrative" },
+          "spatialResolution": { "type": "string" }, "temporalResolution": { "const": "annual" },
+          "uncertainty": { "type": "object", "additionalProperties": false, "required": ["status", "reason"], "properties": { "status": { "const": "not_quantified" }, "reason": { "type": "string" } } },
+          "series": { "type": "array", "minItems": 1, "maxItems": 81, "items": { "type": "object", "additionalProperties": false, "required": ["year", "value"], "properties": { "year": { "type": "integer", "minimum": 2000, "maximum": 2100 }, "value": { "type": "number", "minimum": 0 } } } }
+        }
+      }
+    },
+    "unavailable": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["domain", "reason"], "properties": { "domain": { "type": "string" }, "reason": { "type": "string" } } } },
+    "layers": { "type": "array", "maxItems": 0 }
+  }
+}
