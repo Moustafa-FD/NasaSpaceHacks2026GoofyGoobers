@@ -1,228 +1,111 @@
-# Goofy Goobers - Environmental and Agricultural Trend Detective
 
-NASA Space Apps Challenge 2026: **[Be An Earth System Trend Detective!](https://www.spaceappschallenge.org/2026/challenges/earth-system-trend-detective/)**
+# Footprint Atlas
 
-Investigate how environmental conditions change around data-center regions, and how those changes could affect ecosystems and local agriculture over time. Compare historical trends and, when validated models are available, conditional future scenarios for facility expansion, cooling, emissions, water use and land changes.
+**Mapping the environmental footprint of our digital world.**
+
+An environmental and agricultural trend explorer developed by **Team Goofy Goobers** for the **NASA Space Apps Challenge 2026**.
+
+**Challenge:** [Be An Earth System Trend Detective!](https://www.spaceappschallenge.org/2026/challenges/earth-system-trend-detective/)
+
+## 👉 Teammates: start here
+
+- **The product judges open = the web app** in `apps/web/`. Run `npm run web` → http://localhost:8765. **Team guide (code map, data, to-do board, deploy): [apps/web/README.md](apps/web/README.md).**
+- **Demo video = Unreal Engine + Cesium** (`clients/unreal/CloudShadow/`, Andres, Windows laptop). Plan in [CLAUDE.md](CLAUDE.md) and [clients/unreal/CLOUDSHADOW_SETUP.md](clients/unreal/CLOUDSHADOW_SETUP.md).
+- Deadline **Sun Nov 15, 11:59 pm**. Public link via GitHub Pages (setup in the guide §5).
+
+## About Footprint Atlas
+
+Footprint Atlas is an interactive environmental mapping and analysis platform designed to investigate the environmental footprint of data centers around the world.
+
+By combining NASA Earth-observation data, geological information, environmental records, and geographic visualization, Footprint Atlas aims to help users understand how environmental conditions change around data-center regions over time.
+
+The platform focuses on environmental indicators such as:
+
+- **Air Quality:** Pollutant emissions, air quality, and pollution exposure.
+- **Water Resources:** Water consumption, groundwater availability, water quality, and potential water stress.
+- **Land and Ecosystems:** Land-surface temperature, vegetation, land-cover changes, soil conditions, and habitat indicators.
+- **Noise Pollution:** Potential noise impacts associated with data-center equipment and operations.
+- **Agriculture:** Environmental changes that could influence crop health, soil moisture, irrigation resources, and agricultural suitability.
+
+### Our Goal
+
+To make environmental data accessible and understandable through an interactive geographic experience.
+
+Footprint Atlas aims to visualize historical environmental trends and, where scientifically validated models are available, explore conditional future scenarios associated with data-center expansion, energy demand, cooling systems, emissions, and land development.
+
+By mapping the relationship between digital infrastructure and Earth's environmental systems, we hope to support more informed and sustainable development decisions.
+
+### Our Approach
+
+Footprint Atlas is designed around three main components:
+
+1. **Environmental Data Integration** — Collect and process NASA Earth-observation data alongside geological, hydrological, and environmental datasets.
+2. **Environmental Trend Analysis** — Investigate historical patterns, compare environmental indicators, and explore supported future scenarios.
+3. **Interactive Geographic Visualization** — Use Unreal Engine and Cesium to explore data-center locations and surrounding environmental conditions on a 3D globe.
+
+### Scientific Transparency
+
+Footprint Atlas distinguishes between observed measurements, reported facility information, modeled estimates, and hypothetical scenarios.
+
+Environmental changes observed near a data center do not necessarily establish that the facility caused those changes. Our analysis aims to preserve data provenance, identify uncertainty, and communicate scientific limitations clearly.
+
+---
 
 ## Current scope
 
-The agreed scope is **environmental, including agriculture**:
+### What works today
+| Part | What it does | Where |
+|---|---|---|
+| **Web explorer (the product)** | CesiumJS 3D globe with 5 case studies (xAI Colossus 1 & 2 in Memphis, Data Center Alley in Ashburn VA, Stargate Abilene TX, Google The Dalles OR). **Timeline slider 2003 → 2035**: yearly NASA 30 m ground imagery, 3D ring of yearly local signals, heat dome + embers, GPU fluid weather field driven by NASA wind, turbine plume, clouds/rain, golden-hour/night lighting with NASA city lights; projected years shown as "if the trend continues" with 95% CIs. Plus click-anywhere live analysis, guided tour, trend statistics and a sourced ledger. | `apps/web/` → `npm run web` · guide: [apps/web/README.md](apps/web/README.md) |
+| **NASA data pipeline** | NASA GIBS tiles decoded with official colormaps: MODIS land-surface temperature (day/night), NDVI and aerosols; Sentinel-5P TROPOMI and Aura OMI NO₂; MERRA-2 air temperature; NASA POWER weather; yearly cloud-free HLS 30 m imagery | `scripts/` → `data/cloudshadow/` |
+| **Trend statistics** | Site vs. surrounding ring, seasons removed, **Mann-Kendall + Sen's slope (95% CI)**, before/after **Welch t-test** with autocorrelation-adjusted n (checked against SciPy) | `apps/web/js/stats.js` |
+| **Unreal project** | UE 5.8.3 + Cesium for Unreal, level with 70 yearly NASA imagery overlays and NASA data layers, built by script | `clients/unreal/CloudShadow/` |
+| **Scenario starter** | Node API + Python worker scaffold for future modeled scenarios (illustrative only) | `apps/api/`, `services/models/`, `packages/contracts/` |
+| **Trend engine (Python, Part 2)** | Seasonal Mann-Kendall, Hamed-Rao correction, Sen's slope + CI, autocorrelation-adjusted t-test, control-region comparison and missing-data rules, run from a CLI on CSV files (not yet called by the API). Research on data access and wind/pressure sources: [docs/research/data-access-and-models.md](docs/research/data-access-and-models.md) | `services/models/trends/` |
 
-- **Air:** pollutant emissions, air quality and supported indicators of pollution exposure.
-- **Water:** withdrawals, consumption, availability, soil moisture, water quality and receiving-water conditions.
-- **Land and ecosystems:** air and land-surface temperature, heat, vegetation, land cover, soil conditions and habitat indicators.
-- **Noise:** equipment noise, background conditions and propagation where suitable ground evidence exists.
-- **Agriculture:** how heat, drought, rainfall, soil moisture, irrigation-water availability/quality, land changes and air pollution could affect crop health, growing suitability and yield risk in the surrounding area.
+**Findings so far** (details, caveats and method in [docs/cloud-shadow.md](docs/cloud-shadow.md)):
+- **Ashburn, VA:** the region's air warmed **+0.71 °C/decade** (MERRA-2, p = 0.001), and the data-center area's **night-time surface heat** warmed a further **+0.25 °C/decade** beyond its surroundings (p = 0.001).
+- **Memphis, TN:** greenness fell at xAI Colossus 1 (p < 0.001) and Colossus 2 (p = 0.047); NO₂ near Colossus 1 rose after the mid-2024 turbines, but the change is **borderline** (p = 0.051).
+- Particle haze (aerosol optical depth): no significant increase at any site.
 
-**Social and economic outcomes are out of scope:** population, employment/unemployment, household or facility electricity bills, tariffs, income and economic-impact forecasts. Electricity/fuel-use information may be used as an input when needed to estimate environmental emissions; energy-market and bill forecasting are not project outputs.
-
-Coverage is **global, using all available relevant history with particular attention to recent years**, through bounded, resumable acquisitions rather than downloading every NASA archive to one laptop. Historical NASA observations/model products, rate of change and statistical significance remain central to the challenge. Facility release records and local ground observations are needed alongside NASA data; a permitted emission limit is not an actual measured release. Nearby changes alone do not establish that a data center caused them.
-
-Future environmental and agricultural estimates are **planned conditional scenarios**, not guaranteed predictions. State assumptions, supported horizons, data gaps and uncertainty explicitly.
-
-## Current state
-
-The code currently published on `main` is an initial repository foundation, not a finished environmental or agricultural predictor. It includes a runnable legacy **Node -> queued Python worker -> result manifest** workflow, HTTP status/results, WebSocket notifications, shared contracts, synthetic inputs, and integration tests. The scope above describes the intended product; it does not claim that those scientific capabilities are already implemented.
-
-The retained legacy demo produces four transparent annual accounting series from invented inputs: facility electricity, grid-electricity CO2e, onsite cooling-water **use**, and a fixed-price facility energy bill. All results are labeled `illustrative`, use synthetic provenance, and report uncertainty as `not_quantified`. The remaining domains return explicit reasons under `unavailable`; map `layers` is empty.
-
-**The current `main` scaffold has no live NASA adapters, calibrated pollution/hydrology/acoustic/crop models, long-range environmental forecasts, or compiled Unreal project yet.** Selecting a future year only extends the supplied arithmetic assumptions; it does not demonstrate predictive skill.
-
-## The three main parts
-
-| Part | General explanation | Where it lives |
-| --- | --- | --- |
-| **1. Data and backend** | Collect evidence, normalize it, manage scenarios/jobs, preserve provenance, and provide the client API | `apps/api/`, `packages/contracts/`, `data/` |
-| **2. Projection engine** | Run environmental trend analysis and future environmental/agricultural models with explicit scales, supported horizons, and uncertainty | `services/models/` |
-| **3. Interactive explorer** | Navigate the globe, select facilities and agricultural areas, adjust supported assumptions, compare timelines, and display environmental results with evidence labels | `clients/unreal/` |
-
-```mermaid
-flowchart LR
-    U[Unreal + Cesium] <-->|HTTP requests and results| A[Node.js API]
-    A -->|WebSocket job status| U
-    A -->|Queued scenario via stdin| M[Python model worker]
-    M -->|Result manifest via stdout| A
-    D[NASA and regional records] -. future adapters .-> A
-    T[Globe tile provider] -->|Independent streaming| U
-```
-
-## Repository structure
-
-```text
-.
-|-- apps/api/src/             # Local Node/TypeScript API and in-process FIFO queue
-|   |-- server.ts             # HTTP endpoints and read-only WebSocket event streams
-|   |-- run-manager.ts        # queued -> running -> completed / failed
-|   |-- model-worker.ts       # Async Python process, timeout and output validation
-|   `-- validation.ts         # Shared JSON Schema and cross-field checks
-|-- services/models/          # Python standard-library-only model code
-|   |-- accounting.py         # Validated formulas, metadata and unavailable domains
-|   |-- worker.py             # One stdin request -> one stdout manifest
-|   |-- trends/               # Trend magnitude/significance engine and CLI (not yet wired to the API)
-|   `-- tests/                # Numerical, validation and process-protocol checks
-|-- packages/contracts/       # JSON Schemas, TypeScript types and domain registry
-|-- clients/unreal/           # Unreal/Cesium implementation track, not a .uproject
-|-- data/
-|   |-- examples/             # Small synthetic scenario and trend fixtures
-|   |-- raw/                  # Future source downloads; generated contents ignored
-|   |-- processed/            # Future normalized observations and layers; ignored
-|   `-- runs/                 # Future local artifacts; current runs are in memory
-|-- docs/
-|   |-- architecture.md       # Component boundaries, lifecycle and evolution
-|   |-- api.md                # HTTP, WebSocket, worker and manifest contracts
-|   |-- unreal-integration.md # Globe, networking, UI, terrain and acceptance checks
-|   |-- modeling.md           # Domain models, attribution, validation and uncertainty
-|   |-- resources.md          # All 13 challenge resources plus repositories/sources
-|   `-- roadmap.md            # Milestones and completion criteria
-|-- scripts/demo.ts           # Submit, subscribe, poll and fetch an actual demo run
-|-- tests/api.test.ts         # HTTP/WS/real Python integration and failure paths
-`-- .github/workflows/ci.yml  # Linux + Windows checks
-```
-
-## Run the local starter
-
-Prerequisites: **Node.js 24.12+** (supported majors 24-26), npm, and **Python 3.11+** available as `python`. Unreal, a GPU, Earthdata credentials and Google/Cesium accounts are not required for this demo. TypeScript executes through Node's built-in type stripping; `npm run typecheck` performs the separate static check. See [Node's TypeScript documentation](https://nodejs.org/api/typescript.html).
-
-```sh
-git clone https://github.com/Moustafa-FD/NasaSpaceHacks2026GoofyGoobers.git
-cd NasaSpaceHacks2026GoofyGoobers
-npm ci
-```
-
-Optional environment setup:
-
-```sh
-# macOS/Linux
-cp .env.example .env
-```
-
-```powershell
-# PowerShell
-Copy-Item .env.example .env
-```
-
-If Python is not available under `python`, set `PYTHON_EXECUTABLE` in `.env` to its executable name or full path. The runtime worker uses that setting. The `test:models` script uses `python` directly; invoke the same `-m unittest discover -s services/models/tests -v` arguments with your chosen executable if needed.
-
-Start the API in terminal 1:
-
-```sh
-npm start
-```
-
-Run the end-to-end client in terminal 2:
-
-```sh
-npm run demo
-```
-
-It submits [the synthetic example](data/examples/scenario.json), prints WebSocket status snapshots, polls authoritative HTTP status, and prints the completed manifest. Polling and notification handling are bounded; failures and timeouts are reported rather than converted into numbers.
-
-Local defaults: `http://127.0.0.1:3000`, one active worker, at most 32 waiting runs, at most 200 stored runs per process, 64 event clients, a 64 KiB request limit, and a 30-second worker timeout. Limits reject excess work explicitly. There is no durable database or public authentication: restart clears runs/results, and the server binds to loopback only. A deployed service needs a deliberate HTTPS/WSS/authentication and persistence design.
-
-Commands:
-
+### Run it
 | Command | Purpose |
+|---|---|
+| `npm run web` | Web explorer + JSON API on http://localhost:8765 |
+| `npm run web:build` / `web:preview` | Static build in `dist/web/` (what GitHub Pages serves) / preview on :8080 |
+| `npm run data:nasa` / `data:weather` / `data:timeline-imagery` / `data:unreal` | Refresh NASA series / NASA POWER weather / yearly 30 m imagery / timeline + Unreal exports (Python + `pip install pillow`) |
+| `npm start`, `npm run check` | Scenario API on :3000 / all checks (CI) |
+
+Not yet covered with data: water quality, groundwater, soil and agriculture indicators. These are good next adapters (e.g. NASA SMAP soil moisture, GRACE-FO groundwater, crop-condition NDVI).
+
+### 1. Data and backend
+
+Our part supplies the environmental evidence and the Node.js gateway used by the analysis engine and Unreal client. Coverage is global where sources support it, with acquisition focused on **Canada and the USA**, recent records and available historical inventories. Agriculture is included; social, demographic and electricity-bill forecasting are outside our scope.
+
+**Implementation status — November 14, 2026:** the expanded backend is built and verified in the local implementation checkout, branch `codex/environment-data-backend`, commit `71d263d`. This documentation PR does not include that code or the downloaded data. The scenario API on `main` remains the earlier illustrative starter; the expanded Node operations below require the implementation checkout. They complement the separate web explorer, NASA pipeline and statistics work already on `main`.
+
+**Implemented locally:**
+
+- Global OpenStreetMap data-center location acquisition and searchable facility records.
+- Canadian NPRI releases and U.S. EPA NEI emissions inventories, preserving reporting IDs, units, estimation methods, missing values and provenance.
+- NASA POWER meteorology, CAMS modeled air pollution, ERA5 rainfall/soil-moisture/temperature context and measured USGS station water-quality indicators.
+- Two-model climate scenarios through January 1, 2050, and agricultural climate-exposure comparisons. These are not daily weather forecasts, crop-yield predictions or estimates of damage caused by a facility.
+- Validated asynchronous jobs, HTTP requests/results, WebSocket progress, resumable POWER acquisition, local caching and persistent job/result files.
+
+**Verified local coverage:**
+
+| Source | Acquired snapshot |
 | --- | --- |
-| `npm run dev` | Watch API source and restart on changes; a restart clears runs |
-| `npm run typecheck` | Check TypeScript contracts and API code |
-| `npm test` | Exercise HTTP, WebSockets and the real Python worker |
-| `npm run test:models` | Check hand-computed accounting, units, leap years and invalid inputs |
-| `npm run check` | Run all required checks |
+| NASA POWER | Four global monthly variables, January 1981–September 2026; 549 months per variable |
+| OpenStreetMap | 5,067 mapped elements; multiple elements can describe one campus |
+| Canada NPRI | 34 facility-year reports for five sector candidates; nine non-null release quantities |
+| U.S. EPA NEI | 23,096 pollutant/unit records across 2008, 2011, 2014, 2017, 2020 and 2023; 309 distinct source facility IDs |
+| USGS water quality | 1,440 observations for one Potomac station on November 1, 2026, covering temperature, conductance, pH, dissolved oxygen and turbidity |
 
-## 1. Data and backend - implementation work
+The local implementation passed **130 tests** and live verification of **17 acquisition/example jobs**. These checks verify acquisition and API behavior, not scientific causation or predictive accuracy. Regulatory sector candidates are not independently confirmed data centers, and the snapshots are not complete facility censuses.
 
-**Implemented:** scenario validation, an in-memory run registry and FIFO queue, asynchronous worker execution, typed contracts, result validation, HTTP status/results, and WebSocket notifications.
+**How Part 2 connects:** use the Node gateway to submit supported operations with `POST /v1/runs`, follow the returned HTTP status or WebSocket URL, and retrieve completed results. Browse cached locations and releases through `GET /v1/facilities` and `GET /v1/emissions`. Analysis code running in the backend can also use the typed adapters, cache and existing job executor in the implementation checkout. Keep reported emissions, environmental concentrations, measurements and climate scenarios distinct; facility identities are not automatically matched across sources.
 
-**Next:**
+**Still needed in this Node API:** trend/significance job integration, verified facility matching, calibrated facility-impact and agricultural models, and noise propagation/prediction. Ground noise and vegetation records can be imported with provenance, but no noise dataset or numeric NDVI observations were acquired; the public ORNL vegetation service was unavailable during setup.
 
-1. Build a global facility/source inventory and acquire accessible recent records before extending history. Document facility locations/opening dates, reported emissions, generator schedules, cooling/water definitions, withdrawals, consumption and return flows. Add nearby cropland, crop types/calendars, soil conditions, irrigation practices and ground observations where available. Do not infer private operating figures from a building footprint.
-2. Implement one quality-controlled NASA time-series adapter, using [GES DISC tutorials](https://github.com/nasa/gesdisc-tutorials), [Giovanni](https://giovanni.gsfc.nasa.gov/), and/or [AppEEARS examples](https://github.com/nasa/AppEEARS-Data-Resources). Preserve collection versions, quality flags, resolution, units, citations and retrieval dates.
-3. Add regional air/water monitoring, soil and crop records, facility release reports and relevant permits. Map each facility to its watershed/aquifer, airshed and surrounding agricultural areas rather than using one radius for every environmental pathway. Keep measured/reported releases, permit limits and modeled estimates distinct.
-4. Store observations separately from assumptions. Add historical trend magnitude, significance, comparison areas and missing-data handling.
-5. Replace the demonstration registry with persisted run records, a durable job queue, PostGIS for geographic entities, and object storage for larger products. Those infrastructure components are planned, not current prerequisites.
-
-## 2. Projection engine - implementation work
-
-| Environmental domain | Current state on main | Required implementation |
-| --- | --- | --- |
-| Historical trends | Planned scientific analysis | Quality-controlled time series, seasonal treatment, rate of change, significance, comparison areas and uncertainty |
-| Emissions / air quality | Legacy illustrative grid CO2e accounting only | Actual facility releases, onsite/offsite sources, emissions inventories, transport/chemistry, ground calibration and appropriate AQ indicators |
-| Water availability | Legacy illustrative onsite water-use total only | Withdrawals versus consumption/return flows, seasonal supply, competing uses, watershed and groundwater dynamics |
-| Water quality | Planned | Discharge volume, chemistry, treatment, temperature, receiving-water observations and transport/reactions |
-| Land / soil / ecosystems | Planned | Quality-controlled temperature, soil-moisture/condition, vegetation, land-cover and habitat indicators with supported interpretation |
-| Noise pollution | Planned | Equipment sound power/spectra, schedules, background measurements, receptors, propagation/barriers, mitigation and acoustic validation |
-| Agriculture | Planned | Crop types/calendars, soil and irrigation data, growing-season heat/drought/water/pollution exposure, observed crop condition/yields and calibrated crop-response models |
-
-The retained legacy demo formulas are deliberately inspectable. Its electricity and bill series are transport/accounting fixtures, not outputs in the agreed product scope:
-
-```text
-IT kWh = starting IT MW * 1000 * utilization * calendar hours * (1 + growth)^(year - start)
-Facility kWh = IT kWh * PUE
-Grid tonnes CO2e = facility kWh * supplied kg CO2e/kWh / 1000
-Cooling water use (litres) = IT kWh * supplied litres/IT-kWh
-Facility energy charge = facility kWh * supplied price/kWh
-```
-
-These use actual leap-year hours and fixed supplied factors; they contain no validated environmental or crop-response relationship. Water use is not net consumptive loss or water quality; CO2e inventory is not local pollutant concentration; an energy charge is not a complete tariff or a household bill. See [worker formulas](services/models/README.md).
-
-For **2030/2050/2100 scenarios**, use supported climate inputs such as [NASA NEX-GDDP-CMIP6](https://ntrs.nasa.gov/citations/20240011616), then calibrated environmental/crop models and explicit facility, cooling, land-use and agricultural-management assumptions. Availability of climate scenarios through 2100 does not validate every environmental or agricultural metric to that date. [STRATA](https://huggingface.co/nvidia/strata) is an optional short-range atmospheric research adapter; autoregressive feedback does not establish decades-ahead accuracy. [Its paper](https://arxiv.org/abs/2606.31248) reports stable 24-hour rollouts and growing biases.
-
-### Agriculture and future growing conditions
-
-This planned track assesses environmental risks to agriculture, not farm income, employment or food-price forecasts.
-
-- Combine growing-season temperature/rainfall, soil moisture, irrigation-water availability/quality, pollution exposure and land changes with crop-specific observations.
-- Examine historical crop/vegetation stress and, where evidence supports it, future growing suitability, irrigation reliability and yield risk.
-- Treat satellite vegetation indices as indicators of vegetation condition; they do not directly measure crop yield. Yield estimates need suitable observed yields and crop-specific calibration.
-- Account for crop calendars, soil, management and climate scenarios. Validate against independent observations and report uncertainty and supported geographic/time scales.
-- Compare a stated baseline with facility-development/cooling/emissions/water-use scenarios. Separate regional climate trends from any claimed additional data-center effect.
-
-No crop model, agricultural-impact calculation or future yield forecast is implemented in the current main scaffold.
-
-Every future result must record evidence class, native resolution, supported horizon, provenance, model version and uncertainty method. A low/central/high sensitivity range is not automatically a confidence interval. Compare an explicit no-additional-expansion baseline against interventions; do not attribute all nearby changes to data centers. [Modeling plan](docs/modeling.md)
-
-## 3. Unreal + Cesium - implementation work
-
-**Documented, not compiled:** follow [the client track](clients/unreal/README.md) and [integration guide](docs/unreal-integration.md). Record compatible engine/plugin versions when creating the actual Unreal project.
-
-Build globe navigation, facility and agricultural-area selection, historical/future timelines, evidence-aware charts, scenario controls and comparisons. Future layers cover air quality, water availability/quality, soil and land conditions, crop health/stress, growing suitability, supported yield-risk scenarios and noise. Until a model exists, display its unavailability explanation instead of a zero, plume, contour or invented map.
-
-Use [Cesium for Unreal](https://cesium.com/learn/unreal/unreal-quickstart/) and optionally [Google Photorealistic 3D Tiles](https://cesium.com/learn/unreal/unreal-photorealistic-3d-tiles/). A detailed globe does not improve scientific resolution. Stream the base map independently from the backend's numerical outputs and preserve [provider attribution/data-use requirements](https://developers.google.com/maps/documentation/tile/policies).
-
-For local terrain editing, use independently sourced elevation/geometry and your own Landscape or dynamic mesh. Streamed Google tiles are not editable Unreal Landscapes. Visual clipping also needs separate collision handling. Terrain/facility edits become simulation inputs only when a relevant model supports the numerical change; otherwise they remain visual scenarios.
-
-### How Unreal communicates
-
-```mermaid
-sequenceDiagram
-    participant U as Unreal
-    participant A as Node API
-    participant M as Python worker
-    U->>A: POST /v1/runs (region, years, assumptions)
-    A-->>U: 202 Accepted + run ID + URLs
-    A->>M: Queue and execute calculation
-    U->>A: Connect to run events WebSocket
-    A-->>U: Immediate current status snapshot
-    M-->>A: Manifest or error
-    A-->>U: completed / failed event
-    U->>A: GET results after completion
-    A-->>U: Charts, provenance, unavailable domains, layers
-```
-
-| Operation | Actual starter interface |
-| --- | --- |
-| Discover status/capabilities | `GET /health`, `GET /v1/domains` |
-| Start a calculation | `POST /v1/runs` returns immediately with a queued run ID |
-| Check status or recover a disconnect | `GET /v1/runs/{id}` |
-| Receive notifications | `ws://127.0.0.1:3000/v1/runs/{id}/events` |
-| Download completed output | `GET /v1/runs/{id}/results` |
-
-Unreal talks to the Node gateway for simulation work, not each model separately. Implement an asynchronous HTTP/WebSocket connector, expose its events to Blueprint widgets, and keep network waits off the rendering path. The event stream sends the latest snapshot on connection; HTTP status is authoritative after reconnect. It does not accept commands or promise replay.
-
-Cache completed results by run ID. **Moving the timeline reads saved samples; pressing Run scenario after changing assumptions creates a new job.** In future, large layers will be fetched separately using result-manifest URLs. The initial `layers: []` intentionally supplies no map surfaces. Local HTTP/WS becomes authenticated HTTPS/WSS for deployment. See [exact payloads and failure handling](docs/api.md).
-
-## Resources and next steps
-
-The [resource catalog](docs/resources.md) includes **all 13 official challenge entries**, the NASA repositories discussed, and sources needed beyond NASA: facility emissions reports, ground air/water-quality measurements, soil/crop/irrigation records and acoustic measurements. Links are references for planned adapters, not claims that integrations already work.
-
-Start with the [roadmap](docs/roadmap.md), then use [contribution guidance](CONTRIBUTING.md). Data/product licenses and API-provider terms must be tracked separately. A project code license has not yet been selected; this starter does not invent ownership or relicense linked resources.
+See **[1. Data and backend — technical handoff](docs/data-and-backend.md)** for setup prerequisites, exact request/result examples, data locations, source limits and the extension points Part 2 should use.

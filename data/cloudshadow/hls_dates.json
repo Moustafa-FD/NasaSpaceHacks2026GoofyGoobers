@@ -1,0 +1,62 @@
+{
+ "colossus1": {
+  "before": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2023-06-29",
+   "cloud": 0.005
+  },
+  "after": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2025-07-08",
+   "cloud": 0.005
+  }
+ },
+ "colossus2": {
+  "before": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2024-06-13",
+   "cloud": 0.01
+  },
+  "after": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2026-06-20",
+   "cloud": 0.007
+  }
+ },
+ "ashburn": {
+  "before": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2013-06-24",
+   "cloud": 0.001
+  },
+  "after": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2025-07-05",
+   "cloud": 0.004
+  }
+ },
+ "abilene": {
+  "before": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2023-06-30",
+   "cloud": 0.002
+  },
+  "after": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2026-06-30",
+   "cloud": 0.004
+  }
+ },
+ "thedalles": {
+  "before": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2013-07-28",
+   "cloud": 0.002
+  },
+  "after": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2025-06-30",
+   "cloud": 0.003
+  }
+ }
+}

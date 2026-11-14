@@ -1,0 +1,432 @@
+{
+ "colossus1": {
+  "2013": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2013-05-15",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2013-05-15/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2014": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2014-08-06",
+   "cloud": 0.003,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2014-08-06/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2015": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2015-07-24",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2015-07-24/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2016": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2016-07-05",
+   "cloud": 0.001,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2016-07-05/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2017": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2017-06-27",
+   "cloud": 0.005,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2017-06-27/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2018": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2018-06-30",
+   "cloud": 0.005,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2018-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2019": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2019-06-30",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2019-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2020": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2020-06-19",
+   "cloud": 0.005,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2020-06-19/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2021": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2021-06-29",
+   "cloud": 0.003,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2021-06-29/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2022": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2022-06-29",
+   "cloud": 0.005,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2022-06-29/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2023": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2023-06-29",
+   "cloud": 0.005,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2023-06-29/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2024": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2024-07-13",
+   "cloud": 0.007,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2024-07-13/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2025": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2025-07-08",
+   "cloud": 0.005,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2025-07-08/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2026": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2026-07-03",
+   "cloud": 0.005,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2026-07-03/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  }
+ },
+ "colossus2": {
+  "2013": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2013-07-18",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2013-07-18/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2014": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2014-07-05",
+   "cloud": 0.005,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2014-07-05/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2015": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2015-07-24",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2015-07-24/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2016": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2016-07-05",
+   "cloud": 0.003,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2016-07-05/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2017": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2017-06-27",
+   "cloud": 0.005,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2017-06-27/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2018": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2018-06-30",
+   "cloud": 0.008,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2018-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2019": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2019-07-05",
+   "cloud": 0.007,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2019-07-05/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2020": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2020-07-05",
+   "cloud": 0.003,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2020-07-05/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2021": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2021-07-04",
+   "cloud": 0.006,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2021-07-04/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2022": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2022-06-29",
+   "cloud": 0.008,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2022-06-29/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2023": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2023-07-04",
+   "cloud": 0.009,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2023-07-04/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2024": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2024-06-13",
+   "cloud": 0.01,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2024-06-13/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2025": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2025-06-10",
+   "cloud": 0.008,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2025-06-10/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2026": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2026-06-20",
+   "cloud": 0.007,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2026-06-20/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  }
+ },
+ "ashburn": {
+  "2013": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2013-06-24",
+   "cloud": 0.001,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2013-06-24/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2014": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2014-07-04",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2014-07-04/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2015": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2015-06-30",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2015-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2016": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2016-06-30",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2016-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2017": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2017-07-20",
+   "cloud": 0.0,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2017-07-20/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2018": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2018-06-30",
+   "cloud": 0.01,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2018-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2019": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2019-06-30",
+   "cloud": 0.003,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2019-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2020": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2020-06-29",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2020-06-29/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2021": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2021-06-30",
+   "cloud": 0.007,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2021-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2022": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2022-06-29",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2022-06-29/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2023": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2023-06-29",
+   "cloud": 0.0,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2023-06-29/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2024": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2024-06-30",
+   "cloud": 0.003,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2024-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2025": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2025-06-28",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2025-06-28/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2026": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2026-07-05",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2026-07-05/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  }
+ },
+ "abilene": {
+  "2013": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2013-06-26",
+   "cloud": 0.01,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2013-06-26/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2014": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2014-06-29",
+   "cloud": 0.001,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2014-06-29/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2015": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2015-07-18",
+   "cloud": 0.001,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2015-07-18/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2016": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2016-07-04",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2016-07-04/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2017": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2017-06-22",
+   "cloud": 0.001,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2017-06-22/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2018": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2018-07-02",
+   "cloud": 0.001,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2018-07-02/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2019": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2019-07-02",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2019-07-02/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2020": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2020-07-01",
+   "cloud": 0.001,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2020-07-01/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2021": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2021-07-01",
+   "cloud": 0.005,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2021-07-01/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2022": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2022-06-27",
+   "cloud": 0.0,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2022-06-27/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2023": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2023-06-30",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2023-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2024": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2024-06-30",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2024-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2025": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2025-07-10",
+   "cloud": 0.005,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2025-07-10/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2026": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2026-06-30",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2026-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  }
+ },
+ "thedalles": {
+  "2013": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2013-07-12",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2013-07-12/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2014": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2014-06-29",
+   "cloud": 0.007,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2014-06-29/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2015": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2015-07-02",
+   "cloud": 0.001,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2015-07-02/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2016": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2016-07-04",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2016-07-04/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2017": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2017-07-02",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2017-07-02/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2018": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2018-07-02",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2018-07-02/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2019": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2019-07-02",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2019-07-02/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2020": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2020-06-29",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2020-06-29/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2021": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2021-07-01",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2021-07-01/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2022": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2022-07-01",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2022-07-01/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2023": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2023-07-01",
+   "cloud": 0.002,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2023-07-01/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2024": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2024-06-30",
+   "cloud": 0.003,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2024-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2025": {
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2025-06-30",
+   "cloud": 0.003,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_S30_Nadir_BRDF_Adjusted_Reflectance/default/2025-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  },
+  "2026": {
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "date": "2026-06-30",
+   "cloud": 0.004,
+   "templateUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/HLS_L30_Nadir_BRDF_Adjusted_Reflectance/default/2026-06-30/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"
+  }
+ }
+}
