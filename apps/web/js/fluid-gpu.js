@@ -190,6 +190,10 @@ export function attachFluid(viewer, site, opts = {}) {
       W.heat = Math.max(0, heat ?? 0); W.pollution = Math.max(0, pollution ?? 0); W.moisture = Math.max(0, moisture ?? 0);
       W.projected = projected ? 1 : 0;
     },
+    // wind only (time-varying GEOS-FP analysis wind); leaves the dye sources unchanged
+    setWind(towardDeg, speed) {
+      const th = towardDeg * Math.PI / 180; W.windE = Math.sin(th); W.windN = Math.cos(th); W.speed = speed;
+    },
     dispose() { alive = false; viewer.entities.remove(entity); gl.getExtension("WEBGL_lose_context")?.loseContext(); },
   };
 }

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goofy-goobers.local/schemas/flow-field.schema.json",
+  "title": "Flow-field manifest (flow-field/1.0)",
+  "description": "Gridded wind (and optional temperature/pressure) frames shared by the web app and Unreal. Produced by services/models/fields. See docs/flow-fields.md.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "kind", "year", "evidence", "source", "grid", "frames", "framesExpected", "complete", "atlas", "files", "encoding"],
+  "properties": {
+    "schemaVersion": { "const": "flow-field/1.0" },
+    "id": { "type": "string" },
+    "kind": { "enum": ["global", "site"] },
+    "year": { "type": "integer", "minimum": 2017, "maximum": 2100 },
+    "evidence": { "const": "model_analysis" },
+    "evidenceNote": { "type": "string" },
+    "source": { "type": "object", "required": ["name", "dataset"], "properties": { "name": { "type": "string" }, "dataset": { "type": "string" } } },
+    "grid": {
+      "type": "object",
+      "required": ["nx", "ny", "lonMin", "lonMax", "latMin", "latMax", "wrapsLongitude", "pngRowOrder"],
+      "properties": {
+        "nx": { "type": "integer", "minimum": 2 }, "ny": { "type": "integer", "minimum": 2 },
+        "lonMin": { "type": "number" }, "lonMax": { "type": "number" },
+        "latMin": { "type": "number", "minimum": -90 }, "latMax": { "type": "number", "maximum": 90 },
+        "dLon": { "type": ["number", "null"] }, "dLat": { "type": ["number", "null"] },
+        "wrapsLongitude": { "type": "boolean" },
+        "pngRowOrder": { "const": "north-to-south" }
+      }
+    },
+    "frames": {
+      "type": "array", "minItems": 1,
+      "items": { "type": "object", "required": ["time", "sourceIndex"], "properties": { "time": { "type": "string" }, "sourceIndex": { "type": "integer" } } }
+    },
+    "framesExpected": { "type": "integer", "minimum": 1 },
+    "complete": { "type": "boolean" },
+    "atlas": {
+      "type": "object", "required": ["cols", "rows", "tileWidth", "tileHeight"],
+      "properties": { "cols": { "type": "integer" }, "rows": { "type": "integer" }, "tileWidth": { "type": "integer" }, "tileHeight": { "type": "integer" }, "order": { "type": "string" } }
+    },
+    "files": { "type": "object", "required": ["wind"], "properties": { "wind": { "type": "string" }, "scalars": { "type": "string" } } },
+    "encoding": { "type": "object", "required": ["formula", "wind"] },
+    "stats": { "type": "object" },
+    "site": { "type": "object", "required": ["id", "lat", "lon"], "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "lat": { "type": "number" }, "lon": { "type": "number" } } },
+    "siteSeries": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["time"],
+        "properties": {
+          "time": { "type": "string" }, "u": { "type": "number" }, "v": { "type": "number" },
+          "speed": { "type": "number" }, "towardDeg": { "type": "number" },
+          "t2mK": { "type": ["number", "null"] }, "slpHpa": { "type": ["number", "null"] }
+        }
+      }
+    }
+  }
+}

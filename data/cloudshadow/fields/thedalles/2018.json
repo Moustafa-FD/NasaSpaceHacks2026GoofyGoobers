@@ -1,0 +1,256 @@
+{
+ "schemaVersion": "flow-field/1.0",
+ "id": "thedalles-2018",
+ "kind": "site",
+ "year": 2018,
+ "evidence": "model_analysis",
+ "evidenceNote": "GEOS-FP analyses combine a weather model with assimilated observations. Wind here is the real large-scale flow at each frame time; it is not a measured pollutant concentration, and any tracer/plume moved by it in a client is a visualization.",
+ "source": {
+  "name": "NASA GMAO GEOS-FP",
+  "collection": "GEOS-FP inst3_2d_asm_Nx (assimilation, 3-hourly, 2D single-level)",
+  "dataset": "https://opendap.nccs.nasa.gov/dods/GEOS-5/fp/0.25_deg/assim/inst3_2d_asm_Nx",
+  "variables": [
+   "u10m",
+   "v10m",
+   "t2m",
+   "slp"
+  ],
+  "nativeResolution": "0.25 deg lat x 0.3125 deg lon, 3-hourly instantaneous",
+  "productResolution": "0.25 deg lat x 0.3125 deg lon",
+  "retrieved": "2026-11-14T19:58Z",
+  "access": "public OPeNDAP, no login"
+ },
+ "grid": {
+  "nx": 27,
+  "ny": 26,
+  "lonMin": -125.3125,
+  "lonMax": -117.1875,
+  "latMin": 42.5,
+  "latMax": 48.75,
+  "dLon": 0.3125,
+  "dLat": 0.25,
+  "wrapsLongitude": false,
+  "pngRowOrder": "north-to-south"
+ },
+ "frames": [
+  {
+   "time": "2018-01-16T00:00Z",
+   "sourceIndex": 368
+  },
+  {
+   "time": "2018-02-15T09:00Z",
+   "sourceIndex": 611
+  },
+  {
+   "time": "2018-03-18T18:00Z",
+   "sourceIndex": 862
+  },
+  {
+   "time": "2018-04-17T03:00Z",
+   "sourceIndex": 1097
+  },
+  {
+   "time": "2018-05-17T12:00Z",
+   "sourceIndex": 1340
+  },
+  {
+   "time": "2018-06-17T21:00Z",
+   "sourceIndex": 1591
+  },
+  {
+   "time": "2018-07-17T06:00Z",
+   "sourceIndex": 1826
+  },
+  {
+   "time": "2018-08-17T15:00Z",
+   "sourceIndex": 2077
+  },
+  {
+   "time": "2018-09-16T00:00Z",
+   "sourceIndex": 2312
+  },
+  {
+   "time": "2018-10-16T09:00Z",
+   "sourceIndex": 2555
+  },
+  {
+   "time": "2018-11-16T18:00Z",
+   "sourceIndex": 2806
+  },
+  {
+   "time": "2018-12-16T03:00Z",
+   "sourceIndex": 3041
+  }
+ ],
+ "framesExpected": 12,
+ "complete": true,
+ "atlas": {
+  "cols": 4,
+  "rows": 3,
+  "tileWidth": 27,
+  "tileHeight": 26,
+  "order": "row-major, frame 0 top-left"
+ },
+ "files": {
+  "wind": "2018.wind.png",
+  "scalars": "2018.scalars.png"
+ },
+ "encoding": {
+  "formula": "value = min + byte / 255 * (max - min)",
+  "wind": {
+   "R": {
+    "variable": "u10m",
+    "meaning": "eastward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "G": {
+    "variable": "v10m",
+    "meaning": "northward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "B": {
+    "meaning": "255 = valid cell, 0 = missing"
+   }
+  },
+  "scalars": {
+   "R": {
+    "variable": "t2m",
+    "meaning": "air temperature at 2 m",
+    "unit": "K",
+    "min": 200.0,
+    "max": 330.0
+   },
+   "G": {
+    "variable": "slp",
+    "meaning": "sea-level pressure",
+    "unit": "hPa",
+    "min": 940.0,
+    "max": 1060.0
+   }
+  }
+ },
+ "stats": {
+  "meanSpeed": 2.913,
+  "maxSpeed": 18.491
+ },
+ "site": {
+  "id": "thedalles",
+  "name": "Google The Dalles",
+  "lat": 45.6241,
+  "lon": -121.2071
+ },
+ "siteSeries": [
+  {
+   "time": "2018-01-16T00:00Z",
+   "u": -2.02,
+   "v": 0.48,
+   "speed": 2.07,
+   "towardDeg": 283.2,
+   "t2mK": 275.11,
+   "slpHpa": 1018.44
+  },
+  {
+   "time": "2018-02-15T09:00Z",
+   "u": 2.54,
+   "v": -0.1,
+   "speed": 2.55,
+   "towardDeg": 92.3,
+   "t2mK": 271.48,
+   "slpHpa": 1025.26
+  },
+  {
+   "time": "2018-03-18T18:00Z",
+   "u": 2.7,
+   "v": -0.5,
+   "speed": 2.75,
+   "towardDeg": 100.5,
+   "t2mK": 279.83,
+   "slpHpa": 1021.41
+  },
+  {
+   "time": "2018-04-17T03:00Z",
+   "u": 2.48,
+   "v": 0.98,
+   "speed": 2.67,
+   "towardDeg": 68.4,
+   "t2mK": 277.21,
+   "slpHpa": 1013.23
+  },
+  {
+   "time": "2018-05-17T12:00Z",
+   "u": 3.59,
+   "v": -0.27,
+   "speed": 3.6,
+   "towardDeg": 94.3,
+   "t2mK": 283.08,
+   "slpHpa": 1012.9
+  },
+  {
+   "time": "2018-06-17T21:00Z",
+   "u": -2.27,
+   "v": -2.57,
+   "speed": 3.43,
+   "towardDeg": 221.5,
+   "t2mK": 299.46,
+   "slpHpa": 1010.72
+  },
+  {
+   "time": "2018-07-17T06:00Z",
+   "u": 2.3,
+   "v": 0.38,
+   "speed": 2.33,
+   "towardDeg": 80.7,
+   "t2mK": 294.44,
+   "slpHpa": 1011.77
+  },
+  {
+   "time": "2018-08-17T15:00Z",
+   "u": 2.87,
+   "v": -0.66,
+   "speed": 2.94,
+   "towardDeg": 103.0,
+   "t2mK": 289.39,
+   "slpHpa": 1017.75
+  },
+  {
+   "time": "2018-09-16T00:00Z",
+   "u": 2.75,
+   "v": -2.57,
+   "speed": 3.76,
+   "towardDeg": 133.1,
+   "t2mK": 289.82,
+   "slpHpa": 1010.5
+  },
+  {
+   "time": "2018-10-16T09:00Z",
+   "u": -0.76,
+   "v": 0.17,
+   "speed": 0.78,
+   "towardDeg": 282.6,
+   "t2mK": 282.49,
+   "slpHpa": 1026.82
+  },
+  {
+   "time": "2018-11-16T18:00Z",
+   "u": -0.41,
+   "v": -0.18,
+   "speed": 0.45,
+   "towardDeg": 246.5,
+   "t2mK": 280.07,
+   "slpHpa": 1022.47
+  },
+  {
+   "time": "2018-12-16T03:00Z",
+   "u": -0.93,
+   "v": -0.03,
+   "speed": 0.93,
+   "towardDeg": 268.3,
+   "t2mK": 275.02,
+   "slpHpa": 1015.9
+  }
+ ]
+}

@@ -1,0 +1,256 @@
+{
+ "schemaVersion": "flow-field/1.0",
+ "id": "colossus2-2023",
+ "kind": "site",
+ "year": 2023,
+ "evidence": "model_analysis",
+ "evidenceNote": "GEOS-FP analyses combine a weather model with assimilated observations. Wind here is the real large-scale flow at each frame time; it is not a measured pollutant concentration, and any tracer/plume moved by it in a client is a visualization.",
+ "source": {
+  "name": "NASA GMAO GEOS-FP",
+  "collection": "GEOS-FP inst3_2d_asm_Nx (assimilation, 3-hourly, 2D single-level)",
+  "dataset": "https://opendap.nccs.nasa.gov/dods/GEOS-5/fp/0.25_deg/assim/inst3_2d_asm_Nx",
+  "variables": [
+   "u10m",
+   "v10m",
+   "t2m",
+   "slp"
+  ],
+  "nativeResolution": "0.25 deg lat x 0.3125 deg lon, 3-hourly instantaneous",
+  "productResolution": "0.25 deg lat x 0.3125 deg lon",
+  "retrieved": "2026-11-14T19:52Z",
+  "access": "public OPeNDAP, no login"
+ },
+ "grid": {
+  "nx": 27,
+  "ny": 26,
+  "lonMin": -94.0625,
+  "lonMax": -85.9375,
+  "latMin": 31.75,
+  "latMax": 38.0,
+  "dLon": 0.3125,
+  "dLat": 0.25,
+  "wrapsLongitude": false,
+  "pngRowOrder": "north-to-south"
+ },
+ "frames": [
+  {
+   "time": "2023-01-16T00:00Z",
+   "sourceIndex": 14976
+  },
+  {
+   "time": "2023-02-15T09:00Z",
+   "sourceIndex": 15219
+  },
+  {
+   "time": "2023-03-18T18:00Z",
+   "sourceIndex": 15470
+  },
+  {
+   "time": "2023-04-17T03:00Z",
+   "sourceIndex": 15705
+  },
+  {
+   "time": "2023-05-17T12:00Z",
+   "sourceIndex": 15948
+  },
+  {
+   "time": "2023-06-17T21:00Z",
+   "sourceIndex": 16199
+  },
+  {
+   "time": "2023-07-17T06:00Z",
+   "sourceIndex": 16434
+  },
+  {
+   "time": "2023-08-17T15:00Z",
+   "sourceIndex": 16685
+  },
+  {
+   "time": "2023-09-16T00:00Z",
+   "sourceIndex": 16920
+  },
+  {
+   "time": "2023-10-16T09:00Z",
+   "sourceIndex": 17163
+  },
+  {
+   "time": "2023-11-16T18:00Z",
+   "sourceIndex": 17414
+  },
+  {
+   "time": "2023-12-16T03:00Z",
+   "sourceIndex": 17649
+  }
+ ],
+ "framesExpected": 12,
+ "complete": true,
+ "atlas": {
+  "cols": 4,
+  "rows": 3,
+  "tileWidth": 27,
+  "tileHeight": 26,
+  "order": "row-major, frame 0 top-left"
+ },
+ "files": {
+  "wind": "2023.wind.png",
+  "scalars": "2023.scalars.png"
+ },
+ "encoding": {
+  "formula": "value = min + byte / 255 * (max - min)",
+  "wind": {
+   "R": {
+    "variable": "u10m",
+    "meaning": "eastward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "G": {
+    "variable": "v10m",
+    "meaning": "northward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "B": {
+    "meaning": "255 = valid cell, 0 = missing"
+   }
+  },
+  "scalars": {
+   "R": {
+    "variable": "t2m",
+    "meaning": "air temperature at 2 m",
+    "unit": "K",
+    "min": 200.0,
+    "max": 330.0
+   },
+   "G": {
+    "variable": "slp",
+    "meaning": "sea-level pressure",
+    "unit": "hPa",
+    "min": 940.0,
+    "max": 1060.0
+   }
+  }
+ },
+ "stats": {
+  "meanSpeed": 2.116,
+  "maxSpeed": 9.416
+ },
+ "site": {
+  "id": "colossus2",
+  "name": "xAI Colossus 2",
+  "lat": 34.998,
+  "lon": -90.0349
+ },
+ "siteSeries": [
+  {
+   "time": "2023-01-16T00:00Z",
+   "u": -1.53,
+   "v": 3.08,
+   "speed": 3.44,
+   "towardDeg": 333.6,
+   "t2mK": 280.55,
+   "slpHpa": 1016.92
+  },
+  {
+   "time": "2023-02-15T09:00Z",
+   "u": 1.14,
+   "v": 2.86,
+   "speed": 3.08,
+   "towardDeg": 21.7,
+   "t2mK": 288.82,
+   "slpHpa": 1011.05
+  },
+  {
+   "time": "2023-03-18T18:00Z",
+   "u": 4.58,
+   "v": -3.74,
+   "speed": 5.91,
+   "towardDeg": 129.2,
+   "t2mK": 280.92,
+   "slpHpa": 1024.33
+  },
+  {
+   "time": "2023-04-17T03:00Z",
+   "u": 2.86,
+   "v": 0.4,
+   "speed": 2.89,
+   "towardDeg": 82.1,
+   "t2mK": 283.84,
+   "slpHpa": 1017.98
+  },
+  {
+   "time": "2023-05-17T12:00Z",
+   "u": -0.82,
+   "v": -2.36,
+   "speed": 2.5,
+   "towardDeg": 199.1,
+   "t2mK": 291.83,
+   "slpHpa": 1011.49
+  },
+  {
+   "time": "2023-06-17T21:00Z",
+   "u": -0.53,
+   "v": 0.91,
+   "speed": 1.05,
+   "towardDeg": 330.0,
+   "t2mK": 305.1,
+   "slpHpa": 1010.58
+  },
+  {
+   "time": "2023-07-17T06:00Z",
+   "u": -0.98,
+   "v": 1.57,
+   "speed": 1.85,
+   "towardDeg": 328.0,
+   "t2mK": 298.0,
+   "slpHpa": 1015.03
+  },
+  {
+   "time": "2023-08-17T15:00Z",
+   "u": 2.24,
+   "v": 1.37,
+   "speed": 2.62,
+   "towardDeg": 58.5,
+   "t2mK": 300.48,
+   "slpHpa": 1014.37
+  },
+  {
+   "time": "2023-09-16T00:00Z",
+   "u": 0.54,
+   "v": -2.43,
+   "speed": 2.49,
+   "towardDeg": 167.4,
+   "t2mK": 301.05,
+   "slpHpa": 1014.29
+  },
+  {
+   "time": "2023-10-16T09:00Z",
+   "u": 1.08,
+   "v": -2.26,
+   "speed": 2.51,
+   "towardDeg": 154.4,
+   "t2mK": 281.81,
+   "slpHpa": 1019.89
+  },
+  {
+   "time": "2023-11-16T18:00Z",
+   "u": -0.59,
+   "v": 3.07,
+   "speed": 3.13,
+   "towardDeg": 349.1,
+   "t2mK": 296.09,
+   "slpHpa": 1018.52
+  },
+  {
+   "time": "2023-12-16T03:00Z",
+   "u": -1.31,
+   "v": 1.97,
+   "speed": 2.36,
+   "towardDeg": 326.4,
+   "t2mK": 285.22,
+   "slpHpa": 1024.69
+  }
+ ]
+}

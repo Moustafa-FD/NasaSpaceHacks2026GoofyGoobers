@@ -16,7 +16,9 @@ Date: **2026-11-14**. This research was done before full implementation. Everyth
 | NASA POWER API (monthly point) | **Works, no login** | Pilot data in section 3 |
 | GEOS-FP OPeNDAP (`opendap.nccs.nasa.gov/dods/GEOS-5/fp/0.25_deg/`) | **Works, no login**; subset returned in under 1 s | Global winds and pressure (section 5) |
 
-**Likely fix for Giovanni and GES DISC (account owner must do this; not yet verified):** in Earthdata Login, open *Applications → Authorized Apps* and approve **"NASA GESDISC DATA ARCHIVE"**. Then sign in once at [Giovanni](https://giovanni.gsfc.nasa.gov/) with Earthdata Login and retest. Giovanni's tutorial uses the same kind of token (`earthaccess.get_edl_token()`), so the token type itself should be accepted. The API also has a **monthly compute quota**.
+**Update (same day, after the account owner enabled the apps):** Giovanni still returns 401, and GES DISC still blocks data. Tracing the redirect shows the cause: GES DISC answers **403 "EULA Acceptance Failure"** for its data application. The account must open the `approve_app` link GES DISC returns (in `urs.earthdata.nasa.gov`, client of the GES DISC archive) and accept its end-user licence agreement. OPeNDAP metadata (`.dds`) loads, but data requests stay at 401 until then. Wind/pressure/temperature fields now come from GEOS-FP instead (no login; see [flow-fields.md](../flow-fields.md)), and WeatherNext 3 is assessed there too.
+
+**Original note (account owner must do this):** in Earthdata Login, open *Applications → Authorized Apps* and approve **"NASA GESDISC DATA ARCHIVE"**. Then sign in once at [Giovanni](https://giovanni.gsfc.nasa.gov/) with Earthdata Login and retest. Giovanni's tutorial uses the same kind of token (`earthaccess.get_edl_token()`), so the token type itself should be accepted. The API also has a **monthly compute quota**.
 
 ## 2. Giovanni variables for the environmental scope
 

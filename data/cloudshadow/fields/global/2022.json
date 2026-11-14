@@ -1,0 +1,123 @@
+{
+ "schemaVersion": "flow-field/1.0",
+ "id": "global-2022",
+ "kind": "global",
+ "year": 2022,
+ "evidence": "model_analysis",
+ "evidenceNote": "GEOS-FP analyses combine a weather model with assimilated observations. Wind here is the real large-scale flow at each frame time; it is not a measured pollutant concentration, and any tracer/plume moved by it in a client is a visualization.",
+ "source": {
+  "name": "NASA GMAO GEOS-FP",
+  "collection": "GEOS-FP inst3_2d_asm_Nx (assimilation, 3-hourly, 2D single-level)",
+  "dataset": "https://opendap.nccs.nasa.gov/dods/GEOS-5/fp/0.25_deg/assim/inst3_2d_asm_Nx",
+  "variables": [
+   "u10m",
+   "v10m",
+   "t2m",
+   "slp"
+  ],
+  "nativeResolution": "0.25 deg lat x 0.3125 deg lon, 3-hourly instantaneous",
+  "productResolution": "2 deg lat x 2.5 deg lon",
+  "retrieved": "2026-11-14T19:47Z",
+  "access": "public OPeNDAP, no login"
+ },
+ "grid": {
+  "nx": 144,
+  "ny": 91,
+  "lonMin": -180.0,
+  "lonMax": 177.5,
+  "latMin": -90.0,
+  "latMax": 90.0,
+  "dLon": 2.5,
+  "dLat": 2.0,
+  "wrapsLongitude": true,
+  "pngRowOrder": "north-to-south"
+ },
+ "frames": [
+  {
+   "time": "2022-01-16T00:00Z",
+   "sourceIndex": 12056
+  },
+  {
+   "time": "2022-02-15T09:00Z",
+   "sourceIndex": 12299
+  },
+  {
+   "time": "2022-03-18T18:00Z",
+   "sourceIndex": 12550
+  },
+  {
+   "time": "2022-04-17T03:00Z",
+   "sourceIndex": 12785
+  },
+  {
+   "time": "2022-05-17T12:00Z",
+   "sourceIndex": 13028
+  },
+  {
+   "time": "2022-06-17T21:00Z",
+   "sourceIndex": 13279
+  },
+  {
+   "time": "2022-07-17T06:00Z",
+   "sourceIndex": 13514
+  },
+  {
+   "time": "2022-08-17T15:00Z",
+   "sourceIndex": 13765
+  },
+  {
+   "time": "2022-09-16T00:00Z",
+   "sourceIndex": 14000
+  },
+  {
+   "time": "2022-10-16T09:00Z",
+   "sourceIndex": 14243
+  },
+  {
+   "time": "2022-11-16T18:00Z",
+   "sourceIndex": 14494
+  },
+  {
+   "time": "2022-12-16T03:00Z",
+   "sourceIndex": 14729
+  }
+ ],
+ "framesExpected": 12,
+ "complete": true,
+ "atlas": {
+  "cols": 4,
+  "rows": 3,
+  "tileWidth": 144,
+  "tileHeight": 91,
+  "order": "row-major, frame 0 top-left"
+ },
+ "files": {
+  "wind": "2022.wind.png"
+ },
+ "encoding": {
+  "formula": "value = min + byte / 255 * (max - min)",
+  "wind": {
+   "R": {
+    "variable": "u10m",
+    "meaning": "eastward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "G": {
+    "variable": "v10m",
+    "meaning": "northward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "B": {
+    "meaning": "255 = valid cell, 0 = missing"
+   }
+  }
+ },
+ "stats": {
+  "meanSpeed": 6.225,
+  "maxSpeed": 30.488
+ }
+}

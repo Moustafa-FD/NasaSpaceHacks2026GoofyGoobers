@@ -171,6 +171,9 @@ export function attachFluidCPU(viewer, site, { halfSizeM = 16000 } = {}) {
       W.heat = Math.max(0, heat ?? 0); W.pollution = Math.max(0, pollution ?? 0); W.moisture = Math.max(0, moisture ?? 0);
       W.projected = !!projected;
     },
+    setWind(towardDeg, speed) {
+      const th = towardDeg * Math.PI / 180; W.windE = Math.sin(th); W.windN = Math.cos(th); W.speed = speed;
+    },
     dispose() { alive = false; viewer.entities.remove(entity); },
   };
 }

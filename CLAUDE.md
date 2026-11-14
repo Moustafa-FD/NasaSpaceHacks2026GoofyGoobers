@@ -35,6 +35,7 @@ The environmental footprint of AI data centers, measured with NASA data and show
 | NASA satellite adapter (GIBS tiles → values) | `scripts/precompute.py` → `data/cloudshadow/series/` | `npm run data:nasa` (`pip install pillow`) |
 | NASA POWER weather (wind, T, rain, RH) | `scripts/fetch_weather.py` → `data/cloudshadow/weather/` | `npm run data:weather` |
 | Yearly cloud-free 30 m imagery (HLS) | `scripts/hls_timeline.py` → `data/cloudshadow/hls_timeline.json` | `npm run data:timeline-imagery` (slow; parallelize per site with `--out=`) |
+| **Real wind flow fields** (NASA GEOS-FP u/v, T, SLP; 12 frames/yr, 2018+; same files for web + Unreal) | `services/models/fields/` → `data/cloudshadow/fields/`; format + Niagara recipe in `docs/flow-fields.md` | `npm run data:fields` |
 | Timeline export (past/present/projected rows) | `scripts/export_timeline.cjs` → `data/cloudshadow/unreal/timeline/` | part of `npm run data:unreal` |
 | Stats (Mann-Kendall, Sen, Welch, de-seasoning; checked vs SciPy) | `apps/web/js/stats.js` | |
 | Analysis API + web fallback, port 8765 | `apps/web/server.cjs` (`/api/sites`, `/api/analysis?site=&var=`, `/api/layers/<var>?date=`) | `npm run web` |

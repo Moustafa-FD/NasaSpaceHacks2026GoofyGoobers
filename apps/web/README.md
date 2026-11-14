@@ -18,6 +18,7 @@ Useful URLs while developing:
 | `/?site=colossus1&year=2025&light=night` | Night lighting (NASA city lights) |
 | `/?quality=low` | No HDR/bloom/shadows (slow laptops; also what headless Chrome needs) |
 | `/?fluid=off` | Disable the fluid sim |
+| `/?flow=off` | Disable the GEOS-FP wind-flow trails (fluid/clouds fall back to the annual NASA POWER wind) |
 | `/?debug=1` | Logs ring/particle state to the console after 8 s |
 | `/?tour=0` | Start the guided tour |
 | `/dev/fluid.html` | **Fluid playground**: tune the weather sim with sliders, no globe |
@@ -31,6 +32,7 @@ Keys: `[` / `]` previous / next year. ▶ plays through the years and orbits the
 | **Impact ring** (bar per year around the site) | The site's signal: **site minus a surrounding ring**, for the chosen variable. Orange = worse, blue = better. Future = ghost bars + 95% CI label | `data/unreal/timeline/<site>.json` → `<VAR>_Local`, `_LocalLo/_LocalHi` | `timeline.js → buildEffects` |
 | **Heat dome** + **embers** | Night-heat signal for that year | `LST_Night_Local` | `timeline.js`, `fx.js` |
 | **Fluid weather field** (swirls on the ground, ~32 km) | GPU fluid sim: NASA POWER wind blows heat (orange), pollution (yellow, Colossus 1 turbines only, from 2024) and moisture (white) dyes | `PlumeTowardDeg`, `WS10M`, `LST_Night_Local`, `NO2_Local`, `PrecipMMDay` | `fluid-gpu.js` (CPU fallback `fluid.js`), driven from `fx.js` |
+| **Wind-flow particle trails** (site box; whole globe when zoomed out) + HUD chip "GEOS-FP …" | Real gridded 10 m wind from NASA GEOS-FP analyses, 12 instants per year (2018+), time-lapsed. Also steers the fluid sim, clouds and streaks via `cs:wind`. Direction validated vs Dulles airport; speed relative | `data/fields/` (`npm run data:fields`), see [docs/flow-fields.md](../../docs/flow-fields.md) | `flowfield.js` |
 | **Turbine plume** (3D smoke, Colossus 1) | On-site gas turbines from mid-2024, blowing with that year's wind | `NO2_Local`, wind | `timeline.js` |
 | **Clouds, rain, wind streaks** | That year's NASA POWER wind and precipitation | `WS10M`, `PlumeTowardDeg`, `PrecipMMDay` | `fx.js`, `timeline.js` |
 | **Sky tint** | Regional air-temperature anomaly that year | `T2M` | `fx.js → applyYear` |
