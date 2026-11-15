@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-15T17:43:25+00:00",
+  "script": "python scripts/fetch_electricity.py --download",
+  "sources": [
+    {
+      "id": "eia-861-2010-2025",
+      "title": "EIA-861 historical state data, 2010 onward, Total Electric Industry / Residential",
+      "url": "https://www.eia.gov/electricity/data/state/xls/861/HS861%202010-.xlsx",
+      "landingUrl": "https://www.eia.gov/electricity/data/state/",
+      "releaseDate": "2026-10-07",
+      "retrievedAt": "2026-11-15T17:43:25+00:00",
+      "sha256": "e4c74d03f4a6b8c68045e3d2d3392b81bb5230f5d9989edd3c7046611092af16",
+      "bytes": 487659
+    },
+    {
+      "id": "eia-861-1990-2009",
+      "title": "EIA-861 historical state data, 1990–2009, Total Electric Industry / Residential",
+      "url": "https://www.eia.gov/electricity/data/state/xls/861/HS861%201990-2009.xlsx",
+      "landingUrl": "https://www.eia.gov/electricity/data/state/",
+      "retrievedAt": "2026-11-15T17:43:25+00:00",
+      "sha256": "2452643578e3cead0c227d46d4cd19c78b3d4b3143c12e39e8372c9336638fb6",
+      "bytes": 437938
+    },
+    {
+      "id": "census-gazetteer-2020",
+      "title": "US Census 2020 national places Gazetteer: representative coordinates",
+      "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2020_Gazetteer/2020_Gaz_place_national.zip",
+      "landingUrl": "https://www.census.gov/geographies/reference-files/time-series/geo/gazetteer-files.2020.html",
+      "referenceYear": 2020,
+      "retrievedAt": "2026-11-15T17:43:25+00:00",
+      "sha256": "6e5745b3e1adf7a1e024a988301d484697e2a0f25b3cf10114eef676f09d5c18",
+      "bytes": 1206088
+    }
+  ],
+  "coverage": {
+    "firstObservedYear": 1990,
+    "lastObservedYear": 2025,
+    "projectionThrough": 2035,
+    "stateCount": 51
+  },
+  "recordCount": 1836
+}

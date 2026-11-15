@@ -18,7 +18,7 @@ let viewer, scene, Q = "high";
 let automaticQuality = true, qualityController, sampledFps = null;
 const S = { site: null, rows: null, light: "golden", nightLights: null, clouds: null, cloudList: [], rain: null,
   massing: [], orbit: null, fluid: null, windDir: 0, windSpeed: 3, precip: 0, heat: 0, meanT2M: null, preRender: null,
-  localScene: false, year: 2025, lastTick: 0, lastClock:null,animationTime: 0, lastRow: null, phase: "observed",windSample:null };
+  localScene: false, electricity: false, year: 2025, lastTick: 0, lastClock:null,animationTime: 0, lastRow: null, phase: "observed",windSample:null };
 const QUALITY = {
   high: { hdr: true, bloom: false, shadows: true, clouds: 14, rainRate: 380, fluidTexEvery: 1, fluidDye: 512, resolution: 1, shadowSize: 2048 },
   balanced: { hdr: false, bloom: false, shadows: true, clouds: 8, rainRate: 220, fluidTexEvery: 2, fluidDye: 256, resolution: 0.85, shadowSize: 1024 },
@@ -37,6 +37,7 @@ const RAIN = streak();
 // ------------------------------------------------------------------ global scene look
 export function init(v) {
   viewer = v; scene = v.scene;
+  S.electricity = document.body.classList.contains('electricity-active');
   let mode = "auto";
   try { mode = localStorage.getItem("csQualityMode") || "auto"; } catch { /* Auto is the default. */ }
   const qp = new URLSearchParams(location.search).get("quality");
@@ -63,6 +64,7 @@ export function init(v) {
   S.nightLights.dayAlpha = 0.0; S.nightLights.nightAlpha = 1.0; S.nightLights.brightness = 1.6;
 
   applyQuality();
+  applySceneVisibility();
   scene.preRender.addEventListener(tick);
   qualityController = new AdaptiveQuality({ quality: Q, now: performance.now(),
     onSample: ({ fps }) => {
@@ -91,13 +93,20 @@ function emissionPolicyEligible(site, year) {
   return (site?.effects?.plume === true || !!site?.effects?.plumeSource) && onset !== null && year >= onset;
 }
 function applySceneVisibility() {
-  const visible = !S.localScene;
+  const visible = !S.localScene && !S.electricity;
+  if (S.nightLights) S.nightLights.show = !S.electricity;
+  if (scene) scene.globe.enableLighting = !S.electricity;
   for (const object of [S.clouds, S.rain]) if (object) object.show = visible;
   for (const block of S.massing) block.show = visible && S.year >= block._startYear;
   // The fluid stays on in the close-up, re-scaled to the campus; sample the low-poly ground once it has drawn.
-  S.fluid?.setVisible(true);
+  S.fluid?.setVisible(!S.electricity);
   if (S.fluid?.setLocal) { S.fluid.setLocal(S.localScene); if (S.localScene) setTimeout(() => S.localScene && S.fluid?.setLocal(true), 1500); }
 }
+window.addEventListener('cs:electricity', ({ detail }) => {
+  if (typeof detail?.active !== 'boolean') return;
+  S.electricity = detail.active;
+  if (viewer) { applyQuality(); applySceneVisibility(); scene.requestRender?.(); }
+});
 window.addEventListener("cs:scene-mode", (event) => {
   S.localScene = !!event.detail?.active;
   applySceneVisibility();
@@ -120,8 +129,8 @@ export const getQualityLabel = () => `${automaticQuality ? "Auto · " : ""}${({ 
 export function cycleQuality() { setQuality(automaticQuality ? "high" : Q === "high" ? "low" : "auto"); }
 function applyQuality() {
   const qq = QUALITY[Q];
-  scene.highDynamicRange = !S.localScene && qq.hdr && scene.highDynamicRangeSupported;
-  scene.postProcessStages.bloom.enabled = !S.localScene && qq.bloom;
+  scene.highDynamicRange = !S.localScene && !S.electricity && qq.hdr && scene.highDynamicRangeSupported;
+  scene.postProcessStages.bloom.enabled = !S.localScene && !S.electricity && qq.bloom;
   viewer.shadows = qq.shadows;
   viewer.resolutionScale = qq.resolution;
   viewer.shadowMap.size = qq.shadowSize;

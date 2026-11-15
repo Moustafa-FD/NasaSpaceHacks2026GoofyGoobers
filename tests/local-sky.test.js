@@ -82,3 +82,42 @@ test('destroying a pending manifest load cannot allocate a stale sky or call env
   sky.setActive(true);const pending=sky.ready;sky.destroy();resolve({ok:true,json:async()=>h.manifest});await pending;
   assert.equal(h.stages.length,0);assert.equal(h.listeners.size,0);assert.equal(callbacks,0);
 });
+
+test('decoded weather switches use Cesium 1.121 safe URL upload rather than an undefined live image sampler',async()=>{
+  const originalImage=globalThis.Image,resolvers=[];
+  class DecodedImage{decode(){return new Promise(resolve=>resolvers.push(resolve));}}
+  globalThis.Image=DecodedImage;
+  const h=fake(),Base=h.C.PostProcessStage;
+  // Reproduce the observed 1.121 lifecycle boundary: the image setter drops the
+  // old sampler before its queued upload, but its no-promise path stays ready.
+  // A URL instead makes the stage wait, so it cannot draw an absent sampler.
+  h.C.PostProcessStage=class extends Base{
+    constructor(options){
+      super(options);const stage=this;let value=options.uniforms.u_environment;
+      this.texture={_target:3553};
+      Object.defineProperty(this.uniforms,'u_environment',{get:()=>value,set(next){
+        value=next;stage.texture=undefined;
+        if(next instanceof DecodedImage)stage.ready=true;
+        else{stage.ready=false;stage.pendingUrl=next;}
+      }});
+    }
+    drawSampler(){if(this.enabled&&this.ready)return this.texture._target;}
+    finishUpload(){this.texture={_target:3553};this.pendingUrl=null;this.ready=true;}
+  };
+  let sky;
+  try{
+    sky=attachLocalSky(h.viewer,{lat:35,lon:-90},{Cesium:h.C,skyManifest:h.manifest});
+    sky.setYear(2025,{PrecipMMDay:0});sky.setActive(true);await sky.ready;
+    const stage=h.stages[0];stage.ready=true;h.tick();
+    for(const resolve of resolvers)resolve();await Promise.resolve();
+    assert.equal(resolvers.length,3,'all illustrative presets decode in advance');
+    sky.setYear(2023,{PrecipMMDay:8});h.tick();
+    assert.doesNotThrow(()=>stage.drawSampler(),'a before/year switch must not draw the missing replacement sampler');
+    assert.equal(stage.uniforms.u_environment,'assets/sky/overcast.jpg');
+    assert.equal(stage.ready,false,'the URL upload lifecycle suspends only the changing sky stage');
+    stage.finishUpload();h.tick();assert.equal(stage.drawSampler(),3553);
+    sky.setYear(2025,{PrecipMMDay:2});h.tick();
+    assert.equal(stage.uniforms.u_environment,'assets/sky/cloudy.jpg');
+    assert.doesNotThrow(()=>stage.drawSampler());stage.finishUpload();h.tick();assert.equal(stage.drawSampler(),3553);
+  }finally{sky?.destroy();if(originalImage===undefined)delete globalThis.Image;else globalThis.Image=originalImage;}
+});

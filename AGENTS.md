@@ -13,7 +13,7 @@
 
 - Preserve each source's evidence class, units, quality flags, provenance and actual coverage. Acquisition checks do not establish model accuracy; retained `illustrative`/`synthetic` fixtures must keep those labels.
 - Unsupported domains must have a reason; never substitute zero or fabricate a map.
-- Current scope is environmental: weather/heat, air pollution/quality, water availability/quality, land/vegetation/ecosystems, noise and agriculture. Electricity bills, labor/employment and population projections are out of scope; older planning notes do not reactivate them.
+- Current scope is environmental: weather/heat, air pollution/quality, water availability/quality, land/vegetation/ecosystems, noise and agriculture. The explicitly requested city-bills view adds sourced residential electricity histories with bounded trend projections, plus official water tariffs and labeled fixed-use bill examples where available. Published water references must not be presented as a historical series or future forecast. Neither establishes data-center-attributable price effects. Labor/employment and population projections remain out of scope; older planning notes do not reactivate them.
 - STRATA recursion is not evidence for accurate decades-ahead forecasts. Each metric needs its own validated horizon and uncertainty.
 - Water use, net consumption, quality and scarcity are separate outputs. Agricultural climate exposure, vegetation proxies and measured crop yields are separate quantities.
 - Do not infer facility attribution from nearby satellite changes alone.

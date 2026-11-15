@@ -117,7 +117,7 @@ function setMinimized(min, label) {
 }
 // ~4.5 km range at 38° tilt ≈ 2.8 km camera height, inside neighborhood.js ENTER_HEIGHT (5,800 m) so the low-poly scene loads.
 // With off-site turbines (Colossus 2 → Southaven), aim between site and source, looking north so the plume drifts into view.
-const flyClose = () => { if (!S.cs || !S.site) return; const ps = S.site.effects?.plumeSource;
+const flyClose = () => { if (document.body.classList.contains('electricity-active') || !S.cs || !S.site) return; const ps = S.site.effects?.plumeSource;
   S.cs.flyTo(ps ? (S.site.lat + ps.lat) / 2 : S.site.lat, ps ? (S.site.lon + ps.lon) / 2 : S.site.lon, ps ? 5.6 : 4.5, -38, ps ? 0 : 20, 2.5); };
 // The app's own site flight can start after ours; re-check once the flights settle.
 const ensureClose = () => { for (const t of [900, 3600]) setTimeout(() => { if ((S.cs?.viewer?.camera.positionCartographic.height ?? 0) > 5800) flyClose(); }, t); };
@@ -247,6 +247,7 @@ function startFlip() { S.flip = setInterval(() => setSide(S.side === "before" ? 
 function stopFlip() { clearInterval(S.flip); S.flip = null; $("#v3Flip")?.setAttribute("aria-pressed", "false"); if ($("#v3Flip")) $("#v3Flip").textContent = "▶ Flip"; }
 
 function selectTheme(key) {
+  if (document.body.classList.contains('electricity-active')) window.dispatchEvent(new CustomEvent('cs:electricity', { detail: { active: false } }));
   S.theme = key;
   // setSide (below) picks the map layer for this theme and side.
   // Map at near-full strength so the regional pattern reads clearly over the low-poly scene (team default is 0.65).
@@ -303,6 +304,7 @@ async function openSite(id) {
 
 function showLanding() {
   stopFlip(); toggleScience(false);
+  window.dispatchEvent(new CustomEvent('cs:electricity', { detail: { active: false } }));
   $("#v2Header").hidden = true; $("#v3Panel").hidden = true; $("#v3Pill").hidden = true;
   $("#v2Landing").classList.remove("gone"); document.body.classList.add("v2-landing-open");
   history.replaceState(null, "", location.pathname);

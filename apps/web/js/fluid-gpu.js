@@ -60,16 +60,20 @@ const FRAG = {
   display: WEATHER_DYE_FRAGMENT_SHADER,
 };
 
-// Lowest rendered surface height around a point (min of 5 samples, so a building at the centre doesn't count).
+// Use loaded ground data without launching Cesium's nested picking render pass.
+// This helper also runs from preRender when the neighborhood becomes active;
+// sampleHeight here can disturb framebuffer state and can sample building roofs.
 export function sceneGround(viewer, lat, lon) {
-  const sc = viewer.scene, hs = [];
-  for (const [e, n] of [[0, 0], [600, 0], [-600, 0], [0, 600], [0, -600]]) {
-    const c = Cesium.Cartographic.fromDegrees(lon + e / (111320 * Math.cos(lat * Math.PI / 180)), lat + n / 111320);
-    const h = sc.sampleHeightSupported ? sc.sampleHeight(c) : undefined;
-    hs.push(Number.isFinite(h) ? h : sc.globe.getHeight(c));
-  }
-  const ok = hs.filter(Number.isFinite);
-  return ok.length ? Math.min(...ok) : null;
+  if (!viewer?.scene || !Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90) return null;
+  const longitudeScale = 111320 * Math.max(0.001, Math.abs(Math.cos(lat * Math.PI / 180)));
+  const points = [[0, 0], [600, 0], [-600, 0], [0, 600], [0, -600]]
+    .map(([east, north]) => ({ lon: lon + east / longitudeScale, lat: Math.max(-90, Math.min(90, lat + north / 111320)) }));
+  const ground = globalThis.CloudShadowNeighborhood;
+  const mesh = points.map((p) => ground?.groundHeightAt?.(p.lon, p.lat)).filter(Number.isFinite);
+  if (mesh.length) return Math.min(...mesh);
+  const globe = viewer.scene.globe;
+  const heights = points.map((p) => globe?.getHeight?.(Cesium.Cartographic.fromDegrees(p.lon, p.lat))).filter(Number.isFinite);
+  return heights.length ? Math.min(...heights) : null;
 }
 
 function createGL(size) {

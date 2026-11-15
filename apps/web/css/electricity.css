@@ -1,0 +1,64 @@
+/* Optional nearest-city electricity detail. The main interface stays intact. */
+.electricity-toggle, #electricityPanel { font-family: var(--sans, system-ui, sans-serif); color: var(--ink, #17201d); }
+.electricity-toggle { position: fixed; top: 78px; right: 16px; z-index: 37; display: flex; align-items: center; gap: 7px; padding: 9px 12px; border: 1px solid var(--rule, #ded7c8); border-radius: 8px; background: var(--paper, #f7f4ee); box-shadow: 0 5px 18px #0003; font: 650 13px var(--sans, system-ui, sans-serif); cursor: pointer; }
+body.ui-v2 .electricity-toggle { top: 18px; right: 76px; }
+.electricity-toggle svg { width: 18px; height: 18px; fill: #a0760a; }
+.electricity-toggle.active { background: #fff4cf; border-color: #a0760a; }
+.electricity-toggle[hidden], #electricityPanel[hidden] { display: none; }
+body.v2-landing-open .electricity-toggle, body.v2-landing-open #electricityPanel { visibility: hidden; }
+body.electricity-active #mapLegend { display: none !important; }
+#electricityPanel { position: fixed; z-index: 36; top: 77px; right: 16px; width: min(300px, calc(100vw - 32px)); max-height: max(160px, calc(100dvh - 340px)); overflow: auto; overscroll-behavior: contain; background: var(--paper, #f7f4ee); border: 1px solid var(--rule, #e0d9cd); border-radius: 10px; box-shadow: 0 9px 28px #0004; scrollbar-width: thin; }
+body.v3-years #electricityPanel { max-height: max(160px, calc(100dvh - 450px)); }
+.electricity-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 12px; border-bottom: 1px solid var(--rule, #ded8cb); }
+.electricity-heading h2 { margin: 0; font: 600 18px/1.2 var(--serif, Georgia, serif); }
+.electricity-close { width: 25px; height: 25px; padding: 0; border: 0; border-radius: 50%; background: var(--paper-2, #e9e3d9); color: var(--ink, #17201d); font: 23px/1 system-ui, sans-serif; cursor: pointer; }
+.city-cost-kind { display: flex; gap: 4px; padding: 7px 12px 0; }
+.city-cost-kind button { flex: 1; border: 1px solid var(--rule, #ded7c8); border-radius: 5px; padding: 5px 7px; color: var(--ink-2, #5a655f); background: transparent; font: 600 11px var(--sans, system-ui, sans-serif); cursor: pointer; }
+.city-cost-kind button[aria-pressed="true"] { color: var(--ink, #17201d); background: var(--paper-2, #ece7dd); border-color: #a59b81; }
+.water-cost-bill { font-size: 28px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.water-cost-bill small { margin-left: 4px; font-size: 12px; font-weight: 400; color: var(--ink-2, #5a655f); }
+.water-cost-usage, .water-cost-fee { font-size: 11px; line-height: 1.4; color: var(--ink-2, #5a655f); margin: 5px 0; }
+.water-cost-reference { font-size: 12px; line-height: 1.35; font-weight: 650; margin: 8px 0 5px; color: #75552a; }
+.electricity-content { padding: 8px 12px 10px; }
+.electricity-geography { margin: 0 0 8px; font-size: 11px; color: var(--ink-2, #68726c); line-height: 1.3; }
+.electricity-geography b { font-weight: 650; color: var(--ink, #17201d); }
+.electricity-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.electricity-comparison > div { display: flex; flex-direction: column; gap: 2px; }
+.electricity-comparison > div + div { border-left: 1px solid var(--rule, #dcd5c8); padding-left: 10px; }
+.electricity-comparison span { font-size: 11px; color: var(--ink-2, #5a655f); }
+.electricity-comparison span:first-child { font-size: 10px; font-weight: 700; letter-spacing: .35px; }
+.electricity-comparison strong { font-size: 27px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.electricity-comparison small { margin-left: 3px; font-size: 11px; font-weight: 400; color: var(--ink-2, #737b74); }
+.electricity-change { margin: 9px 0 0; font-size: 12px; line-height: 1.35; font-weight: 650; color: #76550b; }
+.electricity-time { margin-top: 9px; padding-top: 7px; border-top: 1px solid var(--rule, #dcd5c8); }
+.electricity-time label { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--ink-2, #47574a); }
+.electricity-time output { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.electricity-time input { display: block; width: 100%; margin: 7px 0 8px; accent-color: #946b0a; cursor: pointer; }
+.electricity-year-actions { display: flex; gap: 5px; }
+.electricity-year-actions button, .electricity-content > button { flex: 1; font: 600 10px var(--sans, system-ui, sans-serif); padding: 5px 6px; border-radius: 4px; border: 1px solid var(--rule, #cbc4b8); background: #fffdf7; color: var(--ink-2, #485449); cursor: pointer; }
+.electricity-year-actions button:hover { border-color: #946b0a; }
+.electricity-method { margin-top: 9px; padding-top: 7px; border-top: 1px solid var(--rule, #dcd5c8); color: var(--ink-2, #5c685e); font-size: 11px; }
+.electricity-method summary { cursor: pointer; font-weight: 650; }
+.electricity-method p { line-height: 1.45; margin: 9px 0; }
+.electricity-chart-block { margin: 12px 0; }
+.electricity-chart-title { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; }
+.electricity-chart-title span { font-weight: 400; }
+.electricity-chart { display: block; width: 100%; height: auto; overflow: visible; }
+.electricity-chart text { fill: #616c64; font: 12px var(--sans, system-ui, sans-serif); }
+.electricity-grid { stroke: #ddd7cc; stroke-width: 1; }
+.electricity-observed, .electricity-projected { fill: none; stroke: #946b0a; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.electricity-projected { stroke: #805aab; stroke-dasharray: 5 4; }
+.electricity-band { fill: #805aab; opacity: .12; }
+.electricity-dot { fill: #17201d; stroke: #f7f4ee; stroke-width: 2; }
+.electricity-chart-key { display: flex; gap: 10px; flex-wrap: wrap; font-size: 10px; color: #656f68; }
+.electricity-chart-key > span::before { content: ''; display: inline-block; width: 12px; border-top: 2px solid #946b0a; vertical-align: middle; margin-right: 4px; }
+.electricity-chart-key > .projection::before { border-top-color: #805aab; border-top-style: dashed; }
+.electricity-sources { display: grid; gap: 7px; }
+.electricity-sources a { color: #6f550d; line-height: 1.4; }
+.electricity-empty { margin: 8px 0; font-size: 12px; line-height: 1.4; color: var(--ink-2, #657066); }
+:is(.electricity-toggle, .electricity-close, .electricity-year-actions button, .electricity-time input, .electricity-method summary, .city-cost-kind button):focus-visible { outline: 3px solid #ba8c22; outline-offset: 3px; }
+@media (max-width: 700px) {
+  body.ui-v2 .electricity-toggle { top: 20px; right: 64px; padding: 8px 10px; font-size: 12px; }
+  #electricityPanel { right: 10px; width: min(290px, calc(100vw - 20px)); max-height: max(160px, calc(100dvh - 430px)); }
+  body.v3-years #electricityPanel { max-height: max(160px, calc(100dvh - 500px)); }
+}

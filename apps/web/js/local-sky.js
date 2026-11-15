@@ -88,12 +88,16 @@ void main() {
 export function attachLocalSky(viewer,site,sceneData={}){
   const C=sceneData.Cesium||globalThis.Cesium,scene=viewer.scene,center=sceneData.center||site;
   let active=false,destroyed=false,stage,manifest,loading,entry,applied,opacity=0,frames=0,changedAt=0;
-  // Decoded sky pictures. Switching the stage to a new URL samples Cesium's white default texture until it
-  // loads (a full-sky white flash on year change), so the sky only switches once its picture is decoded.
+  // Decode ahead of a switch, keeping the old sky during the image download.
+  // Pass URLs to Cesium even after decoding: in 1.121, replacing a live sampler
+  // with an HTMLImageElement clears its GPU texture, then marks the stage ready
+  // one update before the replacement texture exists. The next draw crashes in
+  // UniformSampler.set (_target on undefined). Its URL loading path correctly
+  // suspends the stage until the replacement is uploaded. See regression test.
   const decoded=new Map();
   const preload=(environments)=>{if(typeof Image==='undefined')return;for(const e of environments){if(decoded.has(e.id))continue;decoded.set(e.id,null);
     const img=new Image();img.crossOrigin='anonymous';img.src=e.image;(img.decode?img.decode():Promise.resolve()).then(()=>{if(destroyed)return;decoded.set(e.id,img);choose();}).catch(()=>{});}};
-  const pictureFor=(e)=>decoded.get(e.id)||e.image;
+  const pictureFor=(e)=>e.image;
   let config=selectLocalSkyConfig(center),lastStateKey='';
   const frame=C.Transforms.eastNorthUpToFixedFrame(C.Cartesian3.fromDegrees(center.lon,center.lat));
   const inverse=C.Matrix4.inverseTransformation(frame,new C.Matrix4()),localCamera=new C.Cartesian3();
