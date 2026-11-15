@@ -206,6 +206,14 @@ export function buildSite(site, rows) {
   applySceneVisibility();
 }
 
+// ------------------------------------------------------------------ real wind (GEOS-FP, from flowfield.js)
+// Time-varying analysed wind at the site replaces the single annual POWER arrow for clouds + fluid.
+window.addEventListener("cs:wind", (e) => {
+  const w = e.detail; if (!w || !S.site || w.siteId !== S.site.id) return;
+  S.windDir = w.towardDeg; S.windSpeed = w.speed;
+  S.fluid?.setWind?.(w.towardDeg, w.speed);
+});
+
 // ------------------------------------------------------------------ per-year update
 export function applyYear(year, row, phase) {
   S.year = year; S.lastRow = row; S.phase = phase;

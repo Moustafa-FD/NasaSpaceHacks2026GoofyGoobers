@@ -1,0 +1,379 @@
+{
+ "schemaVersion": "climate-projection/1.0",
+ "site": {
+  "id": "colossus2",
+  "name": "xAI Colossus 2",
+  "lat": 34.998,
+  "lon": -90.0349
+ },
+ "evidence": "climate-scenario",
+ "evidenceNote": "Conditional climate under SSP emission pathways from bias-corrected, downscaled CMIP6 models. Regional 0.25-degree cell climate, not a forecast of weather or of any facility's effect. Uncertainty shown is model spread (min-max across the ensemble), not a confidence interval.",
+ "source": {
+  "name": "NASA NEX-GDDP-CMIP6",
+  "access": "https://ds.nccs.nasa.gov/thredds/ncss/grid/AMES/NEX/GDDP-CMIP6",
+  "license": "CC0",
+  "citation": "Thrasher et al. (2022), Scientific Data 9:262",
+  "retrieved": "2026-11-14T20:57Z"
+ },
+ "gridPoints": [
+  [
+   34.875,
+   -90.125
+  ]
+ ],
+ "ensemble": [
+  "ACCESS-CM2",
+  "GFDL-ESM4",
+  "MPI-ESM1-2-HR",
+  "MRI-ESM2-0",
+  "UKESM1-0-LL"
+ ],
+ "scenarios": {
+  "ssp245": "SSP2-4.5 (intermediate emissions)",
+  "ssp585": "SSP5-8.5 (very high emissions)"
+ },
+ "windows": {
+  "historical": [
+   1995,
+   2014
+  ],
+  "mid": [
+   2041,
+   2060
+  ],
+  "late": [
+   2081,
+   2100
+  ]
+ },
+ "sampling": {
+  "yearsPerWindow": 4,
+  "years": {
+   "historical": [
+    1997,
+    2002,
+    2007,
+    2012
+   ],
+   "mid": [
+    2043,
+    2048,
+    2053,
+    2058
+   ],
+   "late": [
+    2083,
+    2088,
+    2093,
+    2098
+   ]
+  },
+  "note": "Each 20-year window is represented by evenly spaced sample years to bound download cost."
+ },
+ "metrics": {
+  "meanTempC": {
+   "unit": "degC (annual mean)",
+   "historical_1995_2014": {
+    "perModel": {
+     "ACCESS-CM2": 17.846,
+     "GFDL-ESM4": 16.988,
+     "MPI-ESM1-2-HR": 17.412,
+     "MRI-ESM2-0": 17.261,
+     "UKESM1-0-LL": 17.763
+    },
+    "median": 17.412,
+    "min": 16.988,
+    "max": 17.846,
+    "models": 5
+   },
+   "ssp245_2041_2060": {
+    "value": {
+     "median": 19.237,
+     "min": 18.002,
+     "max": 19.778,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": 1.39,
+     "min": 0.674,
+     "max": 2.222,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 1.39,
+     "GFDL-ESM4": 1.015,
+     "MPI-ESM1-2-HR": 0.674,
+     "MRI-ESM2-0": 2.222,
+     "UKESM1-0-LL": 2.015
+    }
+   },
+   "ssp245_2081_2100": {
+    "value": {
+     "median": 19.143,
+     "min": 18.968,
+     "max": 22.471,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": 1.981,
+     "min": 1.731,
+     "max": 4.708,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 2.122,
+     "GFDL-ESM4": 1.981,
+     "MPI-ESM1-2-HR": 1.731,
+     "MRI-ESM2-0": 1.781,
+     "UKESM1-0-LL": 4.708
+    }
+   },
+   "ssp585_2041_2060": {
+    "value": {
+     "median": 19.369,
+     "min": 18.234,
+     "max": 21.887,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": 1.713,
+     "min": 1.247,
+     "max": 4.125,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 1.523,
+     "GFDL-ESM4": 1.247,
+     "MPI-ESM1-2-HR": 1.713,
+     "MRI-ESM2-0": 2.309,
+     "UKESM1-0-LL": 4.125
+    }
+   },
+   "ssp585_2081_2100": {
+    "value": {
+     "median": 21.429,
+     "min": 21.212,
+     "max": 25.377,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": 4.224,
+     "min": 3.871,
+     "max": 7.614,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 5.244,
+     "GFDL-ESM4": 4.224,
+     "MPI-ESM1-2-HR": 3.871,
+     "MRI-ESM2-0": 4.167,
+     "UKESM1-0-LL": 7.614
+    }
+   }
+  },
+  "hotDays35C": {
+   "unit": "days/year with daily max >= 35 degC",
+   "historical_1995_2014": {
+    "perModel": {
+     "ACCESS-CM2": 30.486,
+     "GFDL-ESM4": 15.761,
+     "MPI-ESM1-2-HR": 29.509,
+     "MRI-ESM2-0": 26.751,
+     "UKESM1-0-LL": 26.886
+    },
+    "median": 26.886,
+    "min": 15.761,
+    "max": 30.486,
+    "models": 5
+   },
+   "ssp245_2041_2060": {
+    "value": {
+     "median": 49.749,
+     "min": 14.746,
+     "max": 74.572,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": 20.014,
+     "min": -14.762,
+     "max": 47.685,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 19.263,
+     "GFDL-ESM4": 20.014,
+     "MPI-ESM1-2-HR": -14.762,
+     "MRI-ESM2-0": 32.52,
+     "UKESM1-0-LL": 47.685
+    }
+   },
+   "ssp245_2081_2100": {
+    "value": {
+     "median": 48.033,
+     "min": 15.751,
+     "max": 102.473,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": 32.272,
+     "min": -13.757,
+     "max": 75.586,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 47.509,
+     "GFDL-ESM4": 32.272,
+     "MPI-ESM1-2-HR": -13.757,
+     "MRI-ESM2-0": 14.99,
+     "UKESM1-0-LL": 75.586
+    }
+   },
+   "ssp585_2041_2060": {
+    "value": {
+     "median": 56.972,
+     "min": 42.529,
+     "max": 110.336,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": 27.463,
+     "min": 17.258,
+     "max": 83.449,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 35.25,
+     "GFDL-ESM4": 26.768,
+     "MPI-ESM1-2-HR": 27.463,
+     "MRI-ESM2-0": 17.258,
+     "UKESM1-0-LL": 83.449
+    }
+   },
+   "ssp585_2081_2100": {
+    "value": {
+     "median": 97.817,
+     "min": 87.008,
+     "max": 162.333,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": 82.056,
+     "min": 57.499,
+     "max": 135.447,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 117.281,
+     "GFDL-ESM4": 82.056,
+     "MPI-ESM1-2-HR": 57.499,
+     "MRI-ESM2-0": 61.992,
+     "UKESM1-0-LL": 135.447
+    }
+   }
+  },
+  "precipMmPerYear": {
+   "unit": "mm/year",
+   "historical_1995_2014": {
+    "perModel": {
+     "ACCESS-CM2": 1392.198,
+     "GFDL-ESM4": 1398.97,
+     "MPI-ESM1-2-HR": 1303.823,
+     "MRI-ESM2-0": 1330.613,
+     "UKESM1-0-LL": 1467.485
+    },
+    "median": 1392.198,
+    "min": 1303.823,
+    "max": 1467.485,
+    "models": 5
+   },
+   "ssp245_2041_2060": {
+    "value": {
+     "median": 1391.128,
+     "min": 1347.142,
+     "max": 1479.64,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": 16.529,
+     "min": -93.612,
+     "max": 125.879,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 87.442,
+     "GFDL-ESM4": -7.842,
+     "MPI-ESM1-2-HR": 125.879,
+     "MRI-ESM2-0": 16.529,
+     "UKESM1-0-LL": -93.612
+    }
+   },
+   "ssp245_2081_2100": {
+    "value": {
+     "median": 1483.211,
+     "min": 1406.272,
+     "max": 1621.736,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": 152.598,
+     "min": 14.074,
+     "max": 205.207,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 14.074,
+     "GFDL-ESM4": 48.566,
+     "MPI-ESM1-2-HR": 205.207,
+     "MRI-ESM2-0": 152.598,
+     "UKESM1-0-LL": 154.25
+    }
+   },
+   "ssp585_2041_2060": {
+    "value": {
+     "median": 1417.392,
+     "min": 1340.405,
+     "max": 1470.9,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": 78.702,
+     "min": -96.032,
+     "max": 123.847,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 78.702,
+     "GFDL-ESM4": -58.565,
+     "MPI-ESM1-2-HR": 123.847,
+     "MRI-ESM2-0": 86.779,
+     "UKESM1-0-LL": -96.032
+    }
+   },
+   "ssp585_2081_2100": {
+    "value": {
+     "median": 1408.671,
+     "min": 1253.324,
+     "max": 1613.193,
+     "models": 5
+    },
+    "changeFromHistorical": {
+     "median": -32.476,
+     "min": -145.646,
+     "max": 282.58,
+     "models": 5
+    },
+    "perModelChange": {
+     "ACCESS-CM2": 167.36,
+     "GFDL-ESM4": -145.646,
+     "MPI-ESM1-2-HR": -32.476,
+     "MRI-ESM2-0": 282.58,
+     "UKESM1-0-LL": -58.815
+    }
+   }
+  }
+ },
+ "coverage": {
+  "requested": 300,
+  "failed": 0
+ }
+}

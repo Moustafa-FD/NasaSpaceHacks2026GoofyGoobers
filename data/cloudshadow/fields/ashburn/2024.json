@@ -1,0 +1,256 @@
+{
+ "schemaVersion": "flow-field/1.0",
+ "id": "ashburn-2024",
+ "kind": "site",
+ "year": 2024,
+ "evidence": "model_analysis",
+ "evidenceNote": "GEOS-FP analyses combine a weather model with assimilated observations. Wind here is the real large-scale flow at each frame time; it is not a measured pollutant concentration, and any tracer/plume moved by it in a client is a visualization.",
+ "source": {
+  "name": "NASA GMAO GEOS-FP",
+  "collection": "GEOS-FP inst3_2d_asm_Nx (assimilation, 3-hourly, 2D single-level)",
+  "dataset": "https://opendap.nccs.nasa.gov/dods/GEOS-5/fp/0.25_deg/assim/inst3_2d_asm_Nx",
+  "variables": [
+   "u10m",
+   "v10m",
+   "t2m",
+   "slp"
+  ],
+  "nativeResolution": "0.25 deg lat x 0.3125 deg lon, 3-hourly instantaneous",
+  "productResolution": "0.25 deg lat x 0.3125 deg lon",
+  "retrieved": "2026-11-14T19:55Z",
+  "access": "public OPeNDAP, no login"
+ },
+ "grid": {
+  "nx": 27,
+  "ny": 26,
+  "lonMin": -81.5625,
+  "lonMax": -73.4375,
+  "latMin": 36.0,
+  "latMax": 42.25,
+  "dLon": 0.3125,
+  "dLat": 0.25,
+  "wrapsLongitude": false,
+  "pngRowOrder": "north-to-south"
+ },
+ "frames": [
+  {
+   "time": "2024-01-16T00:00Z",
+   "sourceIndex": 17896
+  },
+  {
+   "time": "2024-02-15T09:00Z",
+   "sourceIndex": 18139
+  },
+  {
+   "time": "2024-03-17T18:00Z",
+   "sourceIndex": 18390
+  },
+  {
+   "time": "2024-04-16T03:00Z",
+   "sourceIndex": 18625
+  },
+  {
+   "time": "2024-05-17T12:00Z",
+   "sourceIndex": 18876
+  },
+  {
+   "time": "2024-06-16T21:00Z",
+   "sourceIndex": 19119
+  },
+  {
+   "time": "2024-07-17T06:00Z",
+   "sourceIndex": 19362
+  },
+  {
+   "time": "2024-08-16T15:00Z",
+   "sourceIndex": 19605
+  },
+  {
+   "time": "2024-09-16T00:00Z",
+   "sourceIndex": 19848
+  },
+  {
+   "time": "2024-10-16T09:00Z",
+   "sourceIndex": 20091
+  },
+  {
+   "time": "2024-11-16T18:00Z",
+   "sourceIndex": 20342
+  },
+  {
+   "time": "2024-12-16T03:00Z",
+   "sourceIndex": 20577
+  }
+ ],
+ "framesExpected": 12,
+ "complete": true,
+ "atlas": {
+  "cols": 4,
+  "rows": 3,
+  "tileWidth": 27,
+  "tileHeight": 26,
+  "order": "row-major, frame 0 top-left"
+ },
+ "files": {
+  "wind": "2024.wind.png",
+  "scalars": "2024.scalars.png"
+ },
+ "encoding": {
+  "formula": "value = min + byte / 255 * (max - min)",
+  "wind": {
+   "R": {
+    "variable": "u10m",
+    "meaning": "eastward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "G": {
+    "variable": "v10m",
+    "meaning": "northward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "B": {
+    "meaning": "255 = valid cell, 0 = missing"
+   }
+  },
+  "scalars": {
+   "R": {
+    "variable": "t2m",
+    "meaning": "air temperature at 2 m",
+    "unit": "K",
+    "min": 200.0,
+    "max": 330.0
+   },
+   "G": {
+    "variable": "slp",
+    "meaning": "sea-level pressure",
+    "unit": "hPa",
+    "min": 940.0,
+    "max": 1060.0
+   }
+  }
+ },
+ "stats": {
+  "meanSpeed": 2.581,
+  "maxSpeed": 11.845
+ },
+ "site": {
+  "id": "ashburn",
+  "name": "Data Center Alley",
+  "lat": 39.0298,
+  "lon": -77.4744
+ },
+ "siteSeries": [
+  {
+   "time": "2024-01-16T00:00Z",
+   "u": -0.95,
+   "v": 0.58,
+   "speed": 1.12,
+   "towardDeg": 301.4,
+   "t2mK": 270.47,
+   "slpHpa": 1021.74
+  },
+  {
+   "time": "2024-02-15T09:00Z",
+   "u": 0.37,
+   "v": -1.38,
+   "speed": 1.43,
+   "towardDeg": 164.9,
+   "t2mK": 269.32,
+   "slpHpa": 1024.65
+  },
+  {
+   "time": "2024-03-17T18:00Z",
+   "u": 2.56,
+   "v": 0.19,
+   "speed": 2.57,
+   "towardDeg": 85.9,
+   "t2mK": 289.28,
+   "slpHpa": 1003.22
+  },
+  {
+   "time": "2024-04-16T03:00Z",
+   "u": 0.71,
+   "v": -1.37,
+   "speed": 1.55,
+   "towardDeg": 152.5,
+   "t2mK": 289.71,
+   "slpHpa": 1014.11
+  },
+  {
+   "time": "2024-05-17T12:00Z",
+   "u": -1.07,
+   "v": -0.43,
+   "speed": 1.15,
+   "towardDeg": 248.2,
+   "t2mK": 289.18,
+   "slpHpa": 1013.59
+  },
+  {
+   "time": "2024-06-16T21:00Z",
+   "u": -0.27,
+   "v": 1.82,
+   "speed": 1.84,
+   "towardDeg": 351.7,
+   "t2mK": 301.54,
+   "slpHpa": 1019.96
+  },
+  {
+   "time": "2024-07-17T06:00Z",
+   "u": 1.11,
+   "v": -0.19,
+   "speed": 1.13,
+   "towardDeg": 99.9,
+   "t2mK": 298.67,
+   "slpHpa": 1009.99
+  },
+  {
+   "time": "2024-08-16T15:00Z",
+   "u": -0.36,
+   "v": 1.0,
+   "speed": 1.06,
+   "towardDeg": 340.2,
+   "t2mK": 296.43,
+   "slpHpa": 1017.53
+  },
+  {
+   "time": "2024-09-16T00:00Z",
+   "u": -1.42,
+   "v": 0.43,
+   "speed": 1.48,
+   "towardDeg": 287.0,
+   "t2mK": 294.94,
+   "slpHpa": 1024.07
+  },
+  {
+   "time": "2024-10-16T09:00Z",
+   "u": 1.91,
+   "v": -0.99,
+   "speed": 2.15,
+   "towardDeg": 117.4,
+   "t2mK": 278.33,
+   "slpHpa": 1018.77
+  },
+  {
+   "time": "2024-11-16T18:00Z",
+   "u": 2.11,
+   "v": -2.67,
+   "speed": 3.41,
+   "towardDeg": 141.6,
+   "t2mK": 287.43,
+   "slpHpa": 1016.25
+  },
+  {
+   "time": "2024-12-16T03:00Z",
+   "u": -1.11,
+   "v": 0.64,
+   "speed": 1.28,
+   "towardDeg": 300.0,
+   "t2mK": 274.46,
+   "slpHpa": 1033.0
+  }
+ ]
+}

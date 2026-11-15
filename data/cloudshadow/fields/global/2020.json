@@ -1,0 +1,123 @@
+{
+ "schemaVersion": "flow-field/1.0",
+ "id": "global-2020",
+ "kind": "global",
+ "year": 2020,
+ "evidence": "model_analysis",
+ "evidenceNote": "GEOS-FP analyses combine a weather model with assimilated observations. Wind here is the real large-scale flow at each frame time; it is not a measured pollutant concentration, and any tracer/plume moved by it in a client is a visualization.",
+ "source": {
+  "name": "NASA GMAO GEOS-FP",
+  "collection": "GEOS-FP inst3_2d_asm_Nx (assimilation, 3-hourly, 2D single-level)",
+  "dataset": "https://opendap.nccs.nasa.gov/dods/GEOS-5/fp/0.25_deg/assim/inst3_2d_asm_Nx",
+  "variables": [
+   "u10m",
+   "v10m",
+   "t2m",
+   "slp"
+  ],
+  "nativeResolution": "0.25 deg lat x 0.3125 deg lon, 3-hourly instantaneous",
+  "productResolution": "2 deg lat x 2.5 deg lon",
+  "retrieved": "2026-11-14T19:47Z",
+  "access": "public OPeNDAP, no login"
+ },
+ "grid": {
+  "nx": 144,
+  "ny": 91,
+  "lonMin": -180.0,
+  "lonMax": 177.5,
+  "latMin": -90.0,
+  "latMax": 90.0,
+  "dLon": 2.5,
+  "dLat": 2.0,
+  "wrapsLongitude": true,
+  "pngRowOrder": "north-to-south"
+ },
+ "frames": [
+  {
+   "time": "2020-01-16T00:00Z",
+   "sourceIndex": 6208
+  },
+  {
+   "time": "2020-02-15T09:00Z",
+   "sourceIndex": 6451
+  },
+  {
+   "time": "2020-03-17T18:00Z",
+   "sourceIndex": 6702
+  },
+  {
+   "time": "2020-04-16T03:00Z",
+   "sourceIndex": 6937
+  },
+  {
+   "time": "2020-05-17T12:00Z",
+   "sourceIndex": 7188
+  },
+  {
+   "time": "2020-06-16T21:00Z",
+   "sourceIndex": 7431
+  },
+  {
+   "time": "2020-07-17T06:00Z",
+   "sourceIndex": 7674
+  },
+  {
+   "time": "2020-08-16T15:00Z",
+   "sourceIndex": 7917
+  },
+  {
+   "time": "2020-09-16T00:00Z",
+   "sourceIndex": 8160
+  },
+  {
+   "time": "2020-10-16T09:00Z",
+   "sourceIndex": 8403
+  },
+  {
+   "time": "2020-11-16T18:00Z",
+   "sourceIndex": 8654
+  },
+  {
+   "time": "2020-12-16T03:00Z",
+   "sourceIndex": 8889
+  }
+ ],
+ "framesExpected": 12,
+ "complete": true,
+ "atlas": {
+  "cols": 4,
+  "rows": 3,
+  "tileWidth": 144,
+  "tileHeight": 91,
+  "order": "row-major, frame 0 top-left"
+ },
+ "files": {
+  "wind": "2020.wind.png"
+ },
+ "encoding": {
+  "formula": "value = min + byte / 255 * (max - min)",
+  "wind": {
+   "R": {
+    "variable": "u10m",
+    "meaning": "eastward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "G": {
+    "variable": "v10m",
+    "meaning": "northward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "B": {
+    "meaning": "255 = valid cell, 0 = missing"
+   }
+  }
+ },
+ "stats": {
+  "meanSpeed": 6.243,
+  "maxSpeed": 34.291
+ }
+}

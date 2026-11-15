@@ -24,7 +24,28 @@ export interface ClimateRequest { schemaVersion: "1.0"; kind: "climate"; point: 
 export interface AgricultureRequest { schemaVersion: "1.0"; kind: "agriculture"; point: { latitude: number; longitude: number }; baseline: { start: string; end: string }; future: { start: string; end: string }; models?: ClimateRequest["models"]; growingMonths: number[]; baseTemperatureC: number; heatThresholdC: number; dryDayThresholdMm: number }
 export interface GroundEvidenceRequest { schemaVersion: "1.0"; kind: "ground-evidence"; records: unknown[] }
 export interface WaterQualityRequest { schemaVersion: "1.0"; kind: "water-quality"; stationId: string; start: string; end: string; parameters?: Array<"00010" | "00095" | "00400" | "00300" | "63680"> }
-export type EnvironmentRequest = MeteorologyRequest | FacilitiesRequest | EmissionsRequest | AirQualityRequest | LandWaterRequest | ClimateRequest | AgricultureRequest | GroundEvidenceRequest | WaterQualityRequest;
+/** Part 2 trend input: a completed `series` run's variable, or an inline series (e.g. Giovanni or GIBS-derived). */
+export type TrendSeriesInput =
+  | { runId: string; variable: string; model?: string }
+  /** Several completed Part 1 runs stitched in time (e.g. consecutive 2-year ERA5 land-water requests). */
+  | { runIds: string[]; variable: string; model?: string }
+  | { series: { label: string; unit: string; source?: string; points: Array<{ date: string; value: number | null }> } };
+export interface TrendAnalysisRequest {
+  schemaVersion: "1.0"; kind: "trend-analysis";
+  input: TrendSeriesInput; control?: TrendSeriesInput;
+  cadence?: "monthly" | "annual"; alpha?: number; minYears?: number; minCountPerMonth?: number;
+}
+/** Part 2 screening plume: chi/Q footprint from GEOS-FP winds; concentration only with a sourced emission rate. */
+export interface PlumeScenarioRequest {
+  schemaVersion: "1.0"; kind: "plume-scenario";
+  siteId?: string; point?: { latitude: number; longitude: number };
+  receptors?: Array<{ name: string; lat: number; lon: number }>;
+  effectiveHeightM: number; landUse?: "urban" | "rural";
+  emission?: { rateGs: number; source: string; pollutant?: string };
+}
+/** Part 2 conditional climate to 2100 (NASA NEX-GDDP-CMIP6 ensemble) for any land point. */
+export interface ClimateProjectionRequest { schemaVersion: "1.0"; kind: "climate-projection"; point: { latitude: number; longitude: number }; perWindow?: number }
+export type EnvironmentRequest = MeteorologyRequest | FacilitiesRequest | EmissionsRequest | AirQualityRequest | LandWaterRequest | ClimateRequest | AgricultureRequest | GroundEvidenceRequest | WaterQualityRequest | TrendAnalysisRequest | PlumeScenarioRequest | ClimateProjectionRequest;
 
 export interface EnvironmentRun {
   id: string;
@@ -49,7 +70,9 @@ export const ENVIRONMENT_DOMAINS = [
   { id: "land-water", status: "live_model_adapter", description: "ERA5 daily rainfall, reference ET0 and soil moisture by depth; no inference of facility consumption or water chemistry" },
   { id: "water-quality", status: "live_ground_adapter", description: "USGS station temperature, conductance, pH, oxygen and turbidity where available; broader chemistry and facility-attribution models remain unsupported" },
   { id: "noise", status: "ground_import_only", description: "Imports source-referenced acoustic records; no ground noise dataset acquired or propagation/impact model implemented" },
-  { id: "trend-analysis", status: "planned_worker", description: "Part 2: slope, seasonal treatment, significance and uncertainty" },
+  { id: "trend-analysis", status: "live_statistical_worker", description: "Part 2: Sen's slope + CI, seasonal/Hamed-Rao Mann-Kendall, autocorrelation-adjusted t-test, control-region difference; for a completed series run or an inline series. Statistical change only, not attribution" },
+  { id: "air-dispersion-screening", status: "live_scenario_worker", description: "Part 2: Gaussian-plume chi/Q footprint from NASA GEOS-FP winds (2018+); concentrations only with a sourced emission rate. Screening, not regulatory (AERMOD); no chemistry or deposition" },
+  { id: "climate-projection-2100", status: "live_scenario_worker", description: "Part 2: NASA NEX-GDDP-CMIP6 5-model ensemble, SSP2-4.5 and SSP5-8.5, 1995-2014 vs 2041-2060 and 2081-2100 (mean temperature, days >= 35 C, precipitation); model spread, not confidence intervals" },
   { id: "future-environment", status: "live_climate_scenario_adapter", description: "Two HighResMIP climate simulations through 2050-01-01; local facility-impact models and projections to 2100 remain unavailable" },
   { id: "agriculture", status: "climate_exposure_screening", description: "Growing-season heat/frost/dry-day/GDD and climatic-balance comparisons; no crop yield forecast or facility attribution" }
 ] as const;
@@ -59,6 +82,8 @@ export function validateEnvironmentRequest(input: unknown): string[] {
   const value = input as Record<string, unknown>;
   if (typeof value.kind !== "string") return ["kind must be a string"];
   if (["facilities-sync", "emissions-sync", "air-quality", "land-water", "climate", "agriculture", "ground-evidence", "water-quality"].includes(value.kind)) return validateExpandedRequest(value);
+  if (value.kind === "trend-analysis") return validateTrendRequest(value);
+  if (value.kind === "plume-scenario" || value.kind === "climate-projection") return validateScenarioRequest(value);
   const errors: string[] = [];
   const allowed = new Set(["schemaVersion", "kind", "source", "variables", "start", "end", "date", "point", "bbox", "maxCacheMiB", "refreshCatalog"]);
   if (Object.keys(value).some(key => !allowed.has(key))) errors.push("Unknown request field");
@@ -90,6 +115,96 @@ export function validateEnvironmentRequest(input: unknown): string[] {
   } else if (value.kind === "grid") {
     if (value.source !== "power-grid" || !month(value.date) || !Array.isArray(value.variables) || value.variables.length !== 1) errors.push("grid requires source power-grid, one variable and date YYYY-MM");
     if (["point", "bbox", "start", "end", "refreshCatalog", "maxCacheMiB"].some(key => value[key] !== undefined)) errors.push("grid returns a complete native global frame and does not accept spatial/sync/series fields");
+  }
+  return errors;
+}
+
+const TREND_MAX_POINTS = 20_000;
+
+function validateTrendInput(input: unknown, name: string): string[] {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return [`${name} must be an object`];
+  const value = input as Record<string, unknown>;
+  const keys = Object.keys(value);
+  if (keys.includes("runId") || keys.includes("runIds")) {
+    const errors: string[] = [];
+    if (keys.some(key => !["runId", "runIds", "variable", "model"].includes(key)) || (keys.includes("runId") === keys.includes("runIds"))) return [`${name} needs exactly one of runId or runIds, plus variable and optional model`];
+    const ids = keys.includes("runIds") ? value.runIds : [value.runId];
+    if (!Array.isArray(ids) || ids.length < 1 || ids.length > 60 || new Set(ids).size !== ids.length || ids.some(id => typeof id !== "string" || !/^[a-zA-Z0-9_-]{1,80}$/.test(id))) errors.push(`${name}.runIds must be 1-60 unique run IDs`);
+    if (typeof value.variable !== "string" || !/^[A-Za-z0-9_.-]{1,60}$/.test(value.variable)) errors.push(`${name}.variable must be a variable or parameter ID`);
+    if (value.model !== undefined && (typeof value.model !== "string" || !/^[A-Za-z0-9_.-]{1,60}$/.test(value.model))) errors.push(`${name}.model must be a model ID`);
+    return errors;
+  }
+  if (keys.join(",") !== "series") return [`${name} needs {runId|runIds, variable} or {series}`];
+  const series = value.series as Record<string, unknown>;
+  if (!series || typeof series !== "object" || Array.isArray(series) || Object.keys(series).some(key => !["label", "unit", "source", "points"].includes(key))) return [`${name}.series has unknown or missing fields`];
+  const errors: string[] = [];
+  if (typeof series.label !== "string" || !series.label.trim() || series.label.length > 120) errors.push(`${name}.series.label must be 1-120 characters`);
+  if (typeof series.unit !== "string" || series.unit.length > 40) errors.push(`${name}.series.unit must be a string up to 40 characters`);
+  if (series.source !== undefined && (typeof series.source !== "string" || series.source.length > 300)) errors.push(`${name}.series.source must be a string up to 300 characters`);
+  const points = series.points;
+  if (!Array.isArray(points) || points.length < 3 || points.length > TREND_MAX_POINTS) return [...errors, `${name}.series.points must contain 3-${TREND_MAX_POINTS} points`];
+  const dates = new Set<string>();
+  for (const point of points) {
+    if (!point || typeof point !== "object" || Array.isArray(point) || Object.keys(point).some(key => !["date", "value"].includes(key))) { errors.push(`${name}.series.points items must be {date, value}`); break; }
+    const { date, value: v } = point as Record<string, unknown>;
+    if (typeof date !== "string" || !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(date)) { errors.push(`${name}.series.points dates must be YYYY, YYYY-MM or YYYY-MM-DD`); break; }
+    if (v !== null && (typeof v !== "number" || !Number.isFinite(v))) { errors.push(`${name}.series.points values must be finite numbers or null`); break; }
+    if (dates.has(date)) { errors.push(`${name}.series.points has duplicate dates`); break; }
+    dates.add(date);
+  }
+  return errors;
+}
+
+function validateTrendRequest(value: Record<string, unknown>): string[] {
+  const errors: string[] = [];
+  if (value.schemaVersion !== "1.0") errors.push("schemaVersion must be 1.0");
+  if (Object.keys(value).some(key => !["schemaVersion", "kind", "input", "control", "cadence", "alpha", "minYears", "minCountPerMonth"].includes(key))) errors.push("Unknown request field");
+  errors.push(...validateTrendInput(value.input, "input"));
+  if (value.control !== undefined) errors.push(...validateTrendInput(value.control, "control"));
+  if (value.cadence !== undefined && !["monthly", "annual"].includes(String(value.cadence))) errors.push("cadence must be monthly or annual");
+  if (value.control !== undefined && value.cadence === "annual") errors.push("control comparisons use cadence monthly");
+  if (value.alpha !== undefined && (typeof value.alpha !== "number" || !(value.alpha > 0 && value.alpha <= 0.2))) errors.push("alpha must be in (0, 0.2]");
+  if (value.minYears !== undefined && (!Number.isInteger(value.minYears) || Number(value.minYears) < 3 || Number(value.minYears) > 100)) errors.push("minYears must be an integer 3-100");
+  if (value.minCountPerMonth !== undefined && (!Number.isInteger(value.minCountPerMonth) || Number(value.minCountPerMonth) < 1 || Number(value.minCountPerMonth) > 31)) errors.push("minCountPerMonth must be an integer 1-31");
+  return errors;
+}
+
+function validPoint(point: unknown): boolean {
+  if (!point || typeof point !== "object" || Array.isArray(point)) return false;
+  const p = point as Record<string, unknown>;
+  return Object.keys(p).every(key => ["latitude", "longitude"].includes(key)) && typeof p.latitude === "number" && Number.isFinite(p.latitude)
+    && Math.abs(p.latitude) <= 90 && typeof p.longitude === "number" && Number.isFinite(p.longitude) && Math.abs(p.longitude) <= 180;
+}
+
+function validateScenarioRequest(value: Record<string, unknown>): string[] {
+  const errors: string[] = [];
+  if (value.schemaVersion !== "1.0") errors.push("schemaVersion must be 1.0");
+  if (value.kind === "climate-projection") {
+    if (Object.keys(value).some(key => !["schemaVersion", "kind", "point", "perWindow"].includes(key))) errors.push("Unknown request field");
+    if (!validPoint(value.point)) errors.push("A finite WGS84 point is required");
+    if (value.perWindow !== undefined && (!Number.isInteger(value.perWindow) || Number(value.perWindow) < 1 || Number(value.perWindow) > 4)) errors.push("perWindow must be an integer 1-4");
+    return errors;
+  }
+  if (Object.keys(value).some(key => !["schemaVersion", "kind", "siteId", "point", "receptors", "effectiveHeightM", "landUse", "emission"].includes(key))) errors.push("Unknown request field");
+  const hasSite = value.siteId !== undefined, hasPoint = value.point !== undefined;
+  if (hasSite === hasPoint) errors.push("Provide exactly one of siteId or point");
+  if (hasSite && (typeof value.siteId !== "string" || !/^[a-z0-9_-]{1,40}$/.test(value.siteId))) errors.push("siteId must be a case-study site id");
+  if (hasPoint && !validPoint(value.point)) errors.push("A finite WGS84 point is required");
+  if (value.receptors !== undefined) {
+    const receptors = value.receptors;
+    if (!hasPoint) errors.push("receptors are only accepted with point (case-study sites use their own)");
+    else if (!Array.isArray(receptors) || receptors.length > 20 || receptors.some(r => !r || typeof r !== "object" || Array.isArray(r)
+      || Object.keys(r).some(k => !["name", "lat", "lon"].includes(k)) || typeof (r as any).name !== "string" || !(r as any).name.trim()
+      || !validPoint({ latitude: (r as any).lat, longitude: (r as any).lon }))) errors.push("receptors must be up to 20 {name, lat, lon}");
+  }
+  if (typeof value.effectiveHeightM !== "number" || !Number.isFinite(value.effectiveHeightM) || value.effectiveHeightM < 1 || value.effectiveHeightM > 300) errors.push("effectiveHeightM (an explicit assumption) must be 1-300 m");
+  if (value.landUse !== undefined && !["urban", "rural"].includes(String(value.landUse))) errors.push("landUse must be urban or rural");
+  if (value.emission !== undefined) {
+    const e = value.emission as Record<string, unknown>;
+    if (!e || typeof e !== "object" || Array.isArray(e) || Object.keys(e).some(k => !["rateGs", "source", "pollutant"].includes(k))
+      || typeof e.rateGs !== "number" || !Number.isFinite(e.rateGs) || e.rateGs <= 0 || e.rateGs > 100_000
+      || typeof e.source !== "string" || e.source.trim().length < 3 || e.source.length > 300
+      || (e.pollutant !== undefined && (typeof e.pollutant !== "string" || e.pollutant.length > 40))) errors.push("emission needs rateGs in (0, 100000] g/s and a source (permit, inventory or stated assumption)");
   }
   return errors;
 }

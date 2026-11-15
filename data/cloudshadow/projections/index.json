@@ -1,0 +1,30 @@
+{
+ "schemaVersion": "climate-projection-index/1.0",
+ "products": [
+  {
+   "site": "colossus1",
+   "file": "colossus1.json",
+   "failed": 0
+  },
+  {
+   "site": "colossus2",
+   "file": "colossus2.json",
+   "failed": 0
+  },
+  {
+   "site": "ashburn",
+   "file": "ashburn.json",
+   "failed": 0
+  },
+  {
+   "site": "abilene",
+   "file": "abilene.json",
+   "failed": 0
+  },
+  {
+   "site": "thedalles",
+   "file": "thedalles.json",
+   "failed": 0
+  }
+ ]
+}

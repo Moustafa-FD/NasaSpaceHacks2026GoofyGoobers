@@ -19,6 +19,7 @@ Useful URLs while developing:
 | `/?quality=low` | No HDR/bloom/shadows (slow laptops; also what headless Chrome needs) |
 | `/?site=ashburn&view=3d&focus=shops` | Open mapped commercial detail; `focus=airport` opens a mapped airport when available |
 | `/?fluid=off` | Disable the fluid sim |
+| `/?flow=off` | Disable the GEOS-FP wind-flow trails (fluid/clouds fall back to the annual NASA POWER wind) |
 | `/?debug=1` | Logs annual-trend/particle state to the console after 8 s |
 | `/?tour=0` | Start the guided tour |
 | `/dev/fluid.html` | **Fluid playground**: tune the weather sim with sliders, no globe |
@@ -126,6 +127,7 @@ Add `&gpu=1` to a view URL, for example `/?site=colossus1&year=2025&gpu=1`, to s
 | **Heat display** | Night heat remains in the HUD, heat layer and trend strip; no heat dome or floating embers. | `LST_Night_Local` | `timeline.js` |
 | **Fluid weather field** (swirls on the ground, ~32 km) | Qualitative blue-gray wind/moisture wisps with transparent borders; no orange heat source. Combustion trace is gated to documented sources and does not scale with satellite NO₂ | `PlumeTowardDeg`, `WS10M`, `LST_Night_Local`, `NO2_Local`, `PrecipMMDay` | `fluid-gpu.js` (CPU fallback `fluid.js`), driven from `fx.js` |
 | **Combustion plume** | Qualitative wind-driven particles only for explicitly documented combustion sites after onset. Close-up caption states “Illustrative combustion plume; not measured visible smoke.” Rate/particle density are not concentrations. | `sites.json → effects.plume`, onset and available yearly wind | `timeline.js` (globe), `campus-effects.js` (close-up) |
+| **Wind-flow particle trails** (site box; whole globe when zoomed out) + HUD chip "GEOS-FP …" | Real gridded 10 m wind from NASA GEOS-FP analyses, 12 instants per year (2018+), time-lapsed. Also steers the fluid sim, clouds and streaks via `cs:wind`. Direction validated vs Dulles airport; speed relative | `data/fields/` (`npm run data:fields`), see [docs/flow-fields.md](../../docs/flow-fields.md) | `flowfield.js` |
 | **Clouds, rain, wind streaks** | That year's NASA POWER wind and precipitation | `WS10M`, `PlumeTowardDeg`, `PrecipMMDay` | `fx.js`, `timeline.js` |
 | **Sky tint** | Regional air-temperature anomaly that year | `T2M` | `fx.js → applyYear` |
 | **Globe-only campus massing** | Legacy illustrative growth context after onset; hidden in close-up mode, where source footprints and detailed industrial models are used instead. | `sites.json → onset` | `fx.js → buildSite`, `neighborhood.js` |

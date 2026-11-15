@@ -1,0 +1,256 @@
+{
+ "schemaVersion": "flow-field/1.0",
+ "id": "abilene-2024",
+ "kind": "site",
+ "year": 2024,
+ "evidence": "model_analysis",
+ "evidenceNote": "GEOS-FP analyses combine a weather model with assimilated observations. Wind here is the real large-scale flow at each frame time; it is not a measured pollutant concentration, and any tracer/plume moved by it in a client is a visualization.",
+ "source": {
+  "name": "NASA GMAO GEOS-FP",
+  "collection": "GEOS-FP inst3_2d_asm_Nx (assimilation, 3-hourly, 2D single-level)",
+  "dataset": "https://opendap.nccs.nasa.gov/dods/GEOS-5/fp/0.25_deg/assim/inst3_2d_asm_Nx",
+  "variables": [
+   "u10m",
+   "v10m",
+   "t2m",
+   "slp"
+  ],
+  "nativeResolution": "0.25 deg lat x 0.3125 deg lon, 3-hourly instantaneous",
+  "productResolution": "0.25 deg lat x 0.3125 deg lon",
+  "retrieved": "2026-11-14T19:57Z",
+  "access": "public OPeNDAP, no login"
+ },
+ "grid": {
+  "nx": 28,
+  "ny": 26,
+  "lonMin": -104.0625,
+  "lonMax": -95.625,
+  "latMin": 29.5,
+  "latMax": 35.75,
+  "dLon": 0.3125,
+  "dLat": 0.25,
+  "wrapsLongitude": false,
+  "pngRowOrder": "north-to-south"
+ },
+ "frames": [
+  {
+   "time": "2024-01-16T00:00Z",
+   "sourceIndex": 17896
+  },
+  {
+   "time": "2024-02-15T09:00Z",
+   "sourceIndex": 18139
+  },
+  {
+   "time": "2024-03-17T18:00Z",
+   "sourceIndex": 18390
+  },
+  {
+   "time": "2024-04-16T03:00Z",
+   "sourceIndex": 18625
+  },
+  {
+   "time": "2024-05-17T12:00Z",
+   "sourceIndex": 18876
+  },
+  {
+   "time": "2024-06-16T21:00Z",
+   "sourceIndex": 19119
+  },
+  {
+   "time": "2024-07-17T06:00Z",
+   "sourceIndex": 19362
+  },
+  {
+   "time": "2024-08-16T15:00Z",
+   "sourceIndex": 19605
+  },
+  {
+   "time": "2024-09-16T00:00Z",
+   "sourceIndex": 19848
+  },
+  {
+   "time": "2024-10-16T09:00Z",
+   "sourceIndex": 20091
+  },
+  {
+   "time": "2024-11-16T18:00Z",
+   "sourceIndex": 20342
+  },
+  {
+   "time": "2024-12-16T03:00Z",
+   "sourceIndex": 20577
+  }
+ ],
+ "framesExpected": 12,
+ "complete": true,
+ "atlas": {
+  "cols": 4,
+  "rows": 3,
+  "tileWidth": 28,
+  "tileHeight": 26,
+  "order": "row-major, frame 0 top-left"
+ },
+ "files": {
+  "wind": "2024.wind.png",
+  "scalars": "2024.scalars.png"
+ },
+ "encoding": {
+  "formula": "value = min + byte / 255 * (max - min)",
+  "wind": {
+   "R": {
+    "variable": "u10m",
+    "meaning": "eastward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "G": {
+    "variable": "v10m",
+    "meaning": "northward wind at 10 m",
+    "unit": "m/s",
+    "min": -40.0,
+    "max": 40.0
+   },
+   "B": {
+    "meaning": "255 = valid cell, 0 = missing"
+   }
+  },
+  "scalars": {
+   "R": {
+    "variable": "t2m",
+    "meaning": "air temperature at 2 m",
+    "unit": "K",
+    "min": 200.0,
+    "max": 330.0
+   },
+   "G": {
+    "variable": "slp",
+    "meaning": "sea-level pressure",
+    "unit": "hPa",
+    "min": 940.0,
+    "max": 1060.0
+   }
+  }
+ },
+ "stats": {
+  "meanSpeed": 5.155,
+  "maxSpeed": 15.612
+ },
+ "site": {
+  "id": "abilene",
+  "name": "Stargate Abilene",
+  "lat": 32.5029,
+  "lon": -99.7834
+ },
+ "siteSeries": [
+  {
+   "time": "2024-01-16T00:00Z",
+   "u": -2.49,
+   "v": -8.69,
+   "speed": 9.04,
+   "towardDeg": 196.0,
+   "t2mK": 267.53,
+   "slpHpa": 1023.93
+  },
+  {
+   "time": "2024-02-15T09:00Z",
+   "u": 4.19,
+   "v": 4.96,
+   "speed": 6.5,
+   "towardDeg": 40.2,
+   "t2mK": 283.39,
+   "slpHpa": 1016.75
+  },
+  {
+   "time": "2024-03-17T18:00Z",
+   "u": -3.85,
+   "v": -5.15,
+   "speed": 6.43,
+   "towardDeg": 216.8,
+   "t2mK": 287.32,
+   "slpHpa": 1015.8
+  },
+  {
+   "time": "2024-04-16T03:00Z",
+   "u": -1.89,
+   "v": 8.79,
+   "speed": 8.99,
+   "towardDeg": 347.9,
+   "t2mK": 297.79,
+   "slpHpa": 1000.8
+  },
+  {
+   "time": "2024-05-17T12:00Z",
+   "u": 2.12,
+   "v": -0.35,
+   "speed": 2.15,
+   "towardDeg": 99.4,
+   "t2mK": 289.82,
+   "slpHpa": 1008.0
+  },
+  {
+   "time": "2024-06-16T21:00Z",
+   "u": -2.99,
+   "v": 5.77,
+   "speed": 6.5,
+   "towardDeg": 332.7,
+   "t2mK": 308.88,
+   "slpHpa": 1004.4
+  },
+  {
+   "time": "2024-07-17T06:00Z",
+   "u": 1.42,
+   "v": 6.2,
+   "speed": 6.36,
+   "towardDeg": 12.9,
+   "t2mK": 302.96,
+   "slpHpa": 1009.28
+  },
+  {
+   "time": "2024-08-16T15:00Z",
+   "u": 2.88,
+   "v": 4.94,
+   "speed": 5.72,
+   "towardDeg": 30.2,
+   "t2mK": 303.78,
+   "slpHpa": 1012.88
+  },
+  {
+   "time": "2024-09-16T00:00Z",
+   "u": -0.81,
+   "v": 1.4,
+   "speed": 1.62,
+   "towardDeg": 330.1,
+   "t2mK": 305.7,
+   "slpHpa": 1008.33
+  },
+  {
+   "time": "2024-10-16T09:00Z",
+   "u": -5.23,
+   "v": -5.23,
+   "speed": 7.4,
+   "towardDeg": 225.0,
+   "t2mK": 287.81,
+   "slpHpa": 1022.93
+  },
+  {
+   "time": "2024-11-16T18:00Z",
+   "u": 2.16,
+   "v": 8.1,
+   "speed": 8.38,
+   "towardDeg": 14.9,
+   "t2mK": 295.22,
+   "slpHpa": 1005.76
+  },
+  {
+   "time": "2024-12-16T03:00Z",
+   "u": 1.65,
+   "v": 3.1,
+   "speed": 3.51,
+   "towardDeg": 28.1,
+   "t2mK": 289.94,
+   "slpHpa": 1013.85
+  }
+ ]
+}
