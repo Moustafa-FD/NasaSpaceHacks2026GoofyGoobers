@@ -4,7 +4,7 @@
 // Deliberately exaggerated visualizations of the numbers in the panel (the help card says so), not measured concentrations. Driven by "cs:theme" (ui-shell.js) and "cs:year" (timeline.js).
 import { sceneGround } from "./fluid-gpu.js";
 import { projectRow } from "./ui-facts.js";
-const V = { local: false, ground: 0, viewer: null, theme: null, site: null, facts: null, row: null, year: null, ents: [], t0: performance.now() };
+const V = { local: false, ground: 0, viewer: null, theme: null, site: null, facts: null, row: null, year: null, ents: [], electricity: false, t0: performance.now() };
 const num = (x) => (x == null || x === "" ? null : +x);
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const pulse = (s = 1) => 0.5 + 0.5 * Math.sin(((performance.now() - V.t0) / 1000) * s);
@@ -60,11 +60,11 @@ function build() {
   const C = globalThis.Cesium; if (!V.viewer || !C) return;
   derive();
   const mapShown = V.theme === "heat" && V.mapOn && !V.local;
-  const key = [V.theme, V.site?.id, V.local, Math.round(V.ground), mapShown].join("|");
+  const key = [V.theme, V.site?.id, V.local, Math.round(V.ground), mapShown, V.electricity].join("|");
   if (key === builtKey && V.ents.length) return; // same scene: callbacks pick up the new year
   builtKey = key;
   for (const e of V.ents) V.viewer.entities.remove(e); V.ents = [];
-  if (!V.site || !V.theme) return;
+  if (!V.site || !V.theme || V.electricity) return;
   const add = (spec) => V.ents.push(V.viewer.entities.add(spec));
   // In the low-poly close-up the ground is the team's terrain mesh, not the ellipsoid: lift everything onto it.
   const lift = V.local ? V.ground : 0; // ellipse `height` is absolute, so add the ground there too
@@ -129,6 +129,8 @@ function build() {
 
 function init(cs) {
   V.viewer = cs.viewer;
+  V.electricity = document.body.classList.contains('electricity-active');
+  window.addEventListener('cs:electricity', ({ detail }) => { if (typeof detail?.active === 'boolean') { V.electricity = detail.active; build(); } });
   window.addEventListener("cs:theme", ({ detail: d }) => { Object.assign(V, { theme: d.theme, site: d.site, facts: d.facts, year: d.year, mapOn: !!d.mapOn }); build(); });
   window.addEventListener("cs:scene-mode", (e) => {
     V.local = !!e.detail?.active; V.ground = 0; build();

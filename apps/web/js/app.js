@@ -86,7 +86,7 @@
 
   // Study-area pins become exact mapped roof pins once a campus is prepared.
   const sitePins = new Map(), campusMarkers = new Map(), neighborPins = [];
-  let localMarkerMode = false;
+  let localMarkerMode = false, electricityView = false;
   for (const s of SITES) {
     const pin = viewer.entities.add({
       id: "site-" + s.id,
@@ -127,7 +127,7 @@
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
       point: { pixelSize: 7, color: Cesium.Color.fromCssColorString("#80d9c0"), outlineColor: Cesium.Color.fromCssColorString("#10222a"), outlineWidth: 2, disableDepthTestDistance: Number.POSITIVE_INFINITY },
     }));
-    ringEntities.forEach((entity) => { entity.show = !localMarkerMode; });
+    ringEntities.forEach((entity) => { entity.show = !localMarkerMode && !electricityView; });
   }
 
   function flyTo(lat, lon, km = 45, pitch = -50, heading = 0, duration = 2.5) {
@@ -185,7 +185,7 @@
       pin.point.color = Cesium.Color.fromCssColorString(selected ? "#80d9c0" : "#8fa8ad");
     }
     neighborPins.forEach((pin) => { pin.show = !localMarkerMode; });
-    ringEntities.forEach((entity) => { entity.show = !localMarkerMode; });
+    ringEntities.forEach((entity) => { entity.show = !localMarkerMode && !electricityView; });
     renderMarkerStatus();
     scene.requestRender();
   }
@@ -198,6 +198,11 @@
   window.addEventListener("cs:scene-mode", ({ detail }) => {
     if (detail?.siteId && detail.siteId !== state.site.id) return;
     localMarkerMode = !!detail?.active;
+    updateSitePins();
+  });
+  window.addEventListener('cs:electricity', ({ detail }) => {
+    if (typeof detail?.active !== 'boolean') return;
+    electricityView = detail.active;
     updateSitePins();
   });
 

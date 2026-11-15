@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "title": "Published residential water-only tariff examples for nearest mapped cities",
+  "retrievedAt": "2026-11-15",
+  "defaultMonthlyGallons": 3000,
+  "units": {"monthlyBillUsd": "nominal USD/month equivalent at the stated example use", "monthlyGallons": "US gallons/month", "rate": "USD per 1000 US gallons unless an increment is stated"},
+  "forecastAvailable": false,
+  "method": "Calculate a water-only example from published local tariffs. Unmatched years show a dated reference, not a historical price or forecast. Sewer, taxes and other services are excluded.",
+  "cities": {
+    "census-0574540": {
+      "name": "West Memphis", "state": "AR", "provider": "City of West Memphis Utilities",
+      "sourceUrl": "https://westmemphisar.gov/315/Fees-Rates", "sourceTitle": "City of West Memphis: Water Fees & Rates",
+      "records": [{"rateYear": null, "referenceOnly": true, "effectiveDate": null, "billingMonths": 1, "meterSize": "Residential 3/4 inch, inside city limits", "fixedChargeUsd": 13,
+        "tiers": [{"throughGallons": 6700, "usdPerThousandGallons": 0.969}, {"throughGallons": null, "usdPerThousandGallons": 1.164}],
+        "note": "Undated official page; retrieval does not establish publication or effective year. Published net monthly rates already include the stated 10% discount. Per-hundred-gallon prices converted to per-1000 gallons; no second discount is applied."}]
+    },
+    "census-2833700": {
+      "name": "Horn Lake", "state": "MS", "provider": "City of Horn Lake municipal water",
+      "sourceUrl": "https://www.hornlake.org/media/Board%20Meetings/Final%20Minutes%202022/11-05-24%20minutes%20final.pdf", "sourceTitle": "City of Horn Lake: November 5, 2024 minutes, Resolution 11-02-24, residential water table p. 42",
+      "records": [{"rateYear": 2024, "referenceOnly": true, "effectiveDate": null, "adoptionDate": "2024-11-05", "billingMonths": 1, "meterSize": "Standard residential minimum", "fixedChargeUsd": 14.44, "includedGallons": 4500, "incrementGallons": 750, "incrementChargeUsd": 4.01,
+        "note": "Published municipal resolution: minimum includes 0–4500 gallons, then $4.01 per additional 750 gallons or part thereof. Adoption date verified; tariff effective/current date not established. Sewer column excluded. Horn Lake Water Association is a separate supplier and its rates are not substituted."}]
+    },
+    "census-5103320": {
+      "name": "Ashburn", "state": "VA", "provider": "Loudoun Water, residential central service",
+      "sourceUrl": "https://www.loudounwater.org/schedule-rates-residential-customers", "sourceTitle": "Loudoun Water: Schedule of Rates for Residential Customers",
+      "approvalSourceUrl": "https://www.loudounwater.org/information-rate-changes",
+      "records": [
+        {"rateYear": 2025, "effectiveDate": "2025-01-01", "billingMonths": 3, "meterSize": "All residential meters", "fixedChargeUsd": 42.96,
+          "tiers": [{"throughGallons": 25000, "usdPerThousandGallons": 3.15}, {"throughGallons": 50000, "usdPerThousandGallons": 8.73}, {"throughGallons": null, "usdPerThousandGallons": 11.70}],
+          "sourceUrl": "https://www.loudounwater.org/sites/default/files/FINAL%20customer%20notification%20letter.pdf", "sourceTitle": "Loudoun Water: Schedule A, residential water rates 2025–2027", "note": "Quarterly base and quarterly volume tiers, normalized to monthly equivalent. Excludes separate sewer charge and the single-service-only surcharge; example assumes a normal combined-service account's water component."},
+        {"rateYear": 2026, "effectiveDate": "2026-01-01", "billingMonths": 3, "meterSize": "All residential meters", "fixedChargeUsd": 45.97,
+          "tiers": [{"throughGallons": 25000, "usdPerThousandGallons": 3.37}, {"throughGallons": 50000, "usdPerThousandGallons": 9.34}, {"throughGallons": null, "usdPerThousandGallons": 12.52}],
+          "note": "Quarterly base and quarterly volume tiers, normalized to monthly equivalent. Excludes sewer and the single-service-only surcharge; normal combined-service account's water component."},
+        {"rateYear": 2027, "effectiveDate": "2027-01-01", "scheduled": true, "billingMonths": 3, "meterSize": "All residential meters", "fixedChargeUsd": 49.19,
+          "tiers": [{"throughGallons": 25000, "usdPerThousandGallons": 3.61}, {"throughGallons": 50000, "usdPerThousandGallons": 9.99}, {"throughGallons": null, "usdPerThousandGallons": 13.40}],
+          "sourceUrl": "https://www.loudounwater.org/sites/default/files/FINAL%20customer%20notification%20letter.pdf", "sourceTitle": "Loudoun Water: approved Schedule A, effective January 1, 2027", "note": "Approved rate schedule, not a price forecast. Quarterly billing normalized to monthly equivalent; normal combined-service account's water component, excluding sewer and single-service surcharge."}
+      ]
+    },
+    "census-4835816": {
+      "name": "Impact", "state": "TX", "provider": null, "sourceUrl": null, "sourceTitle": null, "records": [],
+      "reason": "The residential supplier and applicable tariff for Impact were not verified. Nearby Abilene's tariff is not substituted."
+    },
+    "census-5316550": {
+      "name": "Dallesport", "state": "WA", "provider": "Dallesport Water District",
+      "sourceUrl": "https://img1.wsimg.com/blobby/go/c152fd94-b494-4e11-a165-bbb41dbf2651/Master%20Rate%20Schedule%202026%20PDF.pdf", "sourceTitle": "Dallesport Water District: 2026 Master Rate Schedule, pages 1–2",
+      "landingUrl": "https://dallesportwater.org/",
+      "records": [{"rateYear": 2026, "effectiveDate": "2026-01-01", "billingMonths": 1, "meterSize": "5/8 or 3/4 inch, one equivalent residential unit", "fixedChargeUsd": 65.64,
+        "tiers": [{"throughGallons": 10000, "usdPerThousandGallons": 1.30}, {"throughGallons": 20000, "usdPerThousandGallons": 1.45}, {"throughGallons": 30000, "usdPerThousandGallons": 1.65}, {"throughGallons": 40000, "usdPerThousandGallons": 1.90}, {"throughGallons": 50000, "usdPerThousandGallons": 2.20}, {"throughGallons": null, "usdPerThousandGallons": 2.55}],
+        "note": "Residential Dallesport service area, one ERU. Larger meters and multiple residential units have higher base multiples. Klickitat PUD industrial-water and wastewater schedules are separate and are not used."}]
+    }
+  }
+}

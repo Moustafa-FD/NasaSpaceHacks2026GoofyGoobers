@@ -254,6 +254,12 @@ npm run data:unreal                       # timeline + Unreal exports
 - [ ] Sound design (wind/hum) on Play.
 - [ ] A "share this view" button (URL with site/year/light).
 
+## Household electricity
+
+Open **City bills** in a study area for one compact card and heat marker at the nearest mapped city center. Switch **Electricity / Water** inside that card; click the readout for optional compact details and expandable sources. The camera stays where the user put it, and the same card points toward the city when its center is offscreen. This is an added view within the UI from `main`: the existing Power theme, statistic badge, theme rail and before/after controls retain their behavior. Electricity values are labeled state averages rather than local utility tariffs. Water examples use official local residential tariffs and a stated 3,000 US gallons/month, excluding sewer; reference rates retain their source year and are not future predictions. Unsupported utilities remain unavailable. Environmental comparison rings, illustrative weather and night lights are hidden while reading city prices.
+
+The stored research and acquisition method are documented in [electricity research](../../docs/electricity-research.md) and [water tariffs](../../docs/water-prices-research.md). Historical averages can fall as well as rise. Future electricity values are bounded trend projections with uncertainty, not a forecast of what a particular data center adds to a household bill. Past household bills reflect the historical average usage; projected electricity bills hold the latest observed monthly usage fixed so the projected change represents price alone.
+
 ## 7. Gotchas
 - Root `package.json` is `"type": "module"`, so Node scripts in this app are `.cjs`.
 - `npm run check` (teammate scaffold: typecheck + API tests + Python tests) must stay green; CI runs it.
