@@ -112,6 +112,19 @@ The globe and GPU fluid solver request WebGL's `high-performance` power preferen
 
 Add `&gpu=1` to a view URL, for example `/?site=colossus1&year=2025&gpu=1`, to show the renderer name from the globe's actual WebGL context and its power preference. The diagnostic is local and sends no telemetry; browsers may withhold the GPU name. `quality=low` controls visual effects, independently of GPU selection.
 
+
+## UI v3: search → one panel → before/after (Nov 15)
+
+Default interface (`?ui=classic` restores the old one). Files: `js/ui-facts.js` (pure wording/statistics logic, tested in `tests/ui-facts.test.js`), `js/ui-shell.js` (rendering only), `css/ui-shell.css`, `js/theme-visuals.js` (3D effect per theme), `scripts/wayback_pick.py` → `data/cloudshadow/wayback.json`.
+
+- **Landing:** search a city, company or data center; numbered list of the five sites.
+- **Site view:** spread to the screen edges so the middle stays clear: summary text top-left, icon theme rail (Air · Heat · Greenery · Water · Power) on the left, **BEFORE | AFTER** bottom-centre, tools (photos, all years, sources, heat map) bottom-right (above BEFORE | AFTER on narrow screens). One claim (the *change* since the start year), and a **BEFORE | AFTER** switch (year before the start vs latest year; facts are that year's *level*). **Flip** alternates them. The switch drives the team's timeline (`CloudShadowTimeline.setYear`), so smoke, landscape and the theme effect change together.
+- **Compare satellite photos:** sharp Esri World Imagery Wayback photos of the same ground (release before the start vs latest), drag to compare.
+- Hidden from casual users: full timeline (*All years*), charts and sources (*Sources & charts* drawer), camera presets, motion settings.
+- Water/Power are reported figures (households' water, EPA WaterSense 300 gal/day; homes' electricity, EIA ~800 homes per MW) and show no effect before the start year.
+
+URL options: `?site=colossus2&theme=green` · `&side=before` · `&photos=1` · `&compare=1` (start Flip) · `?q=memphis` · `?ui=classic`.
+
 ## 2. What's on screen and where it comes from
 | Visual | Meaning | Data | Code |
 |---|---|---|---|
@@ -135,6 +148,8 @@ Add `&gpu=1` to a view URL, for example `/?site=colossus1&year=2025&gpu=1`, to s
 | **Left panel** | Pick site + variable → chart, Mann-Kendall trend, before/after t-test, sourced ledger | `data/series/<site>.json`, `data/sites.json` | `app.js`, `stats.js` |
 
 **Honesty rules (they protect our Validity score, so don't break them):**
+- **Evidence gate (`shown()` in ui-facts.js):** a measured theme appears for a site only with Strong (p < 0.01) or Clear (p < 0.05) evidence on its pre-chosen variable, or a published analysis (`PUBLISHED`, e.g. Colossus 2 NO₂: Qiang et al. 2026, arXiv:2611.06115, TEMPO + TROPOMI, preprint). Water/Power appear only with a documented figure. No variable-shopping: picking whichever variable happens to pass would inflate false positives.
+- 3D effects are deliberately exaggerated for visibility (the help card says so); the text carries the exact numbers.
 - Numbers shown are measurements (or clearly labelled projections) with p-values. "Borderline" stays borderline (Memphis NO₂ p = 0.051).
 - Effects (plume, fluid, architectural detail and vegetation growth/thinning) are **visualizations driven by data**, never presented as measured concentrations, biological outcomes or surveyed replicas.
 - Future = "if the measured trend continues" (Sen's slope + 95% CI), not a forecast. Keep the PROJECTED badge.

@@ -126,12 +126,14 @@
       },
       "ledger": {
         "power": {
-          "value": "Reported ~500 MW from gas turbines while grid hookups are pending (single source)",
-          "kind": "unverified",
+          "value": "Mississippi permitted 41 gas turbines across the state line in Southaven to power Colossus 2 (March 10, 2026)",
+          "kind": "official",
+          "scope": "air permit, MDEQ Permit Board; capacity not stated in the permit coverage",
           "src": [
-            "Murfreesboro Pulse: Colossus power & water concerns",
-            "https://boropulse.com/2026/09/part-4-memphis-the-fast-arrival-xai-supercomputer-colossus-causing-power-water-concerns-in-west-tn/"
-          ]
+            "Mississippi Free Press: permit board grants 41 turbines",
+            "https://www.mississippifreepress.org/mississippi-permit-board-grants-xais-request-for-41-southaven-gas-turbines-to-power-memphis-data-center/"
+          ],
+          "short": "41 gas turbines permitted"
         },
         "water": {
           "value": "xAI has requested up to 3.7 million gal/day across Colossus 1 + 2",
@@ -210,6 +212,16 @@
             "City Journal: Loudoun County data centers",
             "https://www.city-journal.org/article/loudoun-county-virginia-data-centers-construction"
           ]
+        },
+        "water": {
+          "value": "Data centers use 9% of Loudoun County's drinking water on an average day",
+          "kind": "official",
+          "scope": "county-wide figure, not this site alone",
+          "src": [
+            "Loudoun County: Data Centers, Water Considerations",
+            "https://www.loudoun.gov/6402/Data-Centers-Water-Considerations"
+          ],
+          "short": "9% of the county's drinking water"
         }
       },
       "effects": {
