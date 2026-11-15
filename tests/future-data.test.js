@@ -100,8 +100,10 @@ test('shared future bridge loads bounded local trends, rejects late site loads a
   loads.get('data/unreal/timeline/ashburn.json')({ ok: true, json: async () => ({ site: 'ashburn', rows: [{ Year: 2030, Phase: 'projected', LST_Day_Site: 20 }] }) });
   await switched; await tick(); assert.equal(bridge.state.trend.value, 20);
   const running = bridge.request('plume-scenario'); await bridge.request('plume-scenario'); assert.equal(calls.length, 1); assert.equal(calls[0][1].year, 2030); assert.equal(bridge.state.pending, true);
-  resolveJob({ result: { site: { id: 'ashburn' }, grid: { values: [[0, 1], [1, 0]], units: 's/m³' }, evidence: 'scenario' } });
-  await running; assert.equal(bridge.state.pending, false); assert.equal(bridge.state.plume.available, true);
+  resolveJob({ result: { site: { id: 'ashburn' }, grid: { values: [[0, 1], [1, 0]], units: 's/m³' }, evidence: 'scenario', frames: { first: '2018-01-16T00:00Z', last: '2026-10-16T09:00Z' } } });
+  // A footprint exists only inside its wind record: none for 2030, shown for 2025.
+  await running; assert.equal(bridge.state.pending, false); assert.equal(bridge.state.plume, null);
+  bridge.setYear(2025); assert.equal(bridge.state.plume.available, true);
   assert.equal(bridge.state.plume.annualForecast, false);
   bridge.destroy();
 });

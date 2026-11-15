@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { annualStorySeries, resolveStoryVariables, storyBaseline, summarizeStoryMetric, summarizeStoryWater } from '../apps/web/js/environment-story-data.js';
+import { dispersionCardHtml, observedDispersionHtml } from '../apps/web/js/environment-story.js';
 import { attachEnvironmentStory, storyChartData, storyChartSvg, storyMethodHtml, storyMetricHtml, storyValuesHtml, storyWaterHtml, storyFutureHtml, storyClimateComparisonHtml, storyDailyClimateHtml } from '../apps/web/js/environment-story.js';
 import { summarizeFutureClimate, summarizeFutureProduct, summarizeFutureTrend } from '../apps/web/js/future-data.js';
 import { resolveSiteEvidence } from '../apps/web/js/site-evidence.js';
@@ -206,7 +207,7 @@ test('future zero rainfall is a value while missing products expose computation,
 });
 test('future air exposes the actual source-screening output without claiming future ambient concentrations',()=>{
   const raw=JSON.parse(readFileSync(new URL('../data/cloudshadow/plumes/colossus1.json',import.meta.url)));
-  const html=storyFutureHtml('air',{year:2050,products:{'plume-scenario':raw}});
+  const html=dispersionCardHtml(raw);
   assert.ok(html.includes(raw.peak.chiOverQ.toExponential(2)));assert.ok(html.includes(raw.receptors[0].chiOverQ.toExponential(2)));
   assert.match(html,/not an annual air-quality forecast/);assert.match(html,/Show dispersion in 3D/);assert.match(html,/No sourced emission rate supplied/);assert.match(html,/2018/);
 });
@@ -214,12 +215,12 @@ test('air concentration needs a positive sourced emission and receptor units mat
   const raw=JSON.parse(readFileSync(new URL('../data/cloudshadow/plumes/colossus1.json',import.meta.url)));
   raw.peak.concentrationUgM3=42;raw.receptors[0].concentrationUgM3=7;
   for(const emission of [undefined,{rateGs:1,source:''},{rateGs:1,source:'  '},{rateGs:0,source:'Permit'},{rateGs:-1,source:'Permit'},{rateGs:'1',source:'Permit'}]){
-    raw.emission=emission;const html=storyFutureHtml('air',{year:2050,products:{'plume-scenario':raw}});
+    raw.emission=emission;const html=dispersionCardHtml(raw);
     assert.doesNotMatch(html,/µg\/m³|Peak source contribution/);assert.match(html,/Peak dilution per unit emission/);assert.match(html,/s\/m³ · χ\/Q/);
     assert.ok(html.includes(raw.receptors[0].chiOverQ.toExponential(2)));
   }
   raw.emission={rateGs:1,source:'Permit example'};
-  const sourced=storyFutureHtml('air',{year:2050,products:{'plume-scenario':raw}});
+  const sourced=dispersionCardHtml(raw);
   assert.match(sourced,/Peak source contribution/);assert.match(sourced,/<strong>42<small>µg\/m³/);assert.match(sourced,/Source-only concentration · µg\/m³/);assert.match(sourced,/Boxtown<\/th><td>7<\/td>/);
 });
 test('future vegetation shows supported exposure values and keeps mismatched model periods explicit',()=>{

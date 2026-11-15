@@ -49,6 +49,13 @@
     sceneModePicker: false, navigationHelpButton: false, fullscreenButton: false, infoBox: false, selectionIndicator: false,
   });
   const scene = viewer.scene;
+  // Zoomed far out, lift the globe above the timeline so the whole Earth stays visible.
+  // Re-checked when the camera stops (no per-frame cost); close views keep the full screen.
+  {
+    const LIFT_ABOVE_M = 2_000_000;
+    const updateLift = () => document.body.classList.toggle("globe-lifted", viewer.camera.positionCartographic.height > LIFT_ABOVE_M);
+    viewer.camera.moveEnd.addEventListener(updateLift); updateLift();
+  }
   // Inspect the actual Cesium context locally with ?gpu=1; no telemetry is sent.
   if (new URLSearchParams(location.search).get("gpu") === "1") {
     const gl = viewer.canvas.getContext("webgl2") || viewer.canvas.getContext("webgl");

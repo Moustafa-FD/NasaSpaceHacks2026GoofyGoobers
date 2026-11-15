@@ -192,12 +192,20 @@ export function attachEnvironmentPanel({ apiBase, site, year, sites, container, 
     Object.assign(state, { site: next, climate: null, plume: null, result: null, resultRun: null, trendUnit: null, library: null, climateError: '', plumeError: '', status: '', stations: [], selectedStation: '', stationStatus: '', stationWarnings: [] }); makeRequest(); render();
     await Promise.allSettled([
       prepared.climate(next.id).then((result) => { if (token !== loadToken || state.destroyed) return; state.climate = result; emitData('climate-projection', result, 'static'); if (state.tab === 'climate') render(); }).catch((error) => { if (token === loadToken && !state.destroyed) { state.climateError = error.message; if (state.tab === 'climate') render(); } }),
-      (next.id === 'colossus1' ? prepared.plume(next.id) : Promise.reject(new Error('No prepared plume for this location. You can request an explicitly assumed screening scenario.'))).then((result) => { if (token !== loadToken || state.destroyed) return; state.plume = result; emitData('plume-scenario', result, 'static'); if (state.tab === 'plume') render(); }).catch((error) => { if (token === loadToken && !state.destroyed) { state.plumeError = error.message; if (state.tab === 'plume') render(); } }),
+      loadYearPlume(token),
     ]);
     if (token === loadToken && state.action === 'water-quality' && !state.destroyed) void searchStations();
   }
+  /** Per-year footprint (that year's GEOS-FP winds), only for documented on-site combustion. */
+  function loadYearPlume(token = loadToken) {
+    const site = state.site, year = Math.round(state.year);
+    if (site?.effects?.plume !== true) { state.plume = null; state.plumeError = 'Dispersion screening is shown only where on-site combustion is documented (Colossus 1).'; return Promise.resolve(); }
+    return prepared.plumeYear(site.id, year).then((result) => { if (token !== loadToken || state.destroyed || Math.round(state.year) !== year) return; state.plume = result; state.plumeError = ''; emitData('plume-scenario', result, 'static'); if (state.tab === 'plume') render(); })
+      .catch(() => { if (token === loadToken && !state.destroyed) { state.plume = null; state.plumeError = `No analysed winds for ${year} (NASA GEOS-FP covers 2018–2026).`; if (state.tab === 'plume') render(); } });
+  }
   function setYear(value) {
-    if (!Number.isFinite(value)) return; state.year = value;
+    if (!Number.isFinite(value)) return; const changed = Math.round(value) !== Math.round(state.year); state.year = value;
+    if (changed) void loadYearPlume();
     if (!state.dirty && !state.pending) makeRequest();
     if (state.tab === 'live' && (state.dirty || state.pending)) location.textContent = `${state.site?.name || 'Select a place'} · Timeline ${state.year}`; else render();
   }

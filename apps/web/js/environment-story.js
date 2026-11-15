@@ -164,8 +164,10 @@ function futureClimateHtml(group,future){
   const metric=group==='water'?'precipMmPerYear':'meanTempC',summary=climateMetric(future,metric),raw=futureProduct(future,'climate-projection');
   return `${climateModeControls(future)}${scenarioControls(future)}${summary?.available?`<p class="est-future-period">${h(summary.period?.label||`${summary.period?.start}–${summary.period?.end}`)} · regional climate scenario</p>${climateCard(summary,metric)}${group==='heat'?climateCard(climateMetric(future,'hotDays35C'),'hotDays35C'):''}${storyClimateComparisonHtml(future,metric)}<button type="button" class="est-evidence-link" data-story-future-map>Show scenario in 3D ↗</button><details class="est-method"><summary>Source &amp; model range</summary>${note(raw?.source?.name||summary.source?.name||'NASA NEX-GDDP-CMIP6')}${note(raw?.evidenceNote||'Conditional regional climate scenario. The range is model spread, not a confidence interval.')}${note(raw?.sampling?.note||'This is a period summary, not a forecast of a particular calendar year.')}${sourceLink({url:raw?.source?.access,title:'Climate source'})}</details>`:`<div class="est-empty"><h3>Loading regional climate scenarios</h3><p>${h(future.error||'Prepared Python model results load automatically for the study areas.')}</p><div class="est-actions"><button type="button" data-story-future-request="climate-projection"${future.pending?' disabled':''}>${future.pending?'Calculating…':'Calculate climate scenario'}</button></div></div>`}${storyDailyClimateHtml(future,group)}<p class="est-caveat">${group==='water'?'Rainfall is climate context. River levels, groundwater depletion and water quality are not predicted.':'Regional air temperature does not isolate heat produced by the data center.'} Values summarize the labelled period, not the selected individual year.</p>`;
 }
-function futureAirHtml(future){
-  const raw=futureProduct(future,'plume-scenario'),peak=raw?.peak,height=raw?.assumptions?.effectiveStackHeightM;
+/** One footprint (per-year for Colossus 1). Same χ/Q contract as before: no µg/m³ without a sourced emission. */
+export function dispersionCardHtml(raw){
+  if(!raw)return '';
+  const peak=raw?.peak,height=raw?.assumptions?.effectiveStackHeightM;
   const hasSourcedEmission=finite(raw?.emission?.rateGs)&&raw.emission.rateGs>0&&typeof raw.emission.source==='string'&&!!raw.emission.source.trim();
   const hasConcentration=hasSourcedEmission&&finite(peak?.concentrationUgM3)&&peak.concentrationUgM3>=0;
   const dilutionUnit=raw?.grid?.units==='s/m^3'?'s/m³':raw?.grid?.units||'unit not supplied';
@@ -174,7 +176,13 @@ function futureAirHtml(future){
   // Relative reading (issue #11): small χ/Q numbers are normal; share of the peak is what a viewer can compare.
   const shareOfPeak=r=>finite(r.chiOverQ)&&finite(peak?.chiOverQ)&&peak.chiOverQ>0?`${f(100*r.chiOverQ/peak.chiOverQ,2)}%`:'—';
   const receptorTable=raw?.receptors?.length?`<details class="est-values-table"><summary>Nearby receptor values</summary><div class="est-table-scroll"><table><caption>${hasConcentration?'Source-only concentration · µg/m³':`Dilution per unit emission · ${h(dilutionUnit)}`}</caption><thead><tr><th>Location</th><th>${hasConcentration?'Contribution':'χ/Q'}</th><th>Share of peak</th></tr></thead><tbody>${raw.receptors.map(r=>`<tr><th scope="row">${h(r.name)}</th><td>${h(receptorValue(r))}</td><td>${h(shareOfPeak(r))}</td></tr>`).join('')}</tbody></table></div></details>`:'';
-  return `<div class="est-measure-heading"><h3>Air dispersion scenario</h3><p>Conditional screening · not an annual air-quality forecast</p></div>${raw?`<article class="est-future-card"><h3>${hasConcentration?'Peak source contribution':'Peak dilution per unit emission'}</h3><strong>${hasConcentration?h(f(peak.concentrationUgM3,2)):finite(peak?.chiOverQ)?h(peak.chiOverQ.toExponential(2)):'Unknown'}<small>${h(unit)}</small></strong>${!hasConcentration&&finite(peak?.chiOverQ)?note('χ/Q is a dilution factor, so it is always a small number. It becomes a concentration only when multiplied by a sourced emission rate. Compare places by their share of the peak.'):''}<p>${finite(peak?.distanceM)?`${h(f(peak.distanceM,0))} m from the source`:'Source footprint'} · assumed effective stack ${h(f(height,0))} m</p></article><button type="button" class="est-primary" data-story-future-map>Show dispersion in 3D ↗</button>${receptorTable}<details class="est-method"><summary>Inputs &amp; limitations</summary>${note(raw.evidenceNote)}${note(`Wind record: ${raw.frames?.first||'unknown'} to ${raw.frames?.last||'unknown'}. This footprint uses those winds; moving the future year does not create future weather.`)}${note(hasSourcedEmission?`Emission rate: ${raw.emission.rateGs} g/s. Source: ${raw.emission.source}`:'No sourced emission rate supplied. Dilution is not a measured pollution concentration.')}</details>`:`<div class="est-empty"><h4>Calculate a dispersion scenario</h4><p>Use the Node → Python model with an explicitly assumed 20 m effective stack and analysed winds.</p><div class="est-actions"><button type="button" class="est-primary" data-story-future-request="plume-scenario"${future.pending?' disabled':''}>${future.pending?'Calculating…':'Calculate dispersion'}</button></div></div>`}<p class="est-caveat">This shows where emissions could spread under the stated inputs. It does not predict changes in emissions or future background air quality.</p>`;
+  return `<div class="est-measure-heading"><h3>Air dispersion scenario${Number.isInteger(raw.year)?` · ${raw.year} winds`:''}</h3><p>Conditional screening · not an annual air-quality forecast</p></div>${raw?`<article class="est-future-card"><h3>${hasConcentration?'Peak source contribution':'Peak dilution per unit emission'}</h3><strong>${hasConcentration?h(f(peak.concentrationUgM3,2)):finite(peak?.chiOverQ)?h(peak.chiOverQ.toExponential(2)):'Unknown'}<small>${h(unit)}</small></strong>${!hasConcentration&&finite(peak?.chiOverQ)?note('χ/Q is a dilution factor, so it is always a small number. It becomes a concentration only when multiplied by a sourced emission rate. Compare places by their share of the peak.'):''}<p>${finite(peak?.distanceM)?`${h(f(peak.distanceM,0))} m from the source`:'Source footprint'} · assumed effective stack ${h(f(height,0))} m</p></article><button type="button" class="est-primary" data-story-plume-map>Show dispersion in 3D ↗</button>${receptorTable}<details class="est-method"><summary>Inputs &amp; limitations</summary>${note(raw.evidenceNote)}${note(`Wind record: ${raw.frames?.first||'unknown'} to ${raw.frames?.last||'unknown'}${raw.frames?.used?` · ${raw.frames.used} analysed instants`:''}. This footprint uses those winds; future years have no analysed winds, so no footprint is shown for them.`)}${note(hasSourcedEmission?`Emission rate: ${raw.emission.rateGs} g/s. Source: ${raw.emission.source}`:'No sourced emission rate supplied. Dilution is not a measured pollution concentration.')}</details>`:''}<p class="est-caveat">This shows where emissions could spread under the stated inputs. It does not predict changes in emissions or future background air quality.</p>`;
+}
+/** Future years: GEOS-FP analyses end in 2026, so there is no future footprint. Only
+ * sites with documented on-site combustion (Colossus 1) get dispersion screening at all. */
+function futureAirHtml(future){
+  if(future.site&&future.site.effects?.plume!==true)return `<div class="est-measure-heading"><h3>Air dispersion</h3><p>Not applicable at this site</p></div>${note('Dispersion screening is shown only where on-site combustion is documented (Colossus 1 gas turbines). This campus draws grid power, so its electricity emissions occur at distant power plants rather than on site.')}`;
+  return `<div class="est-measure-heading"><h3>Air dispersion</h3><p>${future.year} · no analysed winds</p></div><div class="est-empty"><h4>No dispersion footprint for ${future.year}</h4><p>NASA GEOS-FP wind analyses cover 2018–2026. Each of those years has its own footprint; future years have no real weather to move emissions, so none is drawn.</p><div class="est-actions"><button class="est-primary" type="button" data-story-year="2025">View 2025 footprint</button></div></div>`;
 }
 function futureAgricultureHtml(future){
   const raw=futureProduct(future,'agriculture'),fields=[['meanTemperatureC','Growing-season temperature','°C'],['heatThresholdDays','Very hot days','days / season'],['dryThresholdDays','Dry days','days / season'],['precipitationMinusReferenceEt0Mm','Rain minus reference evaporation','mm / season']];
@@ -191,6 +199,15 @@ export function vegetationDriversHtml(future){
 }
 
 /** Actual future products remain separate from the observed annual chart. */
+/** Observed years: Colossus 1 shows that year's footprint (2018–2026 GEOS-FP winds). */
+export function observedDispersionHtml(future){
+  if(future.site?.effects?.plume!==true)return '';
+  const raw=futureProduct(future,'plume-scenario');
+  if(raw&&raw.year===future.year)return `<section class="est-dispersion">${dispersionCardHtml(raw)}</section>`;
+  if(future.year<2018)return note('Dispersion footprints start in 2018, when NASA GEOS-FP wind analyses begin.');
+  return '';
+}
+
 export function storyFutureHtml(group,future={},variable){
   const status=future.pending||future.error||future.status;
   const trend=future.trend?.variables?.[variable],meta=STORY_VARIABLES[variable];
@@ -249,7 +266,7 @@ export function attachEnvironmentStory({ site, sites = [], seriesBySite = {}, va
     if (state.destroyed) return;
     const focus=summary(state.variable),w=water(),measurements=Object.entries(STORY_VARIABLES).filter(([,meta])=>meta.group===state.activeGroup);
     const futureMode=state.activeGroup==='water'?state.year>new Date().getUTCFullYear():focus.future;
-    const future={...(state.future?.siteId===state.site?.id?state.future:{}),siteId:state.site?.id,year:state.year};
+    const future={...(state.future?.siteId===state.site?.id?state.future:{}),siteId:state.site?.id,site:state.site,year:state.year};
     const {mode,fallback}=effectiveStoryMode(focus,state.mode);
     root.innerHTML=`<header class="est-header"><div><h2>Environment</h2><p>${h(state.site?.name||'Selected location')}</p></div><span class="est-year">${state.year}</span></header>
       <nav class="est-categories" aria-label="Environmental category">${[['air','Air'],['vegetation','Vegetation'],['heat','Heat'],['water','Water']].map(([group,title])=>`<button type="button" data-story-group="${group}" aria-pressed="${state.activeGroup===group}">${title}</button>`).join('')}</nav>
@@ -261,6 +278,7 @@ export function attachEnvironmentStory({ site, sites = [], seriesBySite = {}, va
       ${storyMetricHtml(focus,mode)}
       ${!focus.future?`${chartSection(focus,false,mode)}<p class="est-source">${focus.meta.regional?'Regional model estimate':'Satellite estimate'} · ${h(focus.meta.source)}</p>${storyValuesHtml(focus,mode)}`:''}
       ${storyMethodHtml(focus,mode)}
+      ${state.activeGroup==='air'?observedDispersionHtml(future):''}
       ${state.activeGroup==='air'?'<button type="button" class="est-evidence-link" data-story-evidence="air-quality">Near-surface air records ↗</button>':''}
       <p class="est-caveat">Nearby change does not prove a data center caused it.</p></div>`}`;
     updateDialog();
@@ -288,11 +306,12 @@ export function attachEnvironmentStory({ site, sites = [], seriesBySite = {}, va
   function setWaterEvidence(result) { if (!['land-water', 'water-quality'].includes(result?.kind)) return; state.waterResults.set(result.kind, result); render(); }
   function selectYear(value) { const next = Math.round(Number(value)); if (!Number.isFinite(next)) return; if (onSelectYear) onSelectYear(next); else eventTarget.CloudShadowTimeline?.setYear?.(next); if (state.year !== next) setYear(next); }
   const click = (event) => {
-    const el = event.target.closest?.('[data-story-group],[data-story-mode],[data-story-year],[data-story-evidence],[data-story-expand],[data-story-close],[data-story-future-request],[data-story-future-map],[data-climate-view]'); if (!el || !(root.contains(el)||chartDialog?.contains(el))) return;
+    const el = event.target.closest?.('[data-story-group],[data-story-mode],[data-story-year],[data-story-evidence],[data-story-expand],[data-story-close],[data-story-future-request],[data-story-future-map],[data-story-plume-map],[data-climate-view]'); if (!el || !(root.contains(el)||chartDialog?.contains(el))) return;
     if(el.hasAttribute('data-climate-view')){eventTarget.dispatchEvent(new CustomEvent('cs:future-options',{detail:{climateView:el.dataset.climateView,showScreening:false}}));return;}
     if(el.hasAttribute('data-story-expand')){expandChart();return;}
     if(el.hasAttribute('data-story-close')){chartDialog?.close();return;}
     if(el.hasAttribute('data-story-future-request')){eventTarget.dispatchEvent(new CustomEvent('cs:future-request',{detail:{kind:el.dataset.storyFutureRequest,siteId:state.site?.id,year:state.year}}));return;}
+    if(el.hasAttribute('data-story-plume-map')){const raw=futureProduct(state.future,'plume-scenario');if(raw)eventTarget.dispatchEvent(new CustomEvent('cs:environment-layer',{detail:{layer:'plume',enabled:true,siteId:state.site?.id,result:raw}}));return;}
     if(el.hasAttribute('data-story-future-map')){eventTarget.dispatchEvent(new CustomEvent('cs:future-view',{detail:{group:state.activeGroup,siteId:state.site?.id,year:state.year,enabled:true}}));return;}
     if (el.dataset.storyGroup) { const group = el.dataset.storyGroup; state.activeGroup = group; if (group !== 'water') { state.variable = resolveStoryVariables(vars(), state.variable)[group]; onSelectVariable?.(state.variable); } else eventTarget.CloudShadow?.setMapLayer?.('none'); /* no satellite water layer: avoid a stale heat/air map beside water records */ render(); publishView(); }
     else if (el.dataset.storyMode) { state.mode = el.dataset.storyMode; render(); publishView(); }

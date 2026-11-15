@@ -107,6 +107,14 @@ export function summarizeFutureTrend(result, { year, variable = 'LST_Day' } = {}
   return { ...(variables[variable] || { available: false }), variables, year: Number(year), lastObservedYear: result?.lastObservedYear, note: result?.note || 'Trend continuation through 2035; not a validated forecast.', result };
 }
 
+/** A dispersion footprint is shown only for years inside its own wind record:
+ * a per-year product for exactly that year, a multi-year product within its first..last frames. */
+export function plumeCoversYear(raw, year) {
+  if (Number.isInteger(raw?.year)) return raw.year === year;
+  const first = Number(String(raw?.frames?.first || '').slice(0, 4)), last = Number(String(raw?.frames?.last || '').slice(0, 4));
+  return Number.isInteger(first) && Number.isInteger(last) && first > 0 && year >= first && year <= last;
+}
+
 export function attachFutureData({ site, year = 2025, eventTarget = globalThis.window, onRequest, fetchImpl = globalThis.fetch, dataBase = 'data', group = 'heat',loadSupplemental=false } = {}) {
   if (!eventTarget) throw new Error('A future-data event target is required.');
   const cache = new Map(), locations = new Map(), listeners = [], supported = new Set(['climate-projection', 'plume-scenario', 'agriculture', 'climate','environment-screening']),supplemental=new Set(['power-projection','regional-evidence','site-audit']);
@@ -114,7 +122,9 @@ export function attachFutureData({ site, year = 2025, eventTarget = globalThis.w
   let current = { site, siteId: site?.id, year, scenario: 'ssp245',powerScenario:'ssp245',climateView:'annual', metric: 'meanTempC', group, climate: null, plume: null, agriculture: null, dailyClimate: null, trend: null, products: {}, status: '', error: '', pending: false };
   const fire = () => eventTarget.dispatchEvent(new CustomEvent('cs:future-state', { detail: { state: current } }));
   const rebuild = () => {
-    const options = { year: current.year, scenario: current.scenario,powerScenario:current.powerScenario, metric: current.metric }, products = cache.get(current.siteId) || {};
+    const options = { year: current.year, scenario: current.scenario,powerScenario:current.powerScenario, metric: current.metric }, products = { ...(cache.get(current.siteId) || {}) };
+    // A dispersion footprint belongs to one year of analysed winds; never show it for another year.
+    if (products['plume-scenario'] && !plumeCoversYear(products['plume-scenario'], current.year)) delete products['plume-scenario'];
     current = { ...current, products: { ...products }, climate: products['climate-projection'] ? summarizeFutureProduct('climate-projection', products['climate-projection'], options) : null, plume: products['plume-scenario'] ? summarizeFutureProduct('plume-scenario', products['plume-scenario'], options) : null, agriculture: products.agriculture ? summarizeFutureProduct('agriculture', products.agriculture, options) : null, dailyClimate: products.climate ? summarizeFutureProduct('climate', products.climate, options) : null, trend: products.trend ? summarizeFutureTrend(products.trend, options) : null };
     current={...current,power:products['power-projection']?summarizeFutureProduct('power-projection',products['power-projection'],options):null,screening:products['environment-screening']?summarizeFutureProduct('environment-screening',products['environment-screening'],options):null,regional:products['regional-evidence']||null,audit:products['site-audit']||null};
     if (!destroyed) fire();

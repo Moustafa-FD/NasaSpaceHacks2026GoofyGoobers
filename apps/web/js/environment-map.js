@@ -30,7 +30,7 @@ export function plumeRaster(result){
   return {rgba,width:grid.n,height:grid.n,bounds:[site.lon-dx,site.lat-dy,site.lon+dx,site.lat+dy],active:true,kind:'plume',note:'Relative dilution · five log decades below maximum · screening scenario, assumed stack height · not measured air quality'};
 }
 export function attachEnvironmentMap(viewer,{sites=[]}={}){
-  const C=Cesium,products=new Map();let plumeEntity=null,stations=[],selected=window.CloudShadow?.state.site?.id,mapGeneration=0;
+  const C=Cesium,products=new Map();let shownPlumeYear=null,plumeEntity=null,stations=[],selected=window.CloudShadow?.state.site?.id,mapGeneration=0;
   const note=document.createElement('aside');note.id='environmentMapNote';note.className='environment-map-note';note.hidden=true;note.setAttribute('role','status');document.body.append(note);
   function clear(){mapGeneration++;if(plumeEntity)viewer.entities.remove(plumeEntity);plumeEntity=null;stations.forEach(s=>viewer.entities.remove(s));stations=[];note.hidden=true;window.dispatchEvent(new CustomEvent('cs:evidence-texture',{detail:{active:false}}));}
   function showPlume(result,weather=false,rasterOverride=null){
@@ -60,9 +60,11 @@ export function attachEnvironmentMap(viewer,{sites=[]}={}){
     window.CloudShadow?.setMapLayer('none');
     const data=products.get((d.siteId||selected)+':'+(d.layer==='plume'?'plume-scenario':d.layer==='weather'?'grid':'water-quality'));
     const result=d.result||data?.result;
-    if(d.layer==='plume')showPlume(result);else if(d.layer==='screening')showPlume(result,false,d.raster);else if(d.layer==='weather')showPlume(result,true);else if(d.layer==='water')showStations(result,data?.stations);
+    if(d.layer==='plume'){showPlume(result);shownPlumeYear=Number.isInteger(result?.year)?result.year:null;}else if(d.layer==='screening')showPlume(result,false,d.raster);else if(d.layer==='weather')showPlume(result,true);else if(d.layer==='water')showStations(result,data?.stations);
   });
   window.addEventListener('cs:site',({detail})=>{selected=detail?.site?.id;clear();});
+  // A per-year footprint never stays on the globe for another year.
+  window.addEventListener('cs:year',({detail})=>{if(shownPlumeYear!==null&&plumeEntity&&Number(detail?.year)!==shownPlumeYear){clear();shownPlumeYear=null;}});
   window.addEventListener('cs:location',({detail})=>{selected=detail?.site?.id;clear();});
   window.addEventListener('cs:map-layer',({detail})=>{if(detail?.kind!=='none'&&(plumeEntity||stations.length))clear();});
   return {clear};

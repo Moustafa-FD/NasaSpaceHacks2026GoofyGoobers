@@ -310,6 +310,21 @@ def main(argv: list[str] | None = None) -> int:
         (out / f"{site['id']}.json").write_text(json.dumps(result, allow_nan=False), encoding="utf-8")
         print(f"{site['id']}: peak chi/Q {result['peak']['chiOverQ']:.3g} s/m3 at {result['peak']['distanceM']} m, "
               f"{result['frames']['used']} wind frames", file=sys.stderr)
+        # One footprint per calendar year, from that year's analysed winds only, so the
+        # timeline shows how the drift pattern changes. No year without winds gets a map.
+        frames = load_site_frames(site["id"])
+        years = sorted({f.time.year for f in frames})
+        year_dir = out / site["id"]
+        year_dir.mkdir(parents=True, exist_ok=True)
+        for year in years:
+            subset = [f for f in frames if f.time.year == year]
+            yearly = scenario(site, height_m=args.height, land_use=args.land_use, frames=subset)
+            yearly["year"] = year
+            yearly["assumptions"]["effectiveStackHeightNote"] = "Assumed for screening; no published stack/exhaust data were available."
+            yearly["assumptions"]["windFrames"] = f"{len(subset)} NASA GEOS-FP analysed instants in {year} (one per month, rotating hours)"
+            (year_dir / f"{year}.json").write_text(json.dumps(yearly, allow_nan=False), encoding="utf-8")
+        (year_dir / "index.json").write_text(json.dumps({"schemaVersion": "plume-years/1.0", "site": site["id"], "years": years}), encoding="utf-8")
+        print(f"{site['id']}: per-year footprints {years[0]}-{years[-1]}", file=sys.stderr)
     return 0
 
 
