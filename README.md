@@ -13,7 +13,7 @@ An environmental and agricultural trend explorer developed by **Team Goofy Goobe
 - **Demo video = Unreal Engine + Cesium** (`clients/unreal/CloudShadow/`, Andres, Windows laptop). Plan in [CLAUDE.md](CLAUDE.md) and [clients/unreal/CLOUDSHADOW_SETUP.md](clients/unreal/CLOUDSHADOW_SETUP.md).
 - Deadline **Sun Nov 15, 11:59 pm**. Public link via GitHub Pages (setup in the guide §5).
 
-- Deployed Link: [Footprint Atlas]([https://example.com](https://nasa-space-hacks-2026.vercel.app/))
+- Deployed Link: [Footprint Atlas](https://nasa-space-hacks-2026.vercel.app)
 
 ## About Footprint Atlas
 
