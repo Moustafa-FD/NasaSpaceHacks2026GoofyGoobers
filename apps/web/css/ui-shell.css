@@ -99,7 +99,7 @@ body.v3-years #v3Panel { --lift: calc(var(--timeline-height, 120px) + 28px); }
 .v3-tab[hidden] { display: none; }
 .v3-ico { width: 22px; height: 22px; flex: none; }
 
-.v3-body { left: 16px; top: 76px; width: min(400px, calc(100vw - 32px)); padding: 14px 18px 16px; }
+.v3-body { left: 16px; top: 112px; width: min(400px, calc(100vw - 32px)); padding: 14px 18px 16px; }
 .v3-claim { margin: 0; font: 600 18px/1.3 var(--serif); padding-right: 48px; }
 .v3-conf { margin: 6px 0 0; font-size: 13px; line-height: 1.4; color: var(--ink-2); }
 .v3-conf b { color: var(--ink); }
@@ -162,7 +162,7 @@ body.ui-v2 #tlFutureTint { inset: 0 !important; }
   .v3-tab { flex-direction: column; gap: 3px; padding: 7px 4px; font-size: 11px; }
   .v3-links { bottom: calc(var(--lift) + 252px); padding: 6px 10px; gap: 8px 14px; }
   .v3-links .v3-btn { padding: 8px 12px; }
-  .v3-body { top: 92px; }
+  .v3-body { top: 150px; }
   .v3-ba, .v3-ba:has(.future[hidden]) { grid-template-columns: 1fr 1fr; } .v3-ba .side.future { grid-column: 1 / -1; } .v3-ba .flip { grid-column: 1 / -1; }
   .v3-claim { font-size: 16px; } #v2Landing { padding: 24px 18px; background: rgba(10,16,14,.9); }
 }
