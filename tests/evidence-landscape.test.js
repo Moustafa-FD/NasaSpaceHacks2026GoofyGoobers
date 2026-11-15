@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {evidenceCoordinateFrame,evidenceTextureCoordinate,normalizeEvidenceTexture,setLandscapeEvidence,createLandscapeShader,LANDSCAPE_FRAGMENT_SHADER} from '../apps/web/js/landscape-shader.js';
+import {evidenceCoordinateFrame,evidenceTextureCoordinate,normalizeEvidenceTexture,setLandscapeEvidence,createLandscapeShader,createEvidenceTransition,blendEvidencePixels,LANDSCAPE_FRAGMENT_SHADER} from '../apps/web/js/landscape-shader.js';
 
 const center={lat:35,lon:-90},bounds=[-90.02,34.98,-89.98,35.02];
 const rgba=new Uint8Array([255,0,0,255,0,255,0,255,0,0,255,255,255,255,0,0]);
@@ -49,7 +49,35 @@ test('new shaders start transparent, accept a real raster, replace it on clear a
 
 test('evidence color is applied after artistic materials, only to ground/water and inside real coverage',()=>{
   const block=LANDSCAPE_FRAGMENT_SHADER.slice(LANDSCAPE_FRAGMENT_SHADER.indexOf('if (u_evidenceActive'));
-  assert.match(block,/kind > 2\.5 && kind < 4\.5/);assert.match(block,/greaterThanEqual\(uv,vec2\(0\.0\)\)/);assert.match(block,/lessThanEqual\(uv,vec2\(1\.0\)\)/);
-  assert.match(block,/pow\(evidence\.rgb,vec3\(2\.2\)\),evidence\.a/);
+  assert.match(block,/kind > 2\.5 && kind < 4\.5/);assert.match(block,/lpEvidenceInside\(uv\)/);assert.match(block,/lpEvidenceInside\(oldUV\)/);
+  assert.match(LANDSCAPE_FRAGMENT_SHADER,/greaterThanEqual\(uv,vec2\(0\.0\)\)/);assert.match(LANDSCAPE_FRAGMENT_SHADER,/lessThanEqual\(uv,vec2\(1\.0\)\)/);
+  assert.match(block,/pow\(evidence\.rgb,vec3\(2\.2\)\)/);assert.match(block,/if\(evidence\.a>0\.0\)/);
   assert.doesNotMatch(block,/Noise|Hash|sin\(|material\.alpha|positionMC|discard/);
+});
+
+test('visual temporal blends use only actual valid target pixels, never filling missing target data from an earlier year',()=>{
+  for(const mix of [0,.25,.5,1])assert.deepEqual(blendEvidencePixels([1,0,0,1],[0,0,0,0],mix),[0,0,0,0]);
+  assert.deepEqual(blendEvidencePixels([1,0,0,1],[0,0,1,1],.5),[.5,0,.5,1]);
+  assert.deepEqual(blendEvidencePixels([1,0,0,0],[0,0,1,.8],.5),[0,0,1,.4]);
+  assert.deepEqual(blendEvidencePixels([1,0,0,1],[0,0,1,.8],1),[0,0,1,.8]);
+});
+
+test('raster crossfades follow wall time, ignore identical source keys and release the old raster after700ms',()=>{
+  let wall=0;const events=[],transition=createEvidenceTransition({now:()=>wall,onChange:(s)=>events.push(s)});
+  const a=normalizeEvidenceTexture({...raster(),key:'site:NDVI:2005'}),b=normalizeEvidenceTexture({...raster(),key:'site:NDVI:2006'});
+  transition.set(a);wall=700;transition.tick();assert.equal(transition.state.mix,1);
+  transition.set(b);wall=1050;assert.equal(transition.tick(),true);assert.equal(transition.state.mix,.5);assert.equal(transition.state.previous,a);
+  const count=events.length;assert.equal(transition.set({...b}),false);assert.equal(events.length,count);assert.equal(transition.state.mix,.5);
+  wall=1400;assert.equal(transition.tick(),false);assert.equal(transition.state.previous,null);assert.equal(events.at(-1).textures,'previous');
+  assert.equal(transition.state.current,b);transition.set(null);assert.deepEqual(transition.state,{current:null,previous:null,mix:1});
+});
+
+test('rapid raster scrubs keep only the latest and previous real image; no intermediate pixels or extra textures are generated',()=>{
+  let wall=0;const transition=createEvidenceTransition({now:()=>wall});let last;
+  for(let year=2000;year<2020;year++){
+    const image=normalizeEvidenceTexture({...raster(),key:'site:year:'+year});transition.set(image);
+    assert.equal(transition.state.current,image);assert.equal(transition.state.previous,last??null);assert.equal(transition.state.current.rgba.length,16);
+    wall+=20;transition.tick();last=image;
+  }
+  wall+=700;transition.tick();assert.equal(transition.state.previous,null);assert.equal(transition.state.current,last);
 });

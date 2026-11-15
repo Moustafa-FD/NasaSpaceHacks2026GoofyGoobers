@@ -2,6 +2,7 @@
 // Pads, parking paint, fences and entrance props are scenery, not cadastral data.
 import {triangulateWaterPolygon} from './terrain-mesh.js';
 import {buildRoadSurface,resolveRoadWidth} from './road-mesh.js';
+import {mappedBuildingHistory} from './site-history.js';
 
 const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
 const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
@@ -153,7 +154,7 @@ export function groupCampusBuildings(snapshot,buildings,options={}){
     parent[find(j)]=find(i);
   }
   const groups=new Map();items.forEach((b,i)=>{const root=find(i);if(!groups.has(root))groups.set(root,[]);groups.get(root).push(b);});
-  return [...groups.values()].map((bs)=>({id:'campus:'+bs.map((b)=>b.id).sort().join('+'),buildings:bs.map((b)=>b.id),polygon:expand(hull(bs.flatMap((b)=>b.polygon)),options.campusMarginM??8)}));
+  return [...groups.values()].map((bs)=>({id:'campus:'+bs.map((b)=>b.id).sort().join('+'),buildings:bs.map((b)=>b.id),buildingEvidence:bs.map(b=>mappedBuildingHistory(source.get(b.id)||b)),historicalGeometry:false,polygon:expand(hull(bs.flatMap((b)=>b.polygon)),options.campusMarginM??8)}));
 }
 
 export const CAMPUS_PAD_LIFT_M=.42;

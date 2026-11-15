@@ -24,7 +24,7 @@ const fmt = (v, d = 2) => (v == null || !isFinite(v) ? "–" : (v > 0 ? "+" : ""
 let CS, viewer, FLOW, hlsTimeline = {};
 const T = {
   site: null, rows: new Map(), meta: null, year: 2025, ringVar: "LST_Night",
-  layers: [], playing: false, playTimer: null, localScene: false, siteLoad: 0,
+  layers: [], playing: false, playTimer: null, localScene: false, siteLoad: 0, mapBusy:false,
   plume: null, wind: null,
   analysedWind:null,
   target: { windDir: 0, windSpeed: 0 },
@@ -51,7 +51,8 @@ async function loadSite(site) {
     T.meta = d; for (const r of d.rows) T.rows.set(+r.Year, r);
   } catch (e) { console.warn("timeline data missing for", site.id, e); }
   if (loadId !== T.siteLoad) return;
-  T.ringVar = site.effects?.ringVar || "LST_Night";
+  const selectedMap=CS.getMapLayer?.();
+  T.ringVar = TREND_VARS[selectedMap]?selectedMap:site.effects?.ringVar || "LST_Night";
   if (!T.rows.size) return;
   $("#tlRingVar").value = T.ringVar;
   buildEffects();
@@ -138,9 +139,7 @@ function applyYear(year, { instant = false } = {}) {
   setGround(year);
   FX.applyYear(year, r, phase);
   FLOW?.setYear(T.site, year, phase);
-  // data overlay follows the year (if one is selected and has data that year)
-  const kind = CS.getMapLayer?.();
-  if (kind && VARS[kind] && year<=Math.min(2025,lastObservedYear())) CS.setMapLayer(kind, `${year}-07-15`);
+  // The app's cs:year listener owns scientific maps; avoid duplicate yearly loads.
   renderHud(year, r, phase);
   renderTrendStrip();
   applySceneVisibility();
@@ -254,6 +253,7 @@ function schedulePlayback() {
   if (!T.playing || speed === 0) return;
   T.playTimer = setTimeout(() => {
     if (!T.playing || getMotionSpeed() === 0) return;
+    if (T.mapBusy) { schedulePlayback(); return; }
     if (T.year >= LAST) { togglePlay(); return; }
     setYear(T.year + 1); schedulePlayback();
   }, 1500 / speed);
@@ -267,7 +267,8 @@ function paintPlayback() {
 function togglePlay() {
   T.playing = !T.playing;
   if (T.playing && T.year >= LAST) setYear(FIRST);
-  paintPlayback(); FX.orbit(T.playing); schedulePlayback();
+  // Playback changes time, not the user's study-area camera or close-up mode.
+  paintPlayback(); FX.orbit(false); schedulePlayback();
 }
 function wireUi() {
   const s = $("#tlSlider");
@@ -287,6 +288,11 @@ function wireUi() {
   };
   speedSlider.addEventListener("input", () => setMotionSpeed(+speedSlider.value));
   window.addEventListener("cs:motion-speed", () => { paintSpeed(); schedulePlayback(); });
+  window.addEventListener('cs:map-state',({detail})=>{
+    T.mapBusy=['loading','transitioning'].includes(detail?.state);
+    $('#tlPlay').dataset.waiting=String(T.mapBusy);
+    $('#tlPlay').title=T.playing&&T.mapBusy?'Waiting for the dated map to finish loading and blending':T.playing?'Pause timeline':'Play through the years';
+  });
   paintSpeed();
   $("#tlRingVar").innerHTML = Object.entries(TREND_VARS).map(([k, l]) => `<option value="${k}">${l}</option>`).join("");
   $("#tlRingVar").addEventListener("change", (e) => { T.ringVar = e.target.value; renderTrendStrip(); });

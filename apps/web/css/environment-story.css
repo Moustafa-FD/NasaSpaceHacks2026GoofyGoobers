@@ -1,0 +1,92 @@
+/* Readable environmental readout; methods stay behind disclosures. */
+@media (min-width:1100px){:root{--panel-width:400px}}
+@media (min-width:681px) and (max-width:1099px){:root{--panel-width:340px}#sceneDock{max-width:calc(100vw - var(--panel-width) - 36px)}}
+@media (min-width:681px) and (max-width:1450px){.tl-top{flex-wrap:wrap}.tl-chips{flex-wrap:wrap}}
+#environmentStory{color:var(--text,#e6eef0);margin:8px 0 20px;padding:18px 16px;border:1px solid var(--line,#304853);border-radius:12px;background:#12242d;font:14px/1.5 Inter,sans-serif;}
+:is(#environmentStory,.est-chart-dialog) *{box-sizing:border-box}
+#environmentStory .est-header{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:16px}
+#environmentStory h2{font-size:24px;letter-spacing:-.5px;line-height:1.2;margin:0 0 5px;font-weight:600}
+#environmentStory .est-header p{margin:0;color:#b9ccd1;font-size:14px}
+#environmentStory .est-year{font-size:24px;color:#c5eee0;font-variant-numeric:tabular-nums;line-height:1.2}
+:is(#environmentStory,.est-chart-dialog) button{cursor:pointer;border:1px solid #3c5963;background:#172d37;border-radius:7px;color:#d0e0e5;padding:10px 12px;font:500 13px/1.35 Inter,sans-serif;min-height:40px}
+:is(#environmentStory,.est-chart-dialog) button:hover{background:#23444a;border-color:#91cdb8}
+:is(#environmentStory,.est-chart-dialog) button:focus-visible,:is(#environmentStory,.est-chart-dialog) select:focus-visible,:is(#environmentStory,.est-chart-dialog) svg:focus-visible,:is(#environmentStory,.est-chart-dialog) summary:focus-visible{outline:2px solid #a6edce;outline-offset:3px}
+#environmentStory .est-categories{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;background:#0b1b23;border-radius:9px;margin-bottom:18px}
+#environmentStory .est-categories button{background:none;border-color:transparent;padding:9px 3px;font-size:13px;min-width:0}
+#environmentStory .est-categories button[aria-pressed=true]{background:#28504b;border-color:#78b7a5;color:#edfff6}
+#environmentStory .est-measure{display:grid;gap:6px;font-size:13px;color:#bfd0d6;margin:0 0 14px}
+#environmentStory select{width:100%;color:#f0f7f8;background:#0c1b23;border:1px solid #3c5963;border-radius:7px;padding:10px;font:inherit;min-height:42px}
+#environmentStory .est-mode{display:flex;gap:5px;margin:0 0 18px}
+#environmentStory .est-mode button{flex:1;background:transparent;font-size:13px;min-height:38px;padding:8px 5px}
+#environmentStory .est-mode button[aria-pressed=true]{border-color:#8bd4bc;color:#b7f0dc;background:#21403d}
+:is(#environmentStory,.est-chart-dialog) .est-measure-heading h3{font-size:20px;line-height:1.3;margin:0;font-weight:550}
+:is(#environmentStory,.est-chart-dialog) .est-measure-heading p{margin:5px 0 15px;font-size:14px;color:#afc6ce}
+:is(#environmentStory,.est-chart-dialog) .est-values{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0;padding:0}
+:is(#environmentStory,.est-chart-dialog) .est-values span{display:block;font-size:14px;color:#bed0d5}
+:is(#environmentStory,.est-chart-dialog) .est-values strong{display:block;font-size:36px;letter-spacing:-1px;font-weight:550;line-height:1.25;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;margin-top:3px}
+:is(#environmentStory,.est-chart-dialog) .est-unit{font-size:14px;color:#c2d5db;margin:4px 0 17px;overflow-wrap:anywhere}
+:is(#environmentStory,.est-chart-dialog) .est-change{padding:14px;border-radius:9px;background:#0c1c25;border-left:3px solid #9baebc;margin:0 0 20px}
+:is(#environmentStory,.est-chart-dialog) .est-change span{display:block;font-size:13px;color:#d0e0e4}
+:is(#environmentStory,.est-chart-dialog) .est-change strong{display:block;font-size:29px;line-height:1.3;font-weight:550;margin:4px 0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+:is(#environmentStory,.est-chart-dialog) .est-change small{font-size:14px;font-weight:400}
+:is(#environmentStory,.est-chart-dialog) .est-change p{font-size:13px;color:#a9c1cb;margin:3px 0 0}
+:is(#environmentStory,.est-chart-dialog) .est-change.est-adverse{border-color:#efab7f}.est-change.est-adverse strong{color:#f2bd98}
+:is(#environmentStory,.est-chart-dialog) .est-change.est-favorable{border-color:#7fd3b0}.est-change.est-favorable strong{color:#a0e5c9}
+:is(#environmentStory,.est-chart-dialog) .est-note{color:#b3c7cf;font-size:13px;line-height:1.6;margin:8px 0;overflow-wrap:anywhere}
+:is(#environmentStory,.est-chart-dialog) .est-gap{font-size:14px;color:#c5d5dc;background:#1b303a;padding:12px;border-radius:7px;margin:10px 0 18px}
+:is(#environmentStory,.est-chart-dialog) .est-chart-section{margin:20px 0 12px;border-top:1px solid #2f4651;padding-top:16px}
+:is(#environmentStory,.est-chart-dialog) .est-chart-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+:is(#environmentStory,.est-chart-dialog) .est-chart-heading h4{font-size:16px;font-weight:550;margin:0}
+:is(#environmentStory,.est-chart-dialog) .est-chart-heading button{font-size:12px;padding:7px 9px;min-height:34px;flex:none}
+:is(#environmentStory,.est-chart-dialog) .est-chart-unit{font-size:13px;margin:7px 0;color:#aec8d1;overflow-wrap:anywhere}
+:is(#environmentStory,.est-chart-dialog) .est-chart-legend{display:flex;gap:20px;font-size:14px;margin:12px 0 0;color:#d1e1e6}
+:is(#environmentStory,.est-chart-dialog) .est-chart-legend span{display:flex;align-items:center;gap:7px}
+:is(#environmentStory,.est-chart-dialog) .est-chart-legend span:before{content:'';display:inline-block;width:22px;border-top:3px solid #f0ad70}
+:is(#environmentStory,.est-chart-dialog) .est-chart-legend .est-nearby:before{border-color:#7cbdd8;border-top-style:dashed}
+:is(#environmentStory,.est-chart-dialog) .est-chart{display:block;width:100%;height:auto;margin:3px 0 0;touch-action:pan-y}
+:is(#environmentStory,.est-chart-dialog) .est-line{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+:is(#environmentStory,.est-chart-dialog) .est-line.est-site{stroke:#f0ad70}.est-line.est-nearby{stroke:#7cbdd8;stroke-dasharray:8 5}
+:is(#environmentStory,.est-chart-dialog) .est-dot.est-site{fill:#f0ad70}.est-dot.est-nearby{fill:#7cbdd8}
+:is(#environmentStory,.est-chart-dialog) .est-grid{stroke:#b8d7e021;stroke-width:1}
+:is(#environmentStory,.est-chart-dialog) .est-start{stroke:#c6bca487;stroke-dasharray:4 5}
+:is(#environmentStory,.est-chart-dialog) .est-cursor{stroke:#f0fff0a6;stroke-width:1.5}
+:is(#environmentStory,.est-chart-dialog) .est-baseline{fill:#b4caa40c}
+:is(#environmentStory,.est-chart-dialog) .est-axis{fill:#bfd0d7;font-size:16px;font-family:Inter,sans-serif;font-variant-numeric:tabular-nums}
+:is(#environmentStory,.est-chart-dialog) .est-chart-help{font-size:13px;color:#b3c7cf;margin:0 0 12px}
+:is(#environmentStory,.est-chart-dialog) .est-source{font-size:13px;color:#b7d2dd;line-height:1.5;margin:12px 0}
+:is(#environmentStory,.est-chart-dialog) details{border-top:1px solid #314752;margin:0;padding:12px 0}
+:is(#environmentStory,.est-chart-dialog) summary{cursor:pointer;font-size:14px;color:#c7dee4;padding:3px 0;min-height:28px}
+:is(#environmentStory,.est-chart-dialog) .est-table-scroll{max-height:350px;overflow:auto;margin-top:12px}
+:is(#environmentStory,.est-chart-dialog) table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;text-align:right}
+:is(#environmentStory,.est-chart-dialog) caption{text-align:left;color:#b8ced7;font-size:13px;margin-bottom:9px}
+:is(#environmentStory,.est-chart-dialog) th,:is(#environmentStory,.est-chart-dialog) td{padding:9px;border-bottom:1px solid #ffffff15}
+:is(#environmentStory,.est-chart-dialog) th:first-child{text-align:left}
+:is(#environmentStory,.est-chart-dialog) .est-table-selected{background:#294940}
+:is(#environmentStory,.est-chart-dialog) .est-caveat{font-size:13px;color:#b1c8d0;margin:12px 0 0;line-height:1.5}
+:is(#environmentStory,.est-chart-dialog) .est-empty{padding:18px 0;margin:0 0 8px}
+:is(#environmentStory,.est-chart-dialog) .est-empty h3{font-size:23px;line-height:1.3;margin:13px 0 8px}
+:is(#environmentStory,.est-chart-dialog) .est-empty h4{font-size:18px;line-height:1.4;margin:0 0 8px}
+:is(#environmentStory,.est-chart-dialog) .est-empty p{font-size:15px;line-height:1.6;margin:0;color:#c1d2d8}
+:is(#environmentStory,.est-chart-dialog) .est-status{font-size:13px;color:#9fd8c3;border:1px solid #41665e;border-radius:20px;padding:5px 9px;display:inline-block}
+:is(#environmentStory,.est-chart-dialog) .est-actions{display:flex;flex-wrap:wrap;gap:8px;margin:17px 0 0}
+:is(#environmentStory,.est-chart-dialog) .est-primary{background:#a0e0ca;color:#0a241e;border-color:#a0e0ca}
+:is(#environmentStory,.est-chart-dialog) .est-evidence-link{margin:10px 0}
+#environmentStory .est-water-record{padding:15px 0;border-bottom:1px solid #2c4550}
+#environmentStory .est-water-record>span{display:block;color:#bdd1d8;font-size:14px}
+#environmentStory .est-water-record>strong{display:block;font-size:32px;line-height:1.3;margin:6px 0;font-weight:550;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#environmentStory .est-water-record details{margin-top:8px;border:0;padding:0}
+#environmentStory .est-water-readings>div{margin:15px 0;padding:14px;background:#10202a;border-radius:8px}
+#environmentStory .est-water-readings span{display:block;font-size:14px;color:#bfd3db}
+#environmentStory .est-water-readings strong{display:block;font-size:26px;margin-top:5px;font-weight:500}#environmentStory .est-water-readings small{font-size:14px}
+#environmentStory .est-station{font-size:14px;line-height:1.6}
+:is(#environmentStory,.est-chart-dialog) a{color:#a3deeb;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.est-chart-dialog{background:#10232c;color:#e8f0f2;border:1px solid #5c8d8e;border-radius:16px;width:min(980px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:24px;box-shadow:0 20px 100px #0009;font-family:Inter,sans-serif}
+.est-chart-dialog::backdrop{background:#06111bc7;backdrop-filter:blur(3px)}
+.est-chart-dialog>header{display:flex;justify-content:space-between;align-items:start;gap:16px;border-bottom:1px solid #3b545f;padding-bottom:16px;margin-bottom:18px}
+.est-chart-dialog h2{font-size:23px;line-height:1.3;margin:0;font-weight:550}
+.est-chart-dialog .est-dialog-body>.est-values{max-width:520px}.est-chart-dialog .est-change{margin:12px 0;max-width:520px}
+.est-chart-dialog .est-chart{max-height:min(360px,44vh)}.est-chart-dialog .est-chart-section{margin-top:12px}
+.est-chart-dialog>header{position:sticky;top:-24px;background:#10232c;z-index:1}
+@media(min-width:681px){.est-chart-dialog .est-dialog-body{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}.est-chart-dialog .est-measure-heading{grid-column:1;grid-row:1}.est-chart-dialog .est-measure-heading h3{display:none}.est-chart-dialog .est-values{grid-column:1;grid-row:2}.est-chart-dialog .est-unit{grid-column:1;grid-row:3;margin-bottom:8px}.est-chart-dialog .est-change{grid-column:2;grid-row:1 / span 3;align-self:center;margin:0}.est-chart-dialog .est-dialog-body>.est-note,.est-chart-dialog .est-chart-section,.est-chart-dialog .est-values-table,.est-chart-dialog .est-source,.est-chart-dialog .est-gap,.est-chart-dialog .est-empty{grid-column:1 / -1}.est-chart-dialog .est-measure-heading p{margin:0 0 8px}}
+@media(max-width:680px){#environmentStory{padding:18px 14px;margin-top:12px}.est-chart-dialog{padding:16px;width:calc(100vw - 18px);max-height:calc(100dvh - 18px)}.est-chart-dialog>header{top:-16px}.est-chart-dialog h2{font-size:19px}.est-chart-dialog .est-values strong{font-size:30px}#environmentStory .est-categories button{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.est-chart-dialog::backdrop{backdrop-filter:none}}

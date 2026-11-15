@@ -34,8 +34,10 @@ function imagePixels(url){
   if(images.has(url))return images.get(url);
   const task=new Promise((resolve,reject)=>{
     const image=new Image();image.crossOrigin='anonymous';
-    image.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);resolve({width:canvas.width,height:canvas.height,data:ctx.getImageData(0,0,canvas.width,canvas.height).data});}catch(error){reject(error);}};
-    image.onerror=()=>reject(new Error('NASA map tile unavailable'));image.src=url;
+    const cleanup=()=>{clearTimeout(timer);image.onload=image.onerror=null;};
+    const timer=setTimeout(()=>{cleanup();image.src='';reject(new Error('NASA map tile timed out'));},9000);
+    image.onload=()=>{cleanup();try{const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);resolve({width:canvas.width,height:canvas.height,data:ctx.getImageData(0,0,canvas.width,canvas.height).data});}catch(error){reject(error);}};
+    image.onerror=()=>{cleanup();reject(new Error('NASA map tile unavailable'));};image.src=url;
   });
   images.set(url,task);task.catch(()=>images.delete(url));
   while(images.size>96)images.delete(images.keys().next().value);
@@ -78,7 +80,10 @@ export async function evidenceTexture({center,url,baselineUrl,lut,variable,offse
     plan.push([key,((py%256+256)%256*256+px%256)*4]);
   }
   await Promise.all([...tiles.values()].map(async tile=>{const expand=template=>template.replace('{z}',z).replace('{x}',tile.x).replace('{y}',tile.y);try{const [a,b]=await Promise.all([imagePixels(expand(url)),change?imagePixels(expand(baselineUrl)):null]);tile.pixels=recolorEvidence(a.data,b?.data,lut,{scale:MAP_SCALES[variable],offset,factor,change,vegetation:variable==='NDVI'});}catch{tile.pixels=null;}}));
+  const loadedTileCount=[...tiles.values()].filter(tile=>tile.pixels!==null).length,failedTileCount=tiles.size-loadedTileCount;
+  if(!loadedTileCount)throw new Error('NASA source tiles could not be loaded');
   const rgba=new Uint8Array(width*height*4);for(let i=0;i<plan.length;i++){const [key,offset]=plan[i],pixels=tiles.get(key).pixels;if(pixels)rgba.set(pixels.subarray(offset,offset+4),i*4);}
   let validPixelCount=0;for(let i=3;i<rgba.length;i+=4)if(rgba[i])validPixelCount++;
-  return {rgba,width,height,bounds,active:validPixelCount>0,validPixelCount,kind:variable};
+  const wrap=lon=>((lon+180)%360+360)%360-180;
+  return {rgba,width,height,bounds:[wrap(bounds[0]),bounds[1],wrap(bounds[2]),bounds[3]],active:validPixelCount>0,validPixelCount,loadedTileCount,failedTileCount,kind:variable};
 }

@@ -51,7 +51,10 @@ export function attachCampusEffects(viewer, site, sceneData) {
       const x = campus.x + east * cos - north * sin, y = campus.y + east * sin + north * cos;
       const base = 4 + (sampleElevation(sceneData.elevation, x, y) ?? 0) - (x * x + y * y) / (2 * 6371000);
       const source = new C.ParticleSystem({
-        image, show: false, emissionRate: 0, loop: true, lifetime: Number.MAX_VALUE,
+        // Cesium 1.121 emits floor((dt % lifetime) * emissionRate). A finite
+        // loop bounds catch-up after clock jumps or a hidden source resumes;
+        // individual particles still keep their own 10–15 second lifetimes.
+        image, show: false, emissionRate: 0, loop: true, lifetime: 8,
         minimumParticleLife: 10, maximumParticleLife: 15, minimumSpeed: 0.3, maximumSpeed: 0.8,
         imageSize: new C.Cartesian2(8, 8), sizeInMeters: true, startScale: 0.45, endScale: 1.5,
         startColor: new C.Color(0.7, 0.74, 0.76, 0.38), endColor: new C.Color(0.7, 0.74, 0.76, 0),

@@ -1,7 +1,10 @@
 // Cloud Shadow - main app: globe, panel, charts, ledger, tour.
 (async function () {
   const { campusMarkerFromEvent, formatSiteMarkerLabel, siteMarkerPresentation } = await import("./site-marker.js");
-  const { MAP_SCALES, createEvidenceProvider, comparisonDates, evidenceTexture } = await import('./evidence-map.js');
+  const { MAP_SCALES, createEvidenceProvider, evidenceTexture } = await import('./evidence-map.js');
+  const { createMapTransition, mapCrossfadeAlphas } = await import('./map-transition.js');
+  const { trackImageryProvider } = await import('./imagery-readiness.js');
+  const { sourceDateForYear, mapRequestKey } = await import('./map-source-window.js');
   const $ = (s) => document.querySelector(s);
   const fmt = (v, d = 2) => (v == null || !isFinite(v) ? "–" : (v > 0 ? "+" : "") + v.toFixed(d));
   const fmtP = (p) => (p == null || !isFinite(p) ? "–" : p < 0.001 ? "p < 0.001" : "p = " + p.toFixed(3));
@@ -115,7 +118,7 @@
   // ------------------------------------------------------------ map overlay + compare
   let overlayA = null, overlayB = null;
   const state = { site: SITES[0], live: null, varId: "NO2", mapLayer: "none" };
-  let environmentPanel=null;
+  let environmentPanel=null, environmentStory=null;
   const today = new Date().toISOString().slice(0, 10);
 
   // This accessible caption also exposes the exact source anchor for inspection.
@@ -186,42 +189,126 @@
       const L = "HLS_S30_Nadir_BRDF_Adjusted_Reflectance"; return { layer: L, date: snapDate(L, date) };
     }
   }
-  function makeLayer(spec, baseline = null) {
+  function makeLayer(spec, baseline = null, kind = state.mapLayer, center = state.live || state.site) {
     const z = CATALOG[spec.layer].z;
-    const v=VARS[state.mapLayer],lut=v? _luts[v.cmap]:null;
-    const p = lut ? createEvidenceProvider(Cesium,{url:tileUrl(spec.layer,spec.date),baselineUrl:baseline?tileUrl(spec.layer,baseline.date):null,lut,variable:state.mapLayer,offset:v.offset,factor:v.scale,change:!!baseline,maximumLevel:z,onError:()=>{ $('#mapLegendDetail').textContent='Some comparison pixels unavailable · transparent gaps are missing data.'; }})
-      : new Cesium.UrlTemplateImageryProvider({ url: tileUrl(spec.layer, spec.date), maximumLevel: z, credit: "NASA GIBS",...(state.mapLayer==='HLS'?{rectangle:Cesium.Rectangle.fromDegrees(Math.max(-180,(state.live||state.site).lon-.2),Math.max(-90,(state.live||state.site).lat-.15),Math.min(180,(state.live||state.site).lon+.2),Math.min(90,(state.live||state.site).lat+.15))}: {}) });
+    const v=VARS[kind],lut=v? _luts[v.cmap]:null;
+    const p = lut ? createEvidenceProvider(Cesium,{url:tileUrl(spec.layer,spec.date),baselineUrl:baseline?tileUrl(spec.layer,baseline.date):null,lut,variable:kind,offset:v.offset,factor:v.scale,change:!!baseline,maximumLevel:z,onError:()=>{ $('#mapLegendDetail').textContent='Some comparison pixels unavailable · transparent gaps are missing data.'; }})
+      : new Cesium.UrlTemplateImageryProvider({ url: tileUrl(spec.layer, spec.date), maximumLevel: z, credit: "NASA GIBS",...(kind==='HLS'?{rectangle:Cesium.Rectangle.fromDegrees(Math.max(-180,center.lon-.2),Math.max(-90,center.lat-.15),Math.min(180,center.lon+.2),Math.min(90,center.lat+.15))}: {}) });
+    const readiness=trackImageryProvider(p);
     const l = viewer.imageryLayers.addImageryProvider(p);
-    l.alpha = +$("#opacity").value;
+    l._csReadiness=readiness;
+    l.alpha = .001; // Warm incoming tiles while the preceding year stays visible.
     return l;
   }
-  let textureGeneration=0;
-  function refreshOverlay() {
-    const textureToken=++textureGeneration;
-    [overlayA, overlayB].forEach((l) => l && viewer.imageryLayers.remove(l, true)); overlayA = overlayB = null;
-    const change = $('#mapChange').checked && !!VARS[state.mapLayer];
-    const cmp = $("#cmpToggle").checked && !change;
-    const a = overlaySpec(state.mapLayer, $("#dateA").value || today);
-    if (a) {
-      const baseline=change?overlaySpec(state.mapLayer,$('#baselineYear').value+'-07-15'):null;
-      overlayA = makeLayer(a,baseline); $("#dateA").value = a.date;
-      if (cmp) {
-        const b = overlaySpec(state.mapLayer, $("#dateB").value || today);
-        overlayB = makeLayer(b); $("#dateB").value = b.date;
-        overlayA.splitDirection = Cesium.SplitDirection.LEFT; overlayB.splitDirection = Cesium.SplitDirection.RIGHT;
-        $("#splitL").textContent = "◀ " + a.date; $("#splitR").textContent = b.date + " ▶";
-      }
+  const mapStatus = document.createElement('p');
+  mapStatus.id='mapPlaybackStatus'; mapStatus.className='map-playback-status'; mapStatus.setAttribute('role','status');
+  $('#mapLegend').appendChild(mapStatus);
+  const resources=new Set(),textureCache=new Map();
+  let committedMap=null, requestedMap=null;
+  const paintOpacity=(resource,weight)=>{
+    resource.weight=weight;
+    const opacity=+$('#opacity').value;
+    const ordered=[...resources],front=ordered.at(-1),[backAlpha,frontAlpha]=mapCrossfadeAlphas(opacity,front?.weight??1);
+    for(const entry of ordered){
+      const alpha=ordered.length===1?entry.weight*opacity:entry===front?frontAlpha:backAlpha;
+      entry.layers.forEach(layer=>{layer.alpha=opacity===0?0:Math.max(.001,alpha);});
     }
-    $("#split").hidden = !(cmp && a); $("#dateBWrap").hidden = !cmp;
-    syncLayerControls(a);
-    window.dispatchEvent(new CustomEvent('cs:map-layer',{detail:{kind:state.mapLayer,change}}));
-    const v=VARS[state.mapLayer];
-    if(a&&v&&_luts[v.cmap]){
-      const b=overlaySpec(state.mapLayer,$('#baselineYear').value+'-07-15');
-      evidenceTexture({center:state.live||state.site,url:tileUrl(a.layer,a.date),baselineUrl:tileUrl(a.layer,b.date),lut:_luts[v.cmap],variable:state.mapLayer,offset:v.offset,factor:v.scale,change,maximumLevel:CATALOG[a.layer].z}).then(texture=>{if(textureToken!==textureGeneration)return;$('#mapLegend').dataset.validPixels=String(texture.validPixelCount);if(!texture.validPixelCount)$('#mapResolution').textContent='No comparable NASA pixels in this close-up area for these dates. Try another date or the absolute-value view. Missing coverage is transparent.';window.dispatchEvent(new CustomEvent('cs:evidence-texture',{detail:texture}));}).catch(()=>{if(textureToken===textureGeneration)window.dispatchEvent(new CustomEvent('cs:evidence-texture',{detail:{active:false}}));});
-    }else window.dispatchEvent(new CustomEvent('cs:evidence-texture',{detail:{active:false}}));
+    scene.requestRender();
+  };
+  function prepareTexture(payload){
+    const key=mapRequestKey(payload);
+    if(textureCache.has(key))return textureCache.get(key);
+    const {kind,center,a,baseline,change}=payload,v=VARS[kind];
+    const task=v?(async()=>{await loadLut(v.cmap);return evidenceTexture({center,url:tileUrl(a.layer,a.date),baselineUrl:baseline?tileUrl(a.layer,baseline.date):null,lut:_luts[v.cmap],variable:kind,offset:v.offset,factor:v.scale,change,maximumLevel:CATALOG[a.layer].z});})():Promise.resolve(null);
+    textureCache.set(key,task);task.catch(()=>textureCache.delete(key));
+    while(textureCache.size>4)textureCache.delete(textureCache.keys().next().value);
+    return task;
   }
-  function syncLayerControls(spec) {
+  const mapTransition=createMapTransition({
+    load:async(payload,signal)=>{
+      // Decode the local scientific raster before creating any replacement layers.
+      const texture=await prepareTexture(payload);
+      if(signal.aborted)return {layers:[],payload,texture};
+      const resource={layers:[],payload,texture,weight:0}; resources.add(resource);
+      try{
+        resource.layers.push(makeLayer(payload.a,payload.baseline,payload.kind,payload.center));
+        if(payload.compare){
+          resource.layers.push(makeLayer(payload.b,null,payload.kind,payload.center));
+          resource.layers[0].splitDirection=Cesium.SplitDirection.LEFT;
+          resource.layers[1].splitDirection=Cesium.SplitDirection.RIGHT;
+        }
+        return resource;
+      }catch(error){resource.layers.forEach(l=>viewer.imageryLayers.remove(l,true));resources.delete(resource);throw error;}
+    },
+    whenReady:(resource,signal)=>new Promise((resolve,reject)=>{
+      let frames=0,remove;
+      const finish=()=>{clearTimeout(timer);remove?.();signal.removeEventListener('abort',finish);resolve();};
+      const timer=setTimeout(()=>{remove?.();signal.removeEventListener('abort',finish);reject(new Error('Dated imagery did not finish loading'));},8000);
+      remove=scene.postRender.addEventListener(()=>{
+        frames++;
+        const states=resource.layers.map(layer=>layer._csReadiness.snapshot);
+        // Once each requested side has decoded imagery, show it progressively.
+        // Waiting for every horizon tile to finish stalls playback while panning.
+        const layersReady=states.every(s=>s.completed>0);
+        // The visible close-up material has its own decoded source raster. An
+        // unrelated basemap/HLS request must not hold that verified data hostage.
+        const localReady=localMarkerMode&&!resource.payload.compare&&resource.texture?.loadedTileCount>0;
+        if(frames>=2&&(layersReady||localReady||+$('#opacity').value===0))finish();
+      });
+      signal.addEventListener('abort',finish,{once:true});scene.requestRender();
+    }),
+    setOpacity:paintOpacity,
+    dispose:resource=>{resource.layers.forEach(l=>{if(viewer.imageryLayers.contains(l))viewer.imageryLayers.remove(l,true);});resources.delete(resource);},
+    onCommit:(resource,payload,key)=>{
+      committedMap=payload;overlayA=resource.layers[0];overlayB=resource.layers[1]||null;
+      syncLayerControls(payload.a,payload);
+      $('#dateA').value=payload.a.date;
+      $('#split').hidden=!payload.compare;$('#dateBWrap').hidden=!payload.compare;
+      if(payload.compare){$('#dateB').value=payload.b.date;$('#splitL').textContent='◀ '+payload.a.date;$('#splitR').textContent=payload.b.date+' ▶';}
+      const texture=resource.texture;
+      $('#mapLegend').dataset.validPixels=String(texture?.validPixelCount??0);
+      if(texture&&!texture.validPixelCount)$('#mapResolution').textContent='No comparable NASA pixels in this close-up area for these dates. Missing coverage stays transparent.';
+      if(payload.compare)$('#mapResolution').textContent='Split comparison applies to globe imagery. Low-poly ground keeps its natural colours; zoom out for the A/B map. Dates are snapshots, not annual averages.';
+      window.dispatchEvent(new CustomEvent('cs:evidence-texture',{detail:texture&&!payload.compare?{...texture,key,active:true,sourceDate:payload.a.date,comparison:payload.change}: {active:false}}));
+    },
+    onState:({state:mapState,key})=>{
+      $('#mapLegend').dataset.mapState=mapState;
+      const date=committedMap?.a.date;
+      mapStatus.textContent=mapState==='loading'?`Loading ${requestedMap?.a.date||'map'}${date?` · still showing ${date}`:''}…`:mapState==='transitioning'?'Blending dated snapshots · intermediate colours are a visual transition.':mapState==='failed'?`Map could not load${date?` · reference remains ${date}`:''}.`:mapState==='ready'?'Map ready · fixed colour scale across years.':'';
+      window.dispatchEvent(new CustomEvent('cs:map-state',{detail:{state:mapState,key,sourceDate:date}}));
+    },durationMs:700,
+  });
+  function clearScientificMap(message=''){
+    mapTransition.clear(); committedMap=requestedMap=null;overlayA=overlayB=null;
+    $('#split').hidden=true;
+    window.dispatchEvent(new CustomEvent('cs:evidence-texture',{detail:{active:false}}));
+    if(message){$('#mapLegend').hidden=false;$('#mapColorScale').hidden=true;$('#mapLegendDetail').textContent=message;$('#mapResolution').textContent='No annual spatial forecast is available. Future climate scenarios are regional period summaries.';mapStatus.textContent='No dated scientific map shown.';}
+  }
+  function refreshOverlay() {
+    const kind=state.mapLayer,change=$('#mapChange').checked&&!!VARS[kind],compare=$('#cmpToggle').checked&&!change;
+    const desired=$('#dateA').value||today;
+    let a=overlaySpec(kind,desired);
+    window.dispatchEvent(new CustomEvent('cs:map-layer',{detail:{kind,change}}));
+    if(!a){clearScientificMap();syncLayerControls(null);return;}
+    if(VARS[kind]){
+      const date=sourceDateForYear(expandIntervals(a.layer),+desired.slice(0,4),desired);
+      if(!date){clearScientificMap(`No ${VARS[kind].short} imagery for ${desired.slice(0,4)}.`);return;}
+      a={...a,date};
+    }
+    const baseline=change?overlaySpec(kind,$('#baselineYear').value+'-07-15'):null;
+    let b=compare?overlaySpec(kind,$('#dateB').value||today):null;
+    if(b&&VARS[kind]){
+      const desiredB=$('#dateB').value||today,date=sourceDateForYear(expandIntervals(b.layer),+desiredB.slice(0,4),desiredB);
+      if(!date){clearScientificMap(`No comparison imagery for ${desiredB.slice(0,4)}.`);return;}
+      b={...b,date};
+    }
+    requestedMap={kind,change,compare,a,b,baseline,center:{...(state.live||state.site)}};
+    if(!committedMap)syncLayerControls(a,requestedMap);
+    $('#mapLegend').hidden=['HLS','DIST'].includes(kind);
+    void mapTransition.show(mapRequestKey(requestedMap),requestedMap).catch(()=>{});
+  }
+  function syncLayerControls(spec,payload=null) {
+    const kind=payload?.kind||state.mapLayer;
     const descriptions = {
       none: ["Satellite", "Satellite imagery shows the real-world landscape."],
       LST_Day: ["Heat", "Daytime surface temperature: the warmth of ground and roofs, not the air."],
@@ -234,45 +321,40 @@
       HLS: ["Satellite · HLS", "NASA high-resolution surface imagery. Available image dates vary."],
       DIST: ["Land disturbance", "Mapped vegetation disturbance, which can include clearing, construction, and fire."],
     };
-    const [label, note] = descriptions[state.mapLayer] || descriptions.none;
+    const [label, note] = descriptions[kind] || descriptions.none;
     $("#layerSummary").textContent = label;
     $("#layerNote").textContent = note;
-    const family = ({ HLS: "none", LST_Night: "LST_Day", NO2: "NO2_OMI", AOD: "NO2_OMI" })[state.mapLayer] || state.mapLayer;
+    const family = ({ HLS: "none", LST_Night: "LST_Day", NO2: "NO2_OMI", AOD: "NO2_OMI" })[kind] || kind;
     document.querySelectorAll("[data-map-layer]").forEach((button) => {
       const active = button.dataset.mapLayer === family;
       button.classList.toggle("active", active); button.setAttribute("aria-pressed", String(active));
     });
-    const showLegend = !!spec && !["HLS", "DIST"].includes(state.mapLayer);
+    const showLegend = !!spec && !["HLS", "DIST"].includes(kind);
     $("#mapLegend").hidden = !showLegend;
     if (showLegend) {
       $("#mapLegendTitle").textContent = label;
-      const scale=MAP_SCALES[state.mapLayer],change=$('#mapChange').checked;
-      const base=overlaySpec(state.mapLayer,$('#baselineYear').value+'-07-15');
+      const scale=MAP_SCALES[kind],change=payload?payload.change:$('#mapChange').checked;
+      const base=payload?.baseline||overlaySpec(kind,$('#baselineYear').value+'-07-15');
       $('#mapLegendDetail').textContent = `${change?`${spec.date} minus ${base.date}`:spec.date} · ${scale.resolution} native data`;
       $('#mapLegendScale').hidden=true;
       $('#mapColorScale').hidden=false;
       $('#mapScaleLow').textContent=change?`−${scale.delta}`:scale.min;
       $('#mapScaleHigh').textContent=(change?`+${scale.delta}`:scale.max)+' '+scale.unit;
-      $('#mapScaleMeaning').textContent=state.mapLayer==='NDVI'?(change?'Blue: greener · red: less green':'Blue: greener · red: sparse vegetation'):(change?'Blue: lower · red: higher':'Blue: lower · red: higher');
+      $('#mapScaleMeaning').textContent=kind==='NDVI'?(change?'Blue: greener · red: less green':'Blue: greener · red: sparse vegetation'):(change?'Blue: lower · red: higher':'Blue: lower · red: higher');
       $('#mapResolution').textContent='Colour-class estimates from NASA imagery. Transparent = no data. Comparison is between snapshots, not a long-term trend or proof of a facility effect.';
     }
   }
-  let layerRequest=0;
   async function setMapLayer(kind, dateA, dateB, compare) {
-    const token=++layerRequest;
-    const changed = state.mapLayer !== kind;
+    if(state.mapLayer!==kind)clearScientificMap();
     state.mapLayer = kind; $("#layerSel").value = kind;
     if (dateA) $("#dateA").value = dateA; if (dateB) $("#dateB").value = dateB;
     if (compare != null) $("#cmpToggle").checked = compare;
     if(VARS[kind]){
-      if(!dateA)$('#dateA').value=comparisonDates(kind,+$('#tlSlider').value||2025,+$('#baselineYear').value).current;
-      try{await loadLut(VARS[kind].cmap);}catch{toast('Map colour scale unavailable. Try again.');return;}
-      if(token!==layerRequest)return;
-      state.varId=kind;renderTabs();runAnalysis();
-      const strip=$('#tlRingVar');if([...strip.options].some(option=>option.value===kind)){strip.value=kind;strip.dispatchEvent(new Event('change'));}
+      if(!dateA)$('#dateA').value=`${+$('#tlSlider').value||2025}-07-15`;
+      if(state.varId!==kind){state.varId=kind;renderTabs();runAnalysis();}
+      const strip=$('#tlRingVar');if(strip.value!==kind&&[...strip.options].some(option=>option.value===kind)){strip.value=kind;strip.dispatchEvent(new Event('change'));}
     }
     refreshOverlay();
-    if (changed) window.dispatchEvent(new CustomEvent('cs:map-layer', { detail: { kind } }));
   }
   $("#layerSel").onchange = (e) => {
     const s = state.site;
@@ -282,16 +364,14 @@
   document.querySelectorAll("[data-map-layer]").forEach((button) => button.addEventListener("click", () => {
     const kind = button.dataset.mapLayer;
     setMapLayer(kind, null, null, false);
-    if (VARS[kind]) { state.varId = kind; renderTabs(); runAnalysis(); }
   }));
   $("#dateA").onchange = $("#dateB").onchange = $("#cmpToggle").onchange = refreshOverlay;
-  $("#opacity").oninput = (e) => [overlayA, overlayB].forEach((l) => l && (l.alpha = +e.target.value));
+  $("#opacity").oninput = () => resources.forEach(resource=>paintOpacity(resource,resource.weight));
   $('#mapChange').onchange=()=>setMapLayer(state.mapLayer,$('#dateA').value);
   $('#baselineYear').onchange=()=>setMapLayer(state.mapLayer,$('#dateA').value);
   window.addEventListener('cs:year',({detail})=>{
     if(!detail?.year||!VARS[state.mapLayer])return;
-    if(detail.year>new Date().getFullYear()){$('#mapResolution').textContent='Historical satellite reference map; its source date is shown above. Use the climate scenario panel for future conditions.';return;}
-    const date=comparisonDates(state.mapLayer,detail.year,+$('#baselineYear').value).current;
+    const date=`${detail.year}-07-15`;
     if($('#dateA').value.slice(0,4)!==date.slice(0,4))setMapLayer(state.mapLayer,date);
   });
 
@@ -353,7 +433,7 @@
   }
 
   function selectSite(s, { fly = true, varId } = {}) {
-    textureGeneration++;layerRequest++;
+    clearScientificMap();textureCache.clear();
     if (state.site?.id !== s.id) localMarkerMode = false;
     state.site = s; state.live = null; liveAbort?.abort();
     state.varId = varId || s.watchFor?.[0] || "LST_Day";
@@ -478,6 +558,7 @@
     }
     const a = Stats.analyze(series, onset);
     if (!state.live) (lastResults[state.site.id] ||= {})[state.varId] = a;
+    window.dispatchEvent(new CustomEvent('cs:analysis',{detail:{siteId:state.live?'point-'+state.live.lat.toFixed(4)+','+state.live.lon.toFixed(4):state.site.id,varId:state.varId,analysis:a}}));
     renderVerdict(a, v); drawCharts(a, v, onset);
     if (!state.live) renderLedger();
   }
@@ -526,7 +607,7 @@
     const cart = viewer.camera.pickEllipsoid(ev.position, scene.globe.ellipsoid); if (!cart) return;
     const c = Cesium.Cartographic.fromCartesian(cart);
     state.live = { lat: Cesium.Math.toDegrees(c.latitude), lon: Cesium.Math.toDegrees(c.longitude) };
-    textureGeneration++;
+    clearScientificMap();textureCache.clear();
     const pointSite={...state.live,id:'point-'+state.live.lat.toFixed(4)+','+state.live.lon.toFixed(4),name:'Selected map location'};
     environmentPanel?.setSite(pointSite);
     window.dispatchEvent(new CustomEvent('cs:location',{detail:{site:pointSite}}));
@@ -576,9 +657,17 @@
   if (q.get("tour") != null) showTour(+q.get("tour"));
   if (q.get("embed")) { $("#globe").style.display = "none"; $("#topbar").style.display = "none"; $("#panel").style.width = "100%"; }
   window.CloudShadow = { selectSite: (id, v) => S[id] && selectSite(S[id], { varId: v }), viewer, state, sites: SITES, flyTo, setMapLayer, getMapLayer: () => state.mapLayer };
-  const [{attachEnvironmentPanel},{attachEnvironmentMap}]=await Promise.all([import('./environment-panel.js'),import('./environment-map.js')]);
+  const [{attachEnvironmentPanel},{attachEnvironmentMap},{attachEnvironmentStory},{attachSiteEvidence}]=await Promise.all([import('./environment-panel.js'),import('./environment-map.js'),import('./environment-story.js'),import('./scene-evidence.js')]);
   attachEnvironmentMap(viewer,{sites:SITES});
   environmentPanel=attachEnvironmentPanel({site:state.site,sites:SITES,year:+$('#tlSlider').value||2025,apiBase:location.hostname==='localhost'||location.hostname==='127.0.0.1'?'/api/environment':undefined});
+  environmentStory=attachEnvironmentStory({site:state.site,sites:SITES,seriesBySite:SERIES,varId:state.varId,year:+q.get('year')||2025,onSelectVariable:id=>setMapLayer(id,null,null,false),onOpenEvidence:action=>environmentPanel.openAction(action),onSelectYear:year=>window.CloudShadowTimeline?.setYear(year)});
+  $('#story').before($('#environmentStory'));
+  for(const [id,analysis] of Object.entries(lastResults[state.site.id]||{}))environmentStory.setAnalysis(id,analysis,state.site.id);
+  $('#changeHeadline').hidden=true;
+  attachSiteEvidence({site:state.site,year:+q.get('year')||2025,host:document.querySelector('#timeline .tl-main')});
+  const syncTimelineInset=()=>document.documentElement.style.setProperty('--timeline-height',`${Math.ceil($('#timeline').getBoundingClientRect().height)}px`);
+  if(typeof ResizeObserver!=='undefined')new ResizeObserver(syncTimelineInset).observe($('#timeline'));
+  syncTimelineInset();
   window.CloudShadow.environment=environmentPanel;
   window.dispatchEvent(new CustomEvent("cs:ready", { detail: window.CloudShadow }));
 })();

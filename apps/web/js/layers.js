@@ -104,9 +104,16 @@ function tileUrl(layer, date) {
 
 // ---------------------------------------------------------------- colormaps
 const _luts = {};
+const _lutPending = {};
 async function loadLut(file) {
   if (_luts[file]) return _luts[file];
-  const xml = new DOMParser().parseFromString(await (await fetch("data/" + file)).text(), "text/xml");
+  if (_lutPending[file]) return _lutPending[file];
+  const task=(async()=>{
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),9000);
+  try {
+  const response=await fetch("data/" + file,{signal:controller.signal});
+  if(!response.ok)throw new Error('NASA colour scale unavailable');
+  const xml = new DOMParser().parseFromString(await response.text(), "text/xml");
   const lut = new Map();
   for (const e of xml.getElementsByTagName("ColorMapEntry")) {
     if (e.getAttribute("transparent") === "true" || e.getAttribute("nodata") === "true" || !e.getAttribute("value")) continue;
@@ -116,7 +123,12 @@ async function loadLut(file) {
     const [r, g, b] = e.getAttribute("rgb").split(",").map(Number);
     lut.set((r << 16) | (g << 8) | b, v);
   }
+  if(!lut.size)throw new Error('NASA colour scale has no decodable values');
   return (_luts[file] = lut);
+  } finally {clearTimeout(timer);}
+  })();
+  _lutPending[file]=task;
+  try {return await task;} finally {if(_lutPending[file]===task)delete _lutPending[file];}
 }
 
 // ---------------------------------------------------------------- geometry
