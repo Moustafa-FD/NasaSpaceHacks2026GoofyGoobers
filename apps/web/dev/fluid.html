@@ -19,13 +19,11 @@
   <canvas id="view" width="640" height="640"></canvas>
   <div class="controls">
     <h1>Fluid playground</h1>
-    <p>Tune <code>js/fluid-gpu.js</code> without the globe. In the app these inputs come from the timeline row for the year (NASA POWER wind, night-heat, NO₂, precipitation).</p>
+    <p>Wind-only solver debug. These manual inputs and tracers are illustrative, not measured weather or pollution. Click Add tracer to inspect transport. The main globe uses GEOS-FP trails instead of this rectangle.</p>
     <label>Wind toward (°) <input id="dir" type="range" min="0" max="359" value="12" /><output id="dirV"></output></label>
     <label>Wind speed (m/s) <input id="spd" type="range" min="0" max="10" step="0.1" value="3.9" /><output id="spdV"></output></label>
-    <label>Heat <input id="heat" type="range" min="0" max="3" step="0.05" value="1" /><output id="heatV"></output></label>
-    <label>Pollution <input id="pol" type="range" min="0" max="2" step="0.05" value="0.6" /><output id="polV"></output></label>
-    <label>Moisture <input id="moi" type="range" min="0" max="2" step="0.05" value="0.6" /><output id="moiV"></output></label>
-    <label><span><input id="proj" type="checkbox" /> Projected (future) grade</span></label>
+    <label>Motion speed <input id="motion" type="range" min="0" max="2" step="0.05" value="0.35" /><output id="motionV"></output></label>
+    <button id="inject">Add illustrative tracer</button>
     <p id="mode"></p><p id="fps"></p>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/Cesium.js"></script>
@@ -33,20 +31,25 @@
     import { attachFluid } from "../js/fluid-gpu.js";
     // minimal stand-in for a Cesium viewer: we only need the draped texture
     let ent = null;
-    const fakeViewer = { entities: { add: (e) => (ent = e), remove() {} } };
+    const listeners=new Set();
+    const fakeViewer = {clock:new Cesium.Clock({shouldAnimate:true,multiplier:.35}),scene:{preRender:{addEventListener(fn){listeners.add(fn);return ()=>listeners.delete(fn);}}},entities: { add: (e) => (ent = e), remove() {} } };
     const fluid = attachFluid(fakeViewer, { lat: 35.06, lon: -90.16 });
     document.getElementById("mode").textContent = fluid.gpu ? "Mode: GPU (WebGL2)" : "Mode: CPU fallback";
-    const ids = ["dir", "spd", "heat", "pol", "moi"];
+    const ids = ["dir", "spd", "motion"];
     function apply() {
       const v = Object.fromEntries(ids.map((i) => [i, +document.getElementById(i).value]));
       ids.forEach((i) => (document.getElementById(i + "V").textContent = v[i]));
-      fluid.setWeather({ windTowardDeg: v.dir, windSpeed: v.spd, heat: v.heat, pollution: v.pol, moisture: v.moi, projected: document.getElementById("proj").checked });
+      fakeViewer.clock.multiplier=v.motion;fakeViewer.clock.shouldAnimate=v.motion>0;
+      fluid.setWind(v.dir,v.spd);
     }
-    ids.concat("proj").forEach((i) => document.getElementById(i).addEventListener("input", apply));
+    ids.forEach((i) => document.getElementById(i).addEventListener("input", apply));
+    document.getElementById('inject').addEventListener('click',()=>fluid.injectTracer(.5,.5,.6));
+    window.addEventListener('pagehide',()=>fluid.dispose(),{once:true});
     apply();
     const view = document.getElementById("view").getContext("2d");
     let frames = 0, t0 = performance.now();
     (function draw(now) {
+      fakeViewer.clock.tick();for(const listener of listeners)listener();
       const img = ent?.rectangle?.material?.image?.getValue?.();
       if (img) { view.clearRect(0, 0, 640, 640); view.drawImage(img, 0, 0, 640, 640); }
       frames++; if (now - t0 > 1000) { document.getElementById("fps").textContent = `${frames} fps`; frames = 0; t0 = now; }

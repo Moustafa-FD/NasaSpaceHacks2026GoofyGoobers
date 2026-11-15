@@ -12,6 +12,40 @@ function hash(value) {
 }
 
 const GRASS_PERIOD=8192,EARTH=6378137;
+const finite=(value)=>typeof value==='number'&&Number.isFinite(value);
+/** Same local equirectangular frame used to project cached OSM source geometry. */
+export function evidenceCoordinateFrame(center={}){
+  const lat=finite(center.lat)?Math.max(-85,Math.min(85,center.lat)):0,lon=finite(center.lon)?center.lon:0;
+  return [lon,lat,180/(Math.PI*EARTH*Math.cos(lat*Math.PI/180)),180/(Math.PI*EARTH)];
+}
+/** Textures follow WebGL's bottom-to-top convention: first row is SOUTH. */
+export function normalizeEvidenceTexture(value){
+  if(value?.active!==true)return null;
+  const {rgba,width,height,bounds}=value;
+  if(!(rgba instanceof Uint8Array)||!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width>2048||height>2048||rgba.length!==width*height*4||!Array.isArray(bounds)||bounds.length!==4||!bounds.every(finite))return null;
+  const [west,south,east,north]=bounds,span=east>west?east-west:east-west+360;
+  if(west< -180||west>180||east< -180||east>180||east===west||south< -90||north>90||north<=south||span<=0||span>360)return null;
+  return {active:true,rgba:rgba.slice(),width,height,bounds:[...bounds]};
+}
+export function evidenceTextureCoordinate(center,east,north,bounds){
+  const frame=evidenceCoordinateFrame(center),lon=frame[0]+east*frame[2],lat=frame[1]+north*frame[3];
+  const span=bounds[2]>bounds[0]?bounds[2]-bounds[0]:bounds[2]-bounds[0]+360,dx=((lon-bounds[0])%360+360)%360;
+  const u=dx/span,v=(lat-bounds[1])/(bounds[3]-bounds[1]);
+  return u>=0&&u<=1&&v>=0&&v<=1?[u,v]:null;
+}
+function evidenceUniform(Cesium,evidence){
+  return new Cesium.TextureUniform({typedArray:evidence?.rgba||new Uint8Array(4),width:evidence?.width||1,height:evidence?.height||1,
+    pixelFormat:Cesium.PixelFormat.RGBA,pixelDatatype:Cesium.PixelDatatype.UNSIGNED_BYTE,
+    minificationFilter:Cesium.TextureMinificationFilter.NEAREST,magnificationFilter:Cesium.TextureMagnificationFilter.NEAREST,repeat:false});
+}
+/** Cesium's TextureManager destroys the previous GPU texture on replacement;
+ * existing CustomShader.destroy calls release both DEM and evidence textures. */
+export function setLandscapeEvidence(Cesium,shader,evidence){
+  if(shader.isDestroyed?.())return;
+  shader.setUniform('u_evidenceActive',evidence?1:0);
+  shader.setUniform('u_evidenceBounds',new Cesium.Cartesian4(...(evidence?.bounds||[-180,-90,180,90])));
+  shader.setUniform('u_evidence',evidenceUniform(Cesium,evidence));
+}
 const wrapGrass=(value)=>((value%GRASS_PERIOD)+GRASS_PERIOD)%GRASS_PERIOD;
 /** Source snapshots use local equirectangular metres. Recover a shared global
  * coordinate phase in double precision, then upload only its small periodic
@@ -241,6 +275,19 @@ void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material) {
         material.roughness = 0.30;
         material.specular = vec3(0.04);
     }
+    // Only real raster coverage tints ground/water. Buildings, roads, planting
+    // and air stay unchanged; no point measurement is expanded into a field.
+    if (u_evidenceActive > 0.5 && kind > 2.5 && kind < 4.5) {
+        vec2 geo=u_patchGeo.xy+v_lpLocal*u_patchGeo.zw;
+        float span=u_evidenceBounds.z-u_evidenceBounds.x;
+        if(span<=0.0)span+=360.0;
+        vec2 uv=vec2(mod(geo.x-u_evidenceBounds.x+360.0,360.0)/span,
+                     (geo.y-u_evidenceBounds.y)/(u_evidenceBounds.w-u_evidenceBounds.y));
+        if(all(greaterThanEqual(uv,vec2(0.0))) && all(lessThanEqual(uv,vec2(1.0)))) {
+            vec4 evidence=texture(u_evidence,uv);
+            material.diffuse=mix(material.diffuse,pow(evidence.rgb,vec3(2.2)),evidence.a);
+        }
+    }
 }
 `;
 
@@ -260,6 +307,10 @@ export function createLandscapeShader(Cesium, elevation = null, options = {}) {
       u_health: { type: Cesium.UniformType.FLOAT, value: 1 },
       u_year: { type: Cesium.UniformType.FLOAT, value: 2025 },
       u_scenario: { type: Cesium.UniformType.FLOAT, value: 0 },
+      u_evidenceActive: { type: Cesium.UniformType.FLOAT, value: 0 },
+      u_evidenceBounds: { type: Cesium.UniformType.VEC4, value: new Cesium.Cartesian4(-180,-90,180,90) },
+      u_patchGeo: { type: Cesium.UniformType.VEC4, value: new Cesium.Cartesian4(...evidenceCoordinateFrame(options.center||elevation?.center)) },
+      u_evidence: { type: Cesium.UniformType.SAMPLER_2D, value: evidenceUniform(Cesium,null) },
       u_viewCircle: { type: Cesium.UniformType.VEC3, value: new Cesium.Cartesian3(0,0,1000000) },
       u_patchRadius: { type: Cesium.UniformType.FLOAT, value: 1000000 },
       u_patchOpacity: { type: Cesium.UniformType.FLOAT, value: 1 },

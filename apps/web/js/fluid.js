@@ -7,14 +7,11 @@
 // This is a CPU implementation (small grid) so it runs on any laptop, rendered into a canvas
 // that Cesium drapes on the ground as a texture.
 //
-// Driven by NASA data each year (via setWeather):
-//   wind  = NASA POWER direction/speed (time-lapsed)      → body force
-//   heat stays in numerical charts; it never creates visible smoke.
-//   a qualitative blue-gray source exists only for documented on-site combustion.
-//   moisture = NASA POWER precipitation → subtle wind wisps from upwind.
-// It is a VISUALIZATION of those inputs, not an atmospheric model.
+// Optional dev tool with the same shared clock and geographic wind sampler as
+// the GPU path. Only an explicit debug tracer creates dye; no precipitation,
+// heat or pollution source is inferred. It is not an atmospheric model.
 
-import { getMotionSpeed } from "./motion.js";
+import { analysisDeltaSeconds, windForcingGrid } from "./flowfield.js";
 import { weatherDyePixel } from "./smoke-policy.js";
 
 const N = 80;                // interior cells per side (CPU cost ~ N² per step)
@@ -74,11 +71,16 @@ class Fluid {
       u[IX(i, j)] += eps * dt * ny * w; v[IX(i, j)] -= eps * dt * nx * w;
     }
   }
-  step(dt, wind, decay) {
+  step(dt, wind, decay,windGrid=null) {
     const { u, v, u0, v0 } = this;
     // body force: relax toward the large-scale wind
     const relaxation = 1 - Math.pow(0.96, dt * 30);
-    for (let k = 0; k < SIZE; k++) { u[k] += (wind[0] - u[k]) * relaxation; v[k] += (wind[1] - v[k]) * relaxation; }
+    if(windGrid){
+      for(let j=1;j<=N;j++)for(let i=1;i<=N;i++){
+        const k=IX(i,j),g=((j-1)*N+i-1)*4,valid=windGrid[g+2]>.5;
+        u[k]+=((valid?windGrid[g]:0)-u[k])*relaxation;v[k]+=((valid?windGrid[g+1]:0)-v[k])*relaxation;
+      }
+    }else for (let k = 0; k < SIZE; k++) { u[k] += (wind[0] - u[k]) * relaxation; v[k] += (wind[1] - v[k]) * relaxation; }
     this.vorticity(28, dt);
     this.project(u, v, u0, v0);
     u0.set(u); v0.set(v);
@@ -102,7 +104,7 @@ class Fluid {
 }
 
 // ------------------------------------------------------------------ Cesium attachment
-export function attachFluidCPU(viewer, site, { halfSizeM = 16000 } = {}) {
+export function attachFluidCPU(viewer, site, { halfSizeM = 16000,sampleWind=null,timeLapse=400 } = {}) {
   const fluid = new Fluid();
   const canvases = [0, 1].map(() => { const c = document.createElement("canvas"); c.width = c.height = N; return c; });
   let front = 0;
@@ -119,36 +121,27 @@ export function attachFluidCPU(viewer, site, { halfSizeM = 16000 } = {}) {
     },
   });
 
-  let frame = 0, alive = true, visible = true, last = performance.now(), lastStep = 0, time = 0;
-  const c = N / 2 + 0.5;
-  function loop(now) {
+  let frame = 0, alive = true, visible = true,lastTime=Cesium.JulianDate.clone(viewer.clock.currentTime),accumulated=0,time=0,lastField=-Infinity;
+  let sampleField=typeof sampleWind==='function'?sampleWind:null;
+  const forcing=new Float32Array(N*N*4);
+  function loop() {
     if (!alive) return;
-    requestAnimationFrame(loop);
-    const speed = getMotionSpeed();
-    if (!visible || speed === 0) { last = now; lastStep = now; return; }
-    if (now - lastStep < 33) return;           // simulate at most ~30 Hz, leave the frame budget to Cesium
-    lastStep = now;
-    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)) * speed; last = now;
-    if (dt === 0) return;
+    const clock=viewer.clock,delta=Cesium.JulianDate.secondsDifference(clock.currentTime,lastTime);
+    lastTime=Cesium.JulianDate.clone(clock.currentTime,lastTime);
+    const elapsed=analysisDeltaSeconds(delta,clock.shouldAnimate!==false&&clock.multiplier!==0&&document.visibilityState!=='hidden');
+    if(!visible||!elapsed)return;
+    accumulated+=elapsed;if(accumulated<1/30)return;
+    const dt=Math.min(.05,accumulated);accumulated=0;
     frame++; time += dt;
-    const stepScale = dt * 30;
     // grid: +x = east, +y = SOUTH (row 0 is the northern edge of the image)
-    const sp = W.speed * 0.002;
+    const scale=timeLapse/(halfSizeM*2),sp = W.speed * scale;
     const wind = [W.windE * sp, -W.windN * sp];
-    // sources
-    if (W.pollution > 0) fluid.splat(c, c, 1.8, wind[0] * 3 * stepScale, wind[1] * 3 * stepScale, [0, W.pollution * 0.16 * stepScale, 0]);
-    if (W.moisture > 0 && frame % 4 === 0) {
-      // wisps entering from the upwind edge
-      const t = (Math.random() - 0.5) * N * 0.9;
-      const ux = -Math.sign(wind[0]) || 0, uy = -Math.sign(wind[1]) || 0;
-      const ex = Math.abs(wind[0]) > Math.abs(wind[1]) ? c + ux * (N / 2 - 3) : c + t;
-      const ey = Math.abs(wind[0]) > Math.abs(wind[1]) ? c + t : c + uy * (N / 2 - 3);
-      fluid.splat(ex, ey, 4.5, wind[0] * 2 * stepScale, wind[1] * 2 * stepScale, [0, 0, W.moisture * 0.35 * stepScale]);
+    if(sampleField&&time-lastField>=.2){
+      lastField=time;windForcingGrid(sampleField,site,{size:N,halfSizeM,units:scale,northFirst:true},forcing);
     }
-    if (frame % 9 === 0) { // gentle turbulence so the flow never looks laminar
-      fluid.splat(1 + Math.random() * N, 1 + Math.random() * N, 6, (Math.random() - 0.5) * 0.1 * stepScale, (Math.random() - 0.5) * 0.1 * stepScale, [0, 0, 0]);
-    }
-    fluid.step(dt, wind, [0.985, 0.988, 0.992]);
+    // No random momentum or edge dye. Only explicit debug tracer injection
+    // creates dye; missing gridded samples contribute no invented wind.
+    fluid.step(dt, wind, [0.985, 0.988, 0.992],sampleField?forcing:null);
     if (frame % 2 === 0) render();
   }
   const pixel = [0,0,0,0];
@@ -163,21 +156,23 @@ export function attachFluidCPU(viewer, site, { halfSizeM = 16000 } = {}) {
     canvases[back].getContext("2d").putImageData(img, 0, 0);
     front = back; // new canvas object → Cesium re-uploads the texture
   }
-  requestAnimationFrame(loop);
+  const removeLoop=viewer.scene.preRender.addEventListener(loop);
 
   return {
     gpu: false,
-    setVisible(value) { visible = !!value; entity.show = visible; last = performance.now(); lastStep = last; },
+    setVisible(value) { visible = !!value; entity.show = visible;lastTime=Cesium.JulianDate.clone(viewer.clock.currentTime,lastTime);accumulated=0; },
     setWeather({ windTowardDeg, windSpeed, heat, pollution, moisture, projected }) {
       if (Number.isFinite(windTowardDeg)) { const th = windTowardDeg * Math.PI / 180; W.windE = Math.sin(th); W.windN = Math.cos(th); }
       else { W.windE = 0; W.windN = 0; }
-      if (windSpeed != null) W.speed = windSpeed;
-      W.pollution = Math.max(0, pollution ?? 0); W.moisture = Math.max(0, moisture ?? 0);
+      W.speed=Number.isFinite(windSpeed)&&windSpeed>=0?windSpeed:0;
+      W.pollution = W.moisture = 0;
       W.projected = !!projected;
     },
     setWind(towardDeg, speed) {
-      const th = towardDeg * Math.PI / 180; W.windE = Math.sin(th); W.windN = Math.cos(th); W.speed = speed;
+      const th=Number.isFinite(towardDeg)?towardDeg*Math.PI/180:null;W.windE=th==null?0:Math.sin(th);W.windN=th==null?0:Math.cos(th);W.speed=Number.isFinite(speed)&&speed>=0?speed:0;
     },
-    dispose() { alive = false; viewer.entities.remove(entity); },
+    setWindField(sample){sampleField=typeof sample==='function'?sample:null;lastField=-Infinity;},
+    injectTracer(x=.5,y=.5,amount=.15){fluid.splat(1+Math.max(0,Math.min(1,x))*(N-1),1+(1-Math.max(0,Math.min(1,y)))*(N-1),1.5,0,0,[0,0,Math.max(0,Math.min(1,amount))]);},
+    dispose() { alive = false;removeLoop();viewer.entities.remove(entity); },
   };
 }

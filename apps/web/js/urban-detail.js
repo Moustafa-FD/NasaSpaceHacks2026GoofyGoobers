@@ -156,16 +156,63 @@ export function groupCampusBuildings(snapshot,buildings,options={}){
   return [...groups.values()].map((bs)=>({id:'campus:'+bs.map((b)=>b.id).sort().join('+'),buildings:bs.map((b)=>b.id),polygon:expand(hull(bs.flatMap((b)=>b.polygon)),options.campusMarginM??8)}));
 }
 
+export const CAMPUS_PAD_LIFT_M=.42;
+
+/** Illustrative service equipment stays inside the shared campus boundary. It
+ * does not claim a surveyed substation, voltage, capacity or grid connection. */
+export function planCampusSwitchyards(snapshot,buildings,campuses,{urban={},context:provided,footprintIndex,sourceMap,maxCampusSwitchyards=12,residentialFocus={x:0,y:0}}={}){
+  const ctx=provided||context(snapshot,urban),source=sourceMap||buildingFootprints(snapshot,buildings),footprints=footprintIndex||new Index(),yards=[];
+  if(!footprintIndex)for(const f of source.values())if(f.polygon?.length>=3)footprints.insert(f,box(f.polygon));
+  const ordered=[...campuses].sort((a,b)=>{const p=box(a.polygon),q=box(b.polygon);return Math.hypot((p[0]+p[2])/2-residentialFocus.x,(p[1]+p[3])/2-residentialFocus.y)-Math.hypot((q[0]+q[2])/2-residentialFocus.x,(q[1]+q[3])/2-residentialFocus.y)||a.id.localeCompare(b.id);});
+  const clear=(ring,campus)=>{
+    if(!ring.every((p)=>inside(p,campus.polygon)))return false;
+    const bounds=box(ring);
+    for(const f of footprints.query(bounds))if(overlap(ring,f.polygon))return false;
+    for(const f of ctx.water.query(bounds)){
+      if(ring.some((p)=>inFeature(p,f))||f.polygon.some((p)=>inside(p,ring)))return false;
+      for(const boundary of [f.polygon,...(f.holes||[])])for(let i=0;i<boundary.length;i++)for(let j=0;j<ring.length;j++)if(intersects(boundary[i],boundary[(i+1)%boundary.length],ring[j],ring[(j+1)%ring.length]))return false;
+    }
+    for(const r of ctx.roads.query(bounds)){
+      const length=dist(r.a,r.b);if(!length)continue;
+      const nx=-(r.b[1]-r.a[1])/length*(r.width/2+1),ny=(r.b[0]-r.a[0])/length*(r.width/2+1);
+      if(overlap(ring,[[r.a[0]+nx,r.a[1]+ny],[r.a[0]-nx,r.a[1]-ny],[r.b[0]-nx,r.b[1]-ny],[r.b[0]+nx,r.b[1]+ny]]))return false;
+    }
+    return true;
+  };
+  for(const campus of ordered){
+    if(yards.length>=clamp(maxCampusSwitchyards,0,24))break;
+    const bounds=box(campus.polygon),large=campus.buildings.length>=3||(bounds[2]-bounds[0])*(bounds[3]-bounds[1])>14000;
+    const ccw=campus.polygon.reduce((sum,a,i)=>{const b=campus.polygon[(i+1)%campus.polygon.length];return sum+a[0]*b[1]-b[0]*a[1];},0)>0;
+    let placed=null;
+    for(const width of large?[16,10.5]:[10.5]){
+      for(let i=0;i<campus.polygon.length&&!placed;i++){
+        const a=campus.polygon[i],b=campus.polygon[(i+1)%campus.polygon.length],length=dist(a,b),depth=5.4;if(length<width+3)continue;
+        const dx=(b[0]-a[0])/length,dy=(b[1]-a[1])/length,sign=ccw?1:-1;
+        for(const fraction of [.5,.25,.75]){
+          const along=clamp(length*fraction,width/2+1.3,length-width/2-1.3),inset=depth/2+1.25,x=a[0]+dx*along-dy*inset*sign,y=a[1]+dy*along+dx*inset*sign,angle=Math.atan2(dy,dx),polygon=rectangle({x,y,width,depth,angle});
+          // A clearance envelope keeps tall equipment away from halls, roads,
+          // water edges and the fence, not just its centre point.
+          if(!clear(rectangle({x,y,width:width+.8,depth:depth+.8,angle}),campus))continue;
+          placed={id:campus.id+':switchyard',campusId:campus.id,x,y,width,depth,angle,polygon,transformerBanks:width>=16?2:1,switchgearCabinets:width>=16?3:2,illustrative:true};break;
+        }
+      }
+      if(placed)break;
+    }
+    if(placed)yards.push(placed);
+  }
+  return yards;
+}
+
 export function buildUrbanDetail(snapshot,heightAt,{detail='close',buildings=[],urban,...options}={}){
   if(typeof heightAt!=='function')throw new TypeError('buildUrbanDetail requires the rendered ground sampler');
   urban=urban||snapshot.urban||{};
   const ctx=context(snapshot,urban),groups=new Map(),source=buildingFootprints(snapshot,buildings),budget=options.maxTriangles??(detail==='overview'?45000:160000);
   let drawLimit=budget;
   const sourceFootprints=detail==='overview'?null:new Index();if(sourceFootprints)for(const f of source.values())if(f.polygon?.length>=3)sourceFootprints.insert(f,box(f.polygon));
-  const stats={mappedSurfaces:0,parkingLots:0,parkingStripes:0,parkedCars:0,buildingPads:0,campuses:0,campusHalls:0,campusFences:0,gardenFences:0,gardenBeds:0,patios:0,hedges:0,mappedDriveways:0,illustrativeDriveways:0,frontWalks:0,sourcePowerLines:(urban.powerLines||[]).length,powerSpans:0,powerTowers:0,powerPoles:0,trafficSignals:0,infrastructureTriangles:0,entranceProps:0,benches:0,runways:0,taxiways:0,aprons:0,triangles:0,skippedBudget:0};
+  const stats={mappedSurfaces:0,parkingLots:0,parkingStripes:0,parkedCars:0,buildingPads:0,campuses:0,campusHalls:0,campusFences:0,campusSwitchyards:0,transformerBanks:0,switchgearCabinets:0,campusEquipmentTriangles:0,gardenFences:0,gardenBeds:0,patios:0,hedges:0,mappedDriveways:0,illustrativeDriveways:0,frontWalks:0,sourcePowerLines:(urban.powerLines||[]).length,powerSpans:0,powerTowers:0,powerPoles:0,trafficSignals:0,infrastructureTriangles:0,entranceProps:0,benches:0,runways:0,taxiways:0,aprons:0,triangles:0,skippedBudget:0};
   const material=(name,color)=>{if(!groups.has(name))groups.set(name,{name,positions:[],normals:[],indices:[],color,category:0});return groups.get(name);};
   const concrete=material('urban-concrete','#aaa99e'),asphalt=material('urban-asphalt','#485055'),white=material('urban-white-paint','#e4e1d0'),yellow=material('urban-yellow-paint','#d5b64d'),metal=material('urban-fence-metal','#727d78'),wood=material('urban-garden-fence','#8e8069');
-  const carPaint=[material('urban-car-blue','#58768a'),material('urban-car-cream','#c4c2ad'),material('urban-car-red','#9d6154')],parkedCars=[],infrastructure=[],wireSpans=[],gardens=[];
+  const carPaint=[material('urban-car-blue','#58768a'),material('urban-car-cream','#c4c2ad'),material('urban-car-red','#9d6154')],parkedCars=[],infrastructure=[],wireSpans=[],gardens=[],switchyards=[];
   const hedge=material('urban-garden-green','#637c4d');hedge.category=1;
   const signalGreen=material('urban-signal-green','#57946a');
   function tri(mesh,points,lift=0.16,avoidRoad=false){
@@ -201,16 +248,16 @@ export function buildUrbanDetail(snapshot,heightAt,{detail='close',buildings=[],
     for(let i=0;i<4;i++)for(let k=0;k<3;k++)mesh.normals[(start+i)*3+k]=n[k]/len;
     if(doubleSided&&stats.triangles+2<=drawLimit){const back=mesh.positions.length/3;for(const p of points){mesh.positions.push(p[0],p[1],-p[2]);mesh.normals.push(...n.map((v)=>-v/len));}mesh.indices.push(back,back+2,back+1,back,back+3,back+2);stats.triangles+=2;}
   }
-  function post(mesh,p,height,width=0.12){const h=heightAt(...p);if(!Number.isFinite(h))return;for(const [dx,dy] of [[1,0],[0,1]])quad3(mesh,[[p[0]-dx*width/2,h,p[1]-dy*width/2],[p[0]+dx*width/2,h,p[1]+dy*width/2],[p[0]+dx*width/2,h+height,p[1]+dy*width/2],[p[0]-dx*width/2,h+height,p[1]-dy*width/2]],true);}
-  function fence(ring,height,mesh,garden=false,gatePoint=null){
+  function post(mesh,p,height,width=0.12,lift=0){const ground=heightAt(...p),h=ground+lift;if(!Number.isFinite(ground))return;for(const [dx,dy] of [[1,0],[0,1]])quad3(mesh,[[p[0]-dx*width/2,h,p[1]-dy*width/2],[p[0]+dx*width/2,h,p[1]+dy*width/2],[p[0]+dx*width/2,h+height,p[1]+dy*width/2],[p[0]-dx*width/2,h+height,p[1]-dy*width/2]],true);}
+  function fence(ring,height,mesh,garden=false,gatePoint=null,lift=0){
     const bounds=box(ring),focus=options.residentialFocus||{x:0,y:0},distant=!garden&&Math.hypot((bounds[0]+bounds[2])/2-focus.x,(bounds[1]+bounds[3])/2-focus.y)>850,spacing=garden?6:distant?16:8,flatPosts=garden||distant,rails=garden||distant?[height*.7]:[height*.35,height*.85];
     const estimated=ring.reduce((n,a,i)=>n+Math.ceil(dist(a,ring[(i+1)%ring.length])/spacing)*((flatPosts?4:8)+rails.length*4),0);
     if(stats.triangles+estimated>budget)return false;
     let count=0;for(let i=0;i<ring.length;i++){
       const a=ring[i],b=ring[(i+1)%ring.length],len=dist(a,b),steps=Math.max(1,Math.ceil(len/spacing));
       for(let j=0;j<steps;j++){const p=[a[0]+(b[0]-a[0])*j/steps,a[1]+(b[1]-a[1])*j/steps],q=[a[0]+(b[0]-a[0])*(j+1)/steps,a[1]+(b[1]-a[1])*(j+1)/steps],mid=[(p[0]+q[0])/2,(p[1]+q[1])/2],gates=gatePoint?(Array.isArray(gatePoint[0])?gatePoint:[gatePoint]):[];if(ctx.wet(mid)||ctx.blocks(p,q)||ctx.nearRoad(mid,garden?1:3)||gates.some((g)=>dist(g,closest(g,p,q))<(garden?1.8:7)))continue;
-        const hp=heightAt(...p),hq=heightAt(...q);if(!Number.isFinite(hp)||!Number.isFinite(hq))continue;
-        if(flatPosts){const nx=-(q[1]-p[1])/dist(p,q)*0.05,ny=(q[0]-p[0])/dist(p,q)*0.05;quad3(mesh,[[p[0]-nx,hp,p[1]-ny],[p[0]+nx,hp,p[1]+ny],[p[0]+nx,hp+height,p[1]+ny],[p[0]-nx,hp+height,p[1]-ny]],true);}else post(mesh,p,height,0.16);
+        const groundP=heightAt(...p),groundQ=heightAt(...q),hp=groundP+lift,hq=groundQ+lift;if(!Number.isFinite(groundP)||!Number.isFinite(groundQ))continue;
+        if(flatPosts){const nx=-(q[1]-p[1])/dist(p,q)*0.05,ny=(q[0]-p[0])/dist(p,q)*0.05;quad3(mesh,[[p[0]-nx,hp,p[1]-ny],[p[0]+nx,hp,p[1]+ny],[p[0]+nx,hp+height,p[1]+ny],[p[0]-nx,hp+height,p[1]-ny]],true);}else post(mesh,p,height,0.16,lift);
         for(const level of rails)quad3(mesh,[[p[0],hp+level,p[1]],[q[0],hq+level,q[1]],[q[0],hq+level+0.06,q[1]],[p[0],hp+level+0.06,p[1]]],true);count++;
       }
     }return count>0;
@@ -237,6 +284,52 @@ export function buildUrbanDetail(snapshot,heightAt,{detail='close',buildings=[],
     const dx=b[0]-a[0],dz=b[2]-a[2],len=Math.hypot(dx,dz),nx=len?-dz/len*width/2:width/2,nz=len?dx/len*width/2:0;
     if(Math.hypot(b[0]-a[0],b[1]-a[1],b[2]-a[2])<0.01)return;
     quad3(mesh,[[a[0]+nx,a[1],a[2]+nz],[a[0]-nx,a[1],a[2]-nz],[b[0]-nx,b[1],b[2]-nz],[b[0]+nx,b[1],b[2]+nz]],true);
+  }
+  function campusEquipment(campuses){
+    if(detail==='overview')return;
+    const planned=planCampusSwitchyards(snapshot,buildings,campuses,{...options,urban,context:ctx,footprintIndex:sourceFootprints,sourceMap:source});
+    for(const yard of planned){
+      const probes=[...yard.polygon,[yard.x,yard.y],...yard.polygon.map((p,i)=>{const q=yard.polygon[(i+1)%4];return [(p[0]+q[0])/2,(p[1]+q[1])/2];})],heights=probes.map((p)=>heightAt(...p));
+      if(!heights.every(Number.isFinite))continue;
+      const low=Math.min(...heights),high=Math.max(...heights),estimate=yard.transformerBanks===2?1500:1000;
+      if(high-low>1.2||stats.triangles+estimate>budget||stats.campusEquipmentTriangles+estimate>(options.maxCampusEquipmentTriangles??16000))continue;
+      const before=stats.triangles,equipment=material('urban-electrical-equipment','#829196'),c=Math.cos(yard.angle),s=Math.sin(yard.angle),level=high+CAMPUS_PAD_LIFT_M+.22;
+      const at=(x,y)=>[yard.x+x*c-y*s,yard.y+x*s+y*c];
+      const solid=(paint,x,y,z,w,d,h,rotation=0)=>{const p=at(x,y);cuboid(paint,p[0],p[1],level+z,w,d,h,yard.angle+rotation);};
+      const conductor=(a,b,width=.09)=>{const p=at(a[0],a[2]),q=at(b[0],b[2]);beam(equipment,[p[0],level+a[1],p[1]],[q[0],level+b[1],q[1]],width);};
+      // A level plinth covers the actual sloping ground; heights already include
+      // the scene's ellipsoid/DEM offset, so no second +4m adjustment is applied.
+      cuboid(concrete,yard.x,yard.y,low+CAMPUS_PAD_LIFT_M-.03,yard.width,yard.depth,high-low+.25,yard.angle);
+      const banks=yard.transformerBanks===2?[-yard.width*.27,0]:[-yard.width*.23];
+      for(const x of banks){
+        solid(equipment,x,0,0,2.1,2.7,2.15);solid(equipment,x,0,2.15,2.3,2.9,.12);
+        // Visible radiator fins and three ceramic bushing stacks distinguish an
+        // oil transformer from another anonymous utility cabinet.
+        for(const side of [-1,1])for(const y of [-.84,-.28,.28,.84])solid(asphalt,x+side*1.25,y,.32,.32,.42,1.55);
+        for(const [phase,dx] of [-.65,0,.65].entries()){
+          solid(asphalt,x+dx,.1,2.27,.10,.10,.76);
+          for(let disc=0;disc<3;disc++)solid(white,x+dx,.1,2.38+disc*.19,.30,.30,.07,Math.PI/4);
+          conductor([x+dx,3.04,.1],[x+dx,3.48,(phase-1)*.8],.065);
+        }
+      }
+      for(const side of [-1,1]){
+        const x=side*(yard.width/2-.75);
+        solid(equipment,x,1.65,0,.18,.18,3.8);solid(equipment,x,.1,3.13,.18,3.55,.16);
+        for(const y of [-.8,0,.8]){
+          solid(asphalt,x,y,3.29,.09,.09,.24);
+          for(let disc=0;disc<2;disc++)solid(white,x,y,3.31+disc*.12,.25,.25,.055,Math.PI/4);
+        }
+      }
+      for(const y of [-.8,0,.8])conductor([-yard.width/2+.75,3.55,y],[yard.width/2-.75,3.55,y],.10);
+      for(let i=0;i<yard.switchgearCabinets;i++){
+        const x=yard.width*.36,y=(i-(yard.switchgearCabinets-1)/2)*1.15;
+        solid(equipment,x,y,0,.85,.95,1.85);solid(asphalt,x,y-.485,.19,.67,.025,1.45);
+        solid(yellow,x,y-.505,1.05,.26,.025,.27);
+      }
+      const triangles=stats.triangles-before;
+      stats.campusSwitchyards++;stats.transformerBanks+=yard.transformerBanks;stats.switchgearCabinets+=yard.switchgearCabinets;stats.campusEquipmentTriangles+=triangles;
+      switchyards.push({...yard,groundMinHeight:low,groundMaxHeight:high,equipmentBaseHeight:level,padLiftM:CAMPUS_PAD_LIFT_M,triangles});
+    }
   }
   function mappedInfrastructure(){
     const startTriangles=stats.triangles,limit=Math.min(budget,startTriangles+(options.maxInfrastructureTriangles??28000)),hardwareLimit=startTriangles+(limit-startTriangles)*.55,nodeKey=(x,y)=>Math.round(x*5)+','+Math.round(y*5),nodes=urban.infrastructureNodes||[],nodeMap=new Map(nodes.filter((n)=>n.kind!=='traffic_signals').map((n)=>[nodeKey(n.x,n.y),n]));
@@ -300,12 +393,13 @@ export function buildUrbanDetail(snapshot,heightAt,{detail='close',buildings=[],
   }
   // Reserve the shared-campus structure before optional large parking overlays.
   const campuses=groupCampusBuildings(snapshot,buildings,{...options,urban,context:ctx}),campusIds=new Set(campuses.flatMap((c)=>c.buildings));
-  for(const campus of campuses){if(polygon(concrete,campus,0.12,true)){stats.campuses++;stats.campusHalls+=campus.buildings.length;}if(detail!=='overview'&&fence(campus.polygon,2.1,metal))stats.campusFences++;}
+  for(const campus of campuses){if(polygon(concrete,campus,CAMPUS_PAD_LIFT_M,true)){stats.campuses++;stats.campusHalls+=campus.buildings.length;}if(detail!=='overview'&&fence(campus.polygon,2.1,metal,false,null,CAMPUS_PAD_LIFT_M))stats.campusFences++;}
   // Concrete beneath nonresidential structures takes precedence over cars,
   // parking paint and garden ornaments when a dense patch reaches its mesh budget.
   for(const b of buildings)if(!campusIds.has(b.id)&&source.has(b.id)&&!/^(house|apartment)$/.test(b.kind)){
     const f=source.get(b.id);if(polygon(concrete,{...f,polygon:expand(f.polygon,Math.min(2,Math.max(1,b.width*0.015)))},0.12,true))stats.buildingPads++;
   }
+  campusEquipment(campuses);
   mappedInfrastructure();
   const driveways=detail==='overview'?[]:planHouseConnections(snapshot,buildings,{...options,urban,context:ctx,sourceMap:source,footprintIndex:sourceFootprints});
   for(const driveway of driveways){
@@ -371,5 +465,5 @@ export function buildUrbanDetail(snapshot,heightAt,{detail='close',buildings=[],
   stats.gardenTriangles=gardenTriangles;
   }
   const result=[...groups.values()].filter((g)=>g.indices.length);stats.materialGroups=result.length;
-  return {groups:result,stats,campuses,airportFocus,parkedCars,driveways,infrastructure,wireSpans,gardens};
+  return {groups:result,stats,campuses,airportFocus,parkedCars,driveways,infrastructure,wireSpans,gardens,switchyards};
 }

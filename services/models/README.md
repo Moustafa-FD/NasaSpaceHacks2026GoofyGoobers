@@ -43,7 +43,7 @@ These coordinates identify a display extent only. They do not locate a verified 
 
 ## Trend engine (`trends/`)
 
-The challenge's core requirement is to visualize a regional time series and report its **rate of change** and whether the trend is **statistically significant**. `trends/` implements that analysis. It is standard-library only, works offline, and is **not yet connected to the Node API or the scenario contract**; it runs on CSV files through its own CLI until a trend-run contract is agreed with the backend track.
+The challenge's core requirement is to visualize a regional time series and report its **rate of change** and whether the trend is **statistically significant**. `trends/` implements that analysis. It is standard-library only, works offline, and runs both through its CSV CLI and the Node API's `trend-analysis` job. See the job contract below.
 
 | Module | Purpose |
 | --- | --- |

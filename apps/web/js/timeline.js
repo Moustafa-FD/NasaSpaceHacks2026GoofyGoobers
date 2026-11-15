@@ -4,20 +4,19 @@
 //   1. the ground      - real cloud-free NASA HLS 30 m image for that year (cross-faded)
 //   2. the heat value  - numerical HUD and trend strip, never floating fire/domes
 //   3. the trend strip - annual local signal in the timeline; projected values are dashed
-//   4. the plume       - subtle illustrative wisps for documented combustion only
-//   5. the wind field  - streaks drifting with that year's wind (speed/direction)
+//   4. the wind field  - one GEOS-FP analysis trail layer and one wind readout
 //   6. the data layer  - the NASA overlay picked in the top bar follows the year
-// Future years (Phase = projected) get a "projection" grade + badge: they extend the measured trend, not a forecast.
+// Site trend rows end in2035. Later selections request climate-period summaries,
+// with no invented annual pollution, NDVI, weather or historical imagery.
 //
 // Data: data/hls_timeline.json, data/unreal/timeline/<site>.json (rows), produced by scripts/*.
 // Hooks into app.js through window.CloudShadow + "cs:ready" / "cs:site" events.
 
 import * as FX from "./fx.js";
-import { attachFlow } from "./flowfield.js";
+import { attachFlow, resolveWindReadout } from "./flowfield.js";
 import { getMotionSpeed, setMotionSpeed } from "./motion.js";
-import { createSmokeSprite, globeSmokePolicy, plumeParticleAlpha } from "./smoke-policy.js";
 
-const FIRST = 2003, LAST = 2035;
+const FIRST = 2003, LAST = 2100, LAST_SITE = 2035;
 const TREND_VARS = { LST_Night: "Night heat", NDVI: "Vegetation", NO2_OMI: "NO₂", LST_Day: "Day heat", AOD: "Particles" };
 const $ = (s) => document.querySelector(s);
 const fmt = (v, d = 2) => (v == null || !isFinite(v) ? "–" : (v > 0 ? "+" : "") + (+v).toFixed(d));
@@ -27,23 +26,25 @@ const T = {
   site: null, rows: new Map(), meta: null, year: 2025, ringVar: "LST_Night",
   layers: [], playing: false, playTimer: null, localScene: false, siteLoad: 0,
   plume: null, wind: null,
+  analysedWind:null,
   target: { windDir: 0, windSpeed: 0 },
 };
 
 // ------------------------------------------------------------------ helpers
-const rowFor = (y) => T.rows.get(y) || {};
+const rowFor = (y) => y>LAST_SITE?{}:T.rows.get(y) || {};
 const num = (v) => (v == null || v === "" ? null : +v);
 const localOf = (row, v) => num(row[`${v}_Local`]);
-const phaseOf = (y) => rowFor(y).Phase || (y > 2026 ? "projected" : "observed");
+const phaseOf = (y) => y>LAST_SITE?'climate':rowFor(y).Phase || (y > lastObservedYear() ? "projected" : "observed");
 const lastObservedYear = () => T.meta?.lastObservedYear ?? 2026;
 
 function enuAt(lat, lon, h = 0) { return Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(lon, lat, h)); }
-const SMOKE = createSmokeSprite(64);
 
 // ------------------------------------------------------------------ data
 async function loadSite(site) {
   const loadId = ++T.siteLoad;
   T.site = site; T.rows.clear(); T.meta = null;
+  clearGround();
+  T.analysedWind=null;FLOW?.reset(site,T.year);
   try {
     const d = await (await fetch(`data/unreal/timeline/${site.id}.json`)).json();
     if (loadId !== T.siteLoad) return;
@@ -64,15 +65,33 @@ function imageryFor(year) {
   const shown = years.filter((y) => y <= year).pop() ?? years[0];
   return { ...tl[String(shown)], shownYear: shown };
 }
+// HLS scenes contain orbital swaths far beyond the case study. This is a small
+// display window, not an assertion that every pixel inside it is cloud-free.
+function groundBounds(site){return [site.lon-.2,Math.max(-85,site.lat-.15),site.lon+.2,Math.min(85,site.lat+.15)];}
+function groundVisibility(height){
+  if(!Number.isFinite(height))return 0;
+  const t=Math.max(0,Math.min(1,(height-80000)/40000));return 1-t*t*(3-2*t);
+}
+function syncGroundVisibility(){
+  const visibility=groundVisibility(viewer?.camera.positionCartographic.height);
+  for(const layer of T.layers){
+    layer.alpha=(layer._csFade??1)*visibility;
+    layer.show=layer.alpha>.001;
+  }
+}
+function clearGround(){
+  for(const layer of T.layers)if(viewer?.imageryLayers.contains(layer))viewer.imageryLayers.remove(layer,true);
+  T.layers=[];
+}
 function setGround(year) {
-  const im = imageryFor(year); if (!im) return;
-  const projected = phaseOf(year) === "projected";
-  const key = im.templateUrl + (projected ? "#p" : "");
+  const im = imageryFor(year); if (!im) {clearGround();$('#tlImagery').textContent='Reference basemap · no HLS snapshot for this location';return;}
+  const key = `${T.site.id}:${T.site.lat}:${T.site.lon}:${im.templateUrl}`;
   const top = T.layers[T.layers.length - 1];
-  if (top && top._csKey === key) return;
-  const layer = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: im.templateUrl, maximumLevel: 12, credit: "NASA HLS via GIBS" }), 1);
-  layer._csKey = key; layer.alpha = 0;
-  if (projected) { layer.saturation = 0.25; layer.brightness = 0.85; layer.hue = 0.35; layer.contrast = 1.15; }
+  $('#tlImagery').textContent=`NASA HLS reference imagery · ${im.date}${im.shownYear!==year?' · not imagery from the selected year':''}`;
+  if (top && top._csKey === key) {syncGroundVisibility();return;}
+  const rectangle=Cesium.Rectangle.fromDegrees(...groundBounds(T.site));
+  const layer = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: im.templateUrl,rectangle,maximumLevel: 12, credit: "NASA HLS via GIBS",enablePickFeatures:false }), 1);
+  layer._csKey = key; layer._csFade=0;layer.alpha = 0;layer.show=false;
   T.layers.push(layer);
   let last = performance.now(), elapsed = 0;
   const dur = 450;
@@ -82,13 +101,13 @@ function setGround(year) {
     elapsed += Math.min(100, t - last) * speed; last = t;
     // Manual scrubbing remains responsive when environmental motion is paused.
     const k = speed === 0 ? 1 : Math.min(1, elapsed / dur);
-    layer.alpha = k;
-    for (const old of T.layers) if (old !== layer) old.alpha = Math.min(old.alpha, 1 - k);
+    layer._csFade = k;
+    for (const old of T.layers) if (old !== layer) old._csFade = Math.min(old._csFade??1, 1 - k);
+    syncGroundVisibility();
     if (k < 1) requestAnimationFrame(step);
     else for (const old of T.layers.splice(0, T.layers.length - 1)) viewer.imageryLayers.remove(old, true);
   };
   requestAnimationFrame(step);
-  $("#tlImagery").textContent = `NASA HLS 30 m · ${im.date}${im.shownYear !== year ? ` (latest image for ${year})` : ""}`;
 }
 
 // ------------------------------------------------------------------ 2–5. 3D effects
@@ -99,56 +118,16 @@ function clearEffects() {
 
 function buildEffects() {
   clearEffects();
-  const { lat, lon } = T.site;
-  const center = Cesium.Cartesian3.fromDegrees(lon, lat, 0);
-
-  // wind field: streaks drifting across the site at ~1.5 km
-  const enu = enuAt(lat, lon, 0);
-  const windVec = new Cesium.Cartesian3();
-  const updateWindVec = () => {
-    const th = Cesium.Math.toRadians(T.target.windDir), sp = T.target.windSpeed * 6; // Gentle visual time-lapse; clock applies the speed slider.
-    Cesium.Matrix4.multiplyByPointAsVector(enu, new Cesium.Cartesian3(Math.sin(th) * sp, Math.cos(th) * sp, 0), windVec);
-  };
-  updateWindVec(); T._updateWindVec = updateWindVec;
-  T.wind = viewer.scene.primitives.add(new Cesium.ParticleSystem({
-    image: SMOKE, startColor: Cesium.Color.fromCssColorString("#b1c4ce").withAlpha(0.0), endColor: Cesium.Color.fromCssColorString("#b1c4ce").withAlpha(0.0),
-    startScale: 1, endScale: 1, minimumParticleLife: 6, maximumParticleLife: 9, minimumSpeed: 0, maximumSpeed: 1,
-    imageSize: new Cesium.Cartesian2(180, 60), sizeInMeters: true, emissionRate: 18, lifetime: 16,
-    emitter: new Cesium.BoxEmitter(new Cesium.Cartesian3(26000, 26000, 1400)),
-    modelMatrix: enuAt(lat, lon, 1500),
-    updateCallback: (p, dt) => {
-      Cesium.Cartesian3.clone(windVec, p.velocity);
-      const k = Math.max(0, Math.min(1, p.age / p.life)), a = k > 0 && k < 1 ? Math.sin(Math.PI * k) * 0.055 : 0;
-      // ParticleSystem renders a lerp of these documented Particle colors.
-      p.startColor.alpha = p.endColor.alpha = a;
-    },
-  }));
-
-  // turbine plume (only where on-site combustion is documented)
-  if (T.site.effects?.plume) {
-    const up = Cesium.Cartesian3.normalize(center, new Cesium.Cartesian3());
-    T.plume = viewer.scene.primitives.add(new Cesium.ParticleSystem({
-      image: SMOKE, startColor: Cesium.Color.fromCssColorString("#899fac").withAlpha(0.16), endColor: Cesium.Color.fromCssColorString("#b0bec5").withAlpha(0.0),
-      startScale: 0.5, endScale: 2.2, minimumParticleLife: 8, maximumParticleLife: 14, minimumSpeed: 3, maximumSpeed: 6,
-      imageSize: new Cesium.Cartesian2(120, 70), sizeInMeters: true, emissionRate: 0, lifetime: 16,
-      emitter: new Cesium.ConeEmitter(Cesium.Math.toRadians(18)),
-      modelMatrix: enuAt(lat, lon, 40),
-      updateCallback: (p, dt) => {
-        // rise + drift with the (time-lapsed) NASA POWER wind
-        const target = Cesium.Cartesian3.add(windVec, Cesium.Cartesian3.multiplyByScalar(up, 8, new Cesium.Cartesian3()), new Cesium.Cartesian3());
-        Cesium.Cartesian3.lerp(p.velocity, target, Math.min(1, dt * 0.6), p.velocity);
-        const alpha = plumeParticleAlpha(p.age, p.life);
-        p.startColor.alpha = p.endColor.alpha = alpha;
-      },
-    }));
-  }
-  T._updateWindVec();
+  // GEOS-FP owns the only globe wind trails. No duplicate annual-mean streaks,
+  // giant site plume, heat dome or invented building-massing animation.
+  T.analysedWind=null;
   FX.buildSite(T.site, T.rows);
   applyYear(T.year, { instant: true });
 }
 
 // ------------------------------------------------------------------ apply a year
 function applyYear(year, { instant = false } = {}) {
+  if(T.year!==year)T.analysedWind=null;
   T.year = year;
   const r = rowFor(year), phase = phaseOf(year), projected = phase === "projected";
   // wind
@@ -156,21 +135,17 @@ function applyYear(year, { instant = false } = {}) {
   if (wd != null) T.target.windDir = wd;
   T.target.windSpeed = wd != null && ws != null ? Math.max(0,ws) : 0;
   T._updateWindVec?.();
-  // A fixed, bounded artistic trace; NO2 columns do not measure visible smoke.
-  if (T.plume) {
-    T.plume.emissionRate = globeSmokePolicy(T.site,year,r,phase).particleRate;
-  }
   setGround(year);
   FX.applyYear(year, r, phase);
-  FLOW?.setYear(T.site, year, phase); // real GEOS-FP wind (2018+) overrides the annual POWER arrow via "cs:wind"
+  FLOW?.setYear(T.site, year, phase);
   // data overlay follows the year (if one is selected and has data that year)
   const kind = CS.getMapLayer?.();
-  if (kind && VARS[kind]) CS.setMapLayer(kind, `${Math.min(year, lastObservedYear())}-07-15`);
+  if (kind && VARS[kind] && year<=Math.min(2025,lastObservedYear())) CS.setMapLayer(kind, `${year}-07-15`);
   renderHud(year, r, phase);
   renderTrendStrip();
   applySceneVisibility();
   const ndvi = num(r.NDVI_Site);
-  const health = ndvi != null && Number.isFinite(ndvi) ? Math.max(0.05, Math.min(1, (ndvi - 0.1) / 0.45)) : null;
+  const health = phase==='climate'?1:ndvi != null && Number.isFinite(ndvi) ? Math.max(0.05, Math.min(1, (ndvi - 0.1) / 0.45)) : null;
   // An illustrative visual response to source greenness, not an ecological mortality or yield model.
   window.dispatchEvent(new CustomEvent("cs:year", { detail: { siteId: T.site?.id, year, phase, row: r, health } }));
 }
@@ -194,7 +169,7 @@ function mountTrendStrip() {
   strip.querySelector(".tl-trend-select").appendChild(label);
   $("#tlTrack").before(strip);
   const canvas = $("#tlTrendCanvas");
-  const yearAt = (event) => Math.max(FIRST, Math.min(LAST, Math.round(FIRST + ((event.clientX - canvas.getBoundingClientRect().left - 8) / Math.max(1, canvas.getBoundingClientRect().width - 16)) * (LAST - FIRST))));
+  const yearAt = (event) => Math.max(FIRST, Math.min(LAST_SITE, Math.round(FIRST + ((event.clientX - canvas.getBoundingClientRect().left - 8) / Math.max(1, canvas.getBoundingClientRect().width - 16)) * (LAST_SITE - FIRST))));
   canvas.addEventListener("pointerdown", (event) => setYear(yearAt(event)));
   canvas.addEventListener("pointermove", (event) => {
     const year = yearAt(event), v = VARS[T.ringVar], value = localOf(rowFor(year), T.ringVar);
@@ -205,12 +180,12 @@ function mountTrendStrip() {
 function renderTrendStrip() {
   const canvas = $("#tlTrendCanvas"); if (!canvas) return;
   const v = VARS[T.ringVar] || { digits: 2, unit: "" }, current = localOf(rowFor(T.year), T.ringVar);
-  const points = Array.from({ length: LAST - FIRST + 1 }, (_, i) => {
+  const points = Array.from({ length: LAST_SITE - FIRST + 1 }, (_, i) => {
     const year = FIRST + i, row = rowFor(year);
     return { year, value: localOf(row, T.ringVar), lo: num(row[`${T.ringVar}_LocalLo`]), hi: num(row[`${T.ringVar}_LocalHi`]), projected: phaseOf(year) === "projected" };
   });
   const values = points.flatMap((p) => [p.value, p.lo, p.hi]).filter(Number.isFinite);
-  const valueText = `${T.year} · ${fmt(current, v.digits)}${v.unit ? " " + v.unit : ""}`;
+  const valueText = T.year>LAST_SITE?`${T.year} · climate period, no annual site signal`:`${T.year} · ${fmt(current, v.digits)}${v.unit ? " " + v.unit : ""}`;
   $("#tlTrendValue").textContent = valueText;
   $("#tlTrendValue").title = `${TREND_VARS[T.ringVar]}: ${valueText}; site minus surroundings`;
   canvas.setAttribute("aria-label", `${TREND_VARS[T.ringVar]}, annual site minus surroundings. ${valueText}. Solid: observed; dashed: trend extension. Missing years remain gaps.`);
@@ -221,7 +196,7 @@ function renderTrendStrip() {
   if (!values.length) { g.fillStyle = "#79949d"; g.font = "9px Inter,sans-serif"; g.fillText("No annual data", 8, 18); return; }
   let lo = Math.min(0, ...values), hi = Math.max(0, ...values);
   const pad = (hi - lo || 1) * 0.1; lo -= pad; hi += pad;
-  const x = (year) => 8 + ((year - FIRST) / (LAST - FIRST)) * (w - 16);
+  const x = (year) => 8 + ((year - FIRST) / (LAST_SITE - FIRST)) * (w - 16);
   const y = (value) => 3 + (1 - (value - lo) / (hi - lo)) * (h - 6);
   const futureX = Math.min(w, x(lastObservedYear() + 0.5));
   g.fillStyle = "#729eb510"; g.fillRect(futureX, 0, w - futureX, h);
@@ -237,7 +212,7 @@ function renderTrendStrip() {
     g.beginPath(); g.moveTo(x(a.year), y(a.value)); g.lineTo(x(b.year), y(b.value)); g.stroke();
   }
   g.setLineDash([]); g.strokeStyle = "#dce9e655"; g.lineWidth = 1;
-  g.beginPath(); g.moveTo(x(T.year), 0); g.lineTo(x(T.year), h); g.stroke();
+  if(T.year<=LAST_SITE){g.beginPath(); g.moveTo(x(T.year), 0); g.lineTo(x(T.year), h); g.stroke();}
   if (Number.isFinite(current)) { g.fillStyle = "#e4fff5"; g.beginPath(); g.arc(x(T.year), y(current), 2.8, 0, Math.PI * 2); g.fill(); }
 }
 
@@ -247,20 +222,28 @@ function chip(label, v, digits, unit, worseIfPositive, note = "") {
   const worse = (v > 0) === worseIfPositive;
   return `<span class="tl-chip ${worse ? "bad" : "good"}" title="${note}">${label} <b>${fmt(v, digits)}</b>${unit ? " " + unit : ""}</span>`;
 }
+function windMarkup(row,phase){
+  const wind=resolveWindReadout(row,phase,T.analysedWind);
+  if(!wind)return '<span id="tlWind" class="tl-chip muted">Wind unavailable</span>';
+  const time=typeof wind.time==='string'&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(wind.time)?` · ${wind.time.slice(0,16).replace('T',' ')}Z`:'';
+  return `<span id="tlWind" class="tl-chip wind" title="${wind.title}"><span class="arrow" style="transform:rotate(${wind.towardDeg.toFixed(1)}deg)">↑</span> ${wind.label} · ${wind.speed.toFixed(1)} m/s${time}</span>`;
+}
+function renderWind(){const element=$('#tlWind');if(element)element.outerHTML=windMarkup(rowFor(T.year),phaseOf(T.year));}
 function renderHud(year, r, phase) {
   $("#tlYear").textContent = year;
   $("#tlSlider").value = year;
   const badge = $("#tlPhase");
-  badge.textContent = phase === "projected" ? "PROJECTED · IF THE TREND CONTINUES" : phase === "present" ? "NOW" : "OBSERVED";
+  badge.textContent = phase==='climate'?'CLIMATE SCENARIO · PERIOD SUMMARY':phase === "projected" ? "PROJECTED · IF THE TREND CONTINUES" : phase === "present" ? "NOW" : "OBSERVED";
   badge.className = "tl-phase " + phase;
   document.body.classList.toggle("tl-future", phase === "projected");
+  $('#tlSlider').setAttribute('aria-valuetext',`${year}${phase==='climate'?', climate scenario period summary; annual site signals unavailable':''}`);
   const no2 = localOf(r, "NO2") ?? null;
   $("#tlChips").innerHTML =
     chip("Night heat", localOf(r, "LST_Night"), 2, "°C", true, "Site minus surroundings, MODIS night land-surface temperature") +
     chip("Greenness", localOf(r, "NDVI"), 3, "", false, "Site minus surroundings, MODIS NDVI") +
     chip("NO₂", no2 ?? localOf(r, "NO2_OMI"), 2, "×10¹⁵", true, no2 != null ? "TROPOMI, site minus surroundings" : "OMI 20-yr record, site minus surroundings") +
-    (num(r.WS10M) != null ? `<span class="tl-chip wind" title="NASA POWER (MERRA-2) wind${phase === "projected" ? ", recent climatology" : ""}"><span class="arrow" style="transform:rotate(${num(r.PlumeTowardDeg)}deg)">↑</span> ${(+r.WS10M).toFixed(1)} m/s</span>` : "") +
-    (num(r.T2M) != null ? `<span class="tl-chip muted" title="NASA POWER regional air temperature">Air ${(+r.T2M).toFixed(1)} °C</span>` : "");
+    windMarkup(r,phase) +
+    (num(r.T2M) != null ? `<span class="tl-chip muted" title="${phase==='projected'?'Illustrative projected air temperature; not a NASA observation':'NASA POWER annual regional air temperature'}">Air ${(+r.T2M).toFixed(1)} °C</span>` : "");
 }
 
 // ------------------------------------------------------------------ UI wiring
@@ -289,6 +272,8 @@ function togglePlay() {
 function wireUi() {
   const s = $("#tlSlider");
   s.min = FIRST; s.max = LAST; s.value = T.year;
+  const futureZone=document.querySelector('.tl-zones span:last-child');if(futureZone)futureZone.textContent='Future · climate periods after 2035';
+  const tint=$('#tlFutureTint');if(tint)tint.hidden=true;
   const nowPct = ((lastObservedYear() - FIRST) / (LAST - FIRST)) * 100;
   $("#tlTrack").style.setProperty("--now", nowPct + "%");
   s.addEventListener("input", () => setYear(+s.value));
@@ -327,10 +312,17 @@ function wireUi() {
 async function init(cs) {
   CS = cs; viewer = cs.viewer;
   FX.init(viewer);
-  FLOW = attachFlow(viewer);
+  viewer.scene.preRender.addEventListener(syncGroundVisibility);
+  FLOW = attachFlow(viewer,{quality:FX.quality()});
   window.addEventListener("cs:wind", (e) => {
-    const w = e.detail; if (!w || w.siteId !== T.site?.id) return;
-    T.target.windDir = w.towardDeg; T.target.windSpeed = w.speed; T._updateWindVec?.();
+    const w = e.detail; if (!w || w.siteId !== T.site?.id || w.year!==T.year || phaseOf(T.year)==='projected') return;
+    T.analysedWind=w;
+    T.target.windDir = w.towardDeg; T.target.windSpeed = w.speed;
+    renderWind();
+  });
+  window.addEventListener('cs:wind-state',({detail})=>{
+    if(detail?.siteId!==T.site?.id||detail.year!==T.year||detail.active)return;
+    T.analysedWind=null;renderWind();
   });
   if (new URLSearchParams(location.search).get("light") === "night") FX.setLight("night");
   try { hlsTimeline = await (await fetch("data/hls_timeline.json")).json(); } catch { hlsTimeline = {}; }

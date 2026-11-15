@@ -6,12 +6,12 @@
 // the result is copied into a 2D canvas that Cesium drapes on the ground as a texture.
 // Falls back to the CPU solver (fluid.js) if WebGL2 float render targets aren't available.
 //
-// Driven by NASA data via setWeather() each year (see fx.js):
-//   wind = NASA POWER direction/speed (time-lapsed); muted wisps are qualitative.
-//   A local source exists only at documented combustion sites, not from heat/NO2.
-// A VISUALIZATION of those inputs, not an atmospheric model.
+// Optional dev tool, not attached to the main globe. Wind can use a real GEOS-FP
+// spatial sampler or an explicitly supplied vector. Only manual debug tracers
+// create dye; precipitation, heat and pollution values never create sources.
+// A transport visualization, not a concentration or atmospheric model.
 import { attachFluidCPU } from "./fluid.js";
-import { getMotionSpeed } from "./motion.js";
+import { analysisDeltaSeconds, windForcingGrid } from "./flowfield.js";
 import { WEATHER_DYE_FRAGMENT_SHADER } from "./smoke-policy.js";
 
 const SIM = 128, DYE = 256, PRESSURE_ITERS = 20;
@@ -26,8 +26,10 @@ const FRAG = {
     void main(){ vec2 p = vUv-point; o = vec4(texture(target,vUv).xyz + exp(-dot(p,p)/radius)*color, 1.); }`,
   advect: `uniform sampler2D velocity, source; uniform vec2 simTexel; uniform float dt; uniform vec3 dissipation;
     void main(){ vec2 c = vUv - dt*texture(velocity,vUv).xy*simTexel; vec4 r = texture(source,c); o = vec4(r.xyz/(1.0+dissipation*dt), 1.); }`,
-  wind: `uniform sampler2D velocity; uniform vec2 wind; uniform float k;
-    void main(){ vec2 v = texture(velocity,vUv).xy; o = vec4(v + (wind-v)*k, 0., 1.); }`,
+  wind: `uniform sampler2D velocity, windField; uniform vec2 wind; uniform float k, useField;
+    void main(){ vec2 v = texture(velocity,vUv).xy; vec3 sampleWind=texture(windField,vUv).xyz;
+      vec2 force=useField>0.5?(sampleWind.z>0.99?sampleWind.xy:vec2(0)):wind;
+      o = vec4(v + (force-v)*k, 0., 1.); }`,
   curl: `uniform sampler2D velocity;
     void main(){ float L=texture(velocity,vL).y, R=texture(velocity,vR).y, T=texture(velocity,vT).x, B=texture(velocity,vB).x; o = vec4(0.5*(R-L-T+B),0.,0.,1.); }`,
   vorticity: `uniform sampler2D velocity, curl; uniform float strength, dt;
@@ -49,7 +51,7 @@ const FRAG = {
 function createGL(size) {
   const canvas = document.createElement("canvas"); canvas.width = canvas.height = size;
   const gl = canvas.getContext("webgl2", { powerPreference: "high-performance", alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: false, depth: false });
-  if (!gl || !gl.getExtension("EXT_color_buffer_float")) return null;
+  if (!gl || !gl.getExtension("EXT_color_buffer_float")) {gl?.getExtension('WEBGL_lose_context')?.loseContext();return null;}
   return { canvas, gl };
 }
 
@@ -86,7 +88,7 @@ export function attachFluid(viewer, site, opts = {}) {
   if (!ctx) { console.warn("Cloud Shadow: WebGL2 float targets unavailable, using CPU fluid"); return attachFluidCPU(viewer, site, opts); }
   let P;
   try { P = Object.fromEntries(Object.entries(FRAG).map(([k, f]) => [k, program(ctx.gl, f)])); }
-  catch (e) { console.warn("Cloud Shadow: GPU fluid shaders failed, using CPU fluid", e); return attachFluidCPU(viewer, site, opts); }
+  catch (e) {ctx.gl.getExtension('WEBGL_lose_context')?.loseContext();console.warn("Cloud Shadow: GPU fluid shaders failed, using CPU fluid", e); return attachFluidCPU(viewer, site, opts); }
   const { gl, canvas } = ctx;
   const halfSizeM = opts.halfSizeM ?? 16000, texEvery = opts.texEvery ?? 1;
 
@@ -96,6 +98,8 @@ export function attachFluid(viewer, site, opts = {}) {
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(0);
   const vel = double(gl, SIM, SIM), dye = double(gl, DYE, DYE), prs = double(gl, SIM, SIM);
   const div = fbo(gl, SIM, SIM), crl = fbo(gl, SIM, SIM);
+  const forcing=fbo(gl,16,16),forcingPixels=new Float32Array(16*16*4);
+  let sampleField=typeof opts.sampleWind==='function'?opts.sampleWind:null,lastField=-Infinity;
   const simTexel = [1 / SIM, 1 / SIM], dyeTexel = [1 / DYE, 1 / DYE];
 
   function run(prog, target, uniforms, texel = simTexel) {
@@ -129,28 +133,26 @@ export function attachFluid(viewer, site, opts = {}) {
   });
 
   const W = { windE: 0, windN: 0, speed: 0, pollution: 0, moisture: 0, projected: 0 };
-  let alive = true, visible = true, last = performance.now(), frame = 0, t = 0;
-  function loop(now) {
+  let alive = true, visible = true, lastTime=Cesium.JulianDate.clone(viewer.clock.currentTime),frame = 0, t = 0;
+  function loop() {
     if (!alive) return;
-    requestAnimationFrame(loop);
-    const speed = getMotionSpeed();
-    const dt = Math.min(0.033, Math.max(0, (now - last) / 1000)) * speed; last = now;
+    const clock=viewer.clock,delta=Cesium.JulianDate.secondsDifference(clock.currentTime,lastTime);
+    lastTime=Cesium.JulianDate.clone(clock.currentTime,lastTime);
+    const dt=analysisDeltaSeconds(delta,clock.shouldAnimate!==false&&clock.multiplier!==0&&document.visibilityState!=='hidden');
     // Hidden close-up weather does no solver work or canvas texture uploads.
     if (!visible || dt === 0) return;
     frame++; t += dt;
     const stepScale = dt * 60;
     // velocity in sim texels/second (UV: +x east, +y north); NASA wind, time-lapsed
-    const sp = W.speed * 1.25;
+    const scale=SIM/(halfSizeM*2)*(opts.timeLapse??400),sp = W.speed * scale;
     const wind = [W.windE * sp, W.windN * sp];
-    run(P.wind, vel.write, { velocity: vel.read, wind, k: Math.min(1, dt * 1.2) }); vel.swap();
-    // sources (UV coordinates, site at the centre)
-    if (W.pollution > 0) splat(0.5, 0.5, wind[0] * 1.5 * stepScale, wind[1] * 1.5 * stepScale, [0, W.pollution * 0.2 * stepScale, 0], 0.0005);
-    if (W.moisture > 0 && frame % 5 === 0) {
-      const along = Math.random() - 0.5, len = Math.hypot(wind[0], wind[1]) || 1, ux = wind[0] / len, uy = wind[1] / len;
-      const x = 0.5 - ux * 0.46 - uy * along * 0.9, y = 0.5 - uy * 0.46 + ux * along * 0.9;
-      splat(x, y, wind[0] * stepScale, wind[1] * stepScale, [0, 0, W.moisture * 0.45 * stepScale], 0.0035);
+    if(sampleField&&t-lastField>=.2){
+      lastField=t;windForcingGrid(sampleField,site,{size:16,halfSizeM,units:scale},forcingPixels);
+      gl.bindTexture(gl.TEXTURE_2D,forcing.tex);gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,16,16,gl.RGBA,gl.FLOAT,forcingPixels);
     }
-    if (frame % 11 === 0) splat(Math.random(), Math.random(), (Math.random() - 0.5) * 75 * stepScale, (Math.random() - 0.5) * 75 * stepScale, [0, 0, 0], 0.004);
+    run(P.wind, vel.write, { velocity: vel.read, windField:forcing, useField:sampleField?1:0, wind, k: Math.min(1, dt * 1.2) }); vel.swap();
+    // Dye only comes from an explicit debug tracer. Annual precipitation/NO2
+    // do not create edge-water dye, emissions or random momentum splats.
     // solver
     run(P.curl, crl, { velocity: vel.read });
     run(P.vorticity, vel.write, { velocity: vel.read, curl: crl, strength: CURL, dt }); vel.swap();
@@ -169,23 +171,25 @@ export function attachFluid(viewer, site, opts = {}) {
       front = back;
     }
   }
-  requestAnimationFrame(loop);
+  const removeLoop=viewer.scene.preRender.addEventListener(loop);
   console.info("Cloud Shadow fluid: GPU (WebGL2)", SIM + "² velocity /", DYE + "² dye");
 
   return {
     gpu: true,
-    setVisible(value) { visible = !!value; entity.show = visible; last = performance.now(); },
+    setVisible(value) { visible = !!value; entity.show = visible; lastTime=Cesium.JulianDate.clone(viewer.clock.currentTime,lastTime); },
     setWeather({ windTowardDeg, windSpeed, heat, pollution, moisture, projected }) {
       if (Number.isFinite(windTowardDeg)) { const th = windTowardDeg * Math.PI / 180; W.windE = Math.sin(th); W.windN = Math.cos(th); }
       else { W.windE = 0; W.windN = 0; }
-      if (windSpeed != null) W.speed = windSpeed;
-      W.pollution = Math.max(0, pollution ?? 0); W.moisture = Math.max(0, moisture ?? 0);
+      W.speed=Number.isFinite(windSpeed)&&windSpeed>=0?windSpeed:0;
+      W.pollution = W.moisture = 0;
       W.projected = projected ? 1 : 0;
     },
     // wind only (time-varying GEOS-FP analysis wind); leaves the dye sources unchanged
     setWind(towardDeg, speed) {
-      const th = towardDeg * Math.PI / 180; W.windE = Math.sin(th); W.windN = Math.cos(th); W.speed = speed;
+      const th = Number.isFinite(towardDeg)?towardDeg*Math.PI/180:null;W.windE=th==null?0:Math.sin(th);W.windN=th==null?0:Math.cos(th);W.speed=Number.isFinite(speed)&&speed>=0?speed:0;
     },
-    dispose() { alive = false; viewer.entities.remove(entity); gl.getExtension("WEBGL_lose_context")?.loseContext(); },
+    setWindField(sample){sampleField=typeof sample==='function'?sample:null;lastField=-Infinity;},
+    injectTracer(x=.5,y=.5,amount=.15){splat(Math.max(0,Math.min(1,x)),Math.max(0,Math.min(1,y)),0,0,[0,0,Math.max(0,Math.min(1,amount))],.001);},
+    dispose() { alive = false; removeLoop();viewer.entities.remove(entity); gl.getExtension("WEBGL_lose_context")?.loseContext(); },
   };
 }

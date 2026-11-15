@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildUrbanDetail,groupCampusBuildings,planHouseConnections,planBackyards,infrastructureHeight} from '../apps/web/js/urban-detail.js';
+import {buildUrbanDetail,groupCampusBuildings,planCampusSwitchyards,CAMPUS_PAD_LIFT_M,planHouseConnections,planBackyards,infrastructureHeight} from '../apps/web/js/urban-detail.js';
 import {buildTerrainSurface} from '../apps/web/js/terrain-mesh.js';
 
 const rect=(x,y,w,d)=>[[x-w/2,y-d/2],[x+w/2,y-d/2],[x+w/2,y+d/2],[x-w/2,y+d/2]];
@@ -8,6 +8,45 @@ const building=(id,kind,x,y,width=30,depth=20)=>({id,kind,x,y,width,depth,angle:
 const snapshot=(buildings,extra={})=>({siteId:'test',radiusM:3300,buildings:buildings.map((b)=>({id:b.id,polygon:rect(b.x,b.y,b.width,b.depth),tags:{building:b.kind==='house'?'house':'industrial'}})),roads:[],areas:[],...extra});
 const heightAt=(x,y)=>20+x*.015+y*.01;
 function inRing(p,ring){let value=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const a=ring[i],b=ring[j];if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0])value=!value;}return value;}
+
+test('campus electrical yards contain recognizable transformer and switchgear geometry at absolute terrain elevation',()=>{
+  const buildings=[-45,0,45].map((x,i)=>building('way/hall'+i,'data-center',x,0,30,30)),data=snapshot(buildings),result=buildUrbanDetail(data,heightAt,{buildings});
+  assert.equal(result.switchyards.length,1);const yard=result.switchyards[0];
+  assert.equal(yard.transformerBanks,2);assert.equal(yard.switchgearCabinets,3);assert.equal(yard.illustrative,true);
+  assert.equal(result.stats.transformerBanks,2);assert.equal(result.stats.switchgearCabinets,3);
+  assert.ok(yard.triangles>600&&yard.triangles<1500);assert.equal(result.stats.campusEquipmentTriangles,yard.triangles);
+  assert.ok(Math.abs(yard.equipmentBaseHeight-yard.groundMaxHeight-CAMPUS_PAD_LIFT_M-.22)<1e-9);
+  const mesh=result.groups.find((g)=>g.name==='urban-electrical-equipment');assert.ok(mesh);
+  for(let i=0;i<mesh.positions.length;i+=3){const p=[mesh.positions[i],-mesh.positions[i+2]];assert.ok(inRing(p,result.campuses[0].polygon));assert.ok(inRing(p,yard.polygon));assert.ok(data.buildings.every((b)=>!inRing(p,b.polygon)));assert.ok(mesh.positions[i+1]>=yard.equipmentBaseHeight-1e-8);}
+  assert.ok(Math.max(...mesh.positions.filter((v,i)=>i%3===1))>yard.equipmentBaseHeight+3.7,'tall busbar gantries remain distinct from low cabinets');
+  assert.ok(result.groups.find((g)=>g.name==='urban-white-paint').indices.length>=18*3,'ceramic bushing stacks are visible mesh geometry');
+});
+
+test('campus concrete and fence bases follow the raised rendered surface without adding an extra scene offset',()=>{
+  const buildings=[building('way/hall','data-center',0,0)],result=buildUrbanDetail(snapshot(buildings),heightAt,{buildings,maxCampusSwitchyards:0});
+  for(const mesh of result.groups.filter((g)=>g.name==='urban-concrete'))for(let i=0;i<mesh.positions.length;i+=3)assert.ok(Math.abs(mesh.positions[i+1]-heightAt(mesh.positions[i],-mesh.positions[i+2])-CAMPUS_PAD_LIFT_M)<1e-8);
+  const fence=result.groups.find((g)=>g.name==='urban-fence-metal');assert.ok(fence.positions.some((v,i)=>i%3===1&&Math.abs(v-heightAt(fence.positions[i-1],-fence.positions[i+1])-CAMPUS_PAD_LIFT_M)<.003));
+});
+
+test('electrical equipment respects all hidden footprints, water and road corridors instead of forcing a yard',()=>{
+  const hall=building('way/hall','data-center',0,0),data=snapshot([hall]),campuses=groupCampusBuildings(data,[hall]);
+  assert.equal(planCampusSwitchyards(data,[hall],campuses).length,1);
+  const hidden={id:'way/hidden',polygon:rect(0,0,60,55),tags:{building:'industrial'}};
+  assert.equal(planCampusSwitchyards({...data,buildings:[...data.buildings,hidden]},[hall],campuses).length,0);
+  assert.equal(planCampusSwitchyards({...data,areas:[{kind:'water',polygon:rect(0,0,60,55)}]},[hall],campuses).length,0);
+  const roads=[[-19,0,0,60],[19,0,0,60],[0,-14,60,0],[0,14,60,0]].map(([x,y,dx,dy],i)=>({id:'road'+i,kind:'service',width:8,points:[[x-dx/2,y-dy/2],[x+dx/2,y+dy/2]]}));
+  assert.equal(planCampusSwitchyards({...data,roads},[hall],campuses).length,0);
+  assert.equal(buildUrbanDetail(data,()=>null,{buildings:[hall]}).stats.campusSwitchyards,0);
+});
+
+test('electrical yard counts, mesh budgets, slope rejection and overview detail stay bounded and deterministic',()=>{
+  const buildings=Array.from({length:20},(_,i)=>building('way/hall'+i,'data-center',(i%5)*200,Math.floor(i/5)*200)),data=snapshot(buildings);
+  const a=buildUrbanDetail(data,heightAt,{buildings,maxCampusSwitchyards:2}),b=buildUrbanDetail(data,heightAt,{buildings,maxCampusSwitchyards:2});
+  assert.deepEqual(a,b);assert.equal(a.stats.campusSwitchyards,2);assert.ok(a.stats.campusEquipmentTriangles<2000);
+  assert.equal(buildUrbanDetail(data,heightAt,{buildings,maxCampusEquipmentTriangles:500}).stats.campusSwitchyards,0);
+  assert.equal(buildUrbanDetail(data,heightAt,{buildings,detail:'overview'}).stats.campusSwitchyards,0);
+  assert.equal(buildUrbanDetail(snapshot([buildings[0]]),(x,y)=>40+x*2+y*3,{buildings:[buildings[0]]}).stats.campusSwitchyards,0);
+});
 
 test('nearby data-centre halls share one pad and one perimeter fence, without per-hall fences',()=>{
   const buildings=[building('way/a','data-center',-30,0),building('way/b','data-center',30,0)];

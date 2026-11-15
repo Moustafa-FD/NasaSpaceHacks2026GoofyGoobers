@@ -97,7 +97,7 @@ test('subpixel blade detail fades monotonically before it can alias into distant
   assert.equal(grassDetailWeight(.13), 0);
 });
 
-test('grass adds only small coordinate uniforms and preserves the existing single shader and DEM texture', () => {
+test('grass keeps one shader while the DEM and initially transparent evidence use bounded samplers', () => {
   class Vector { constructor(...values) { this.values = values; } }
   class Options { constructor(options) { Object.assign(this, options); } }
   const Cesium = {
@@ -114,7 +114,9 @@ test('grass adds only small coordinate uniforms and preserves the existing singl
   const frame = grassCoordinateFrame(center);
   assert.deepEqual(shader.uniforms.u_grassOrigin.value.values, frame.origin);
   assert.deepEqual(shader.uniforms.u_grassScale.value.values, frame.scale);
-  assert.equal(Object.values(shader.uniforms).filter(uniform => uniform.type === 'sampler').length, 1);
+  assert.equal(Object.values(shader.uniforms).filter(uniform => uniform.type === 'sampler').length, 2);
+  assert.equal(shader.uniforms.u_evidenceActive.value,0);
+  assert.deepEqual([...shader.uniforms.u_evidence.value.typedArray],[0,0,0,0]);
   assert.equal(shader.vertexShaderText, LANDSCAPE_VERTEX_SHADER);
   assert.equal(shader.fragmentShaderText, LANDSCAPE_FRAGMENT_SHADER);
   assert.doesNotMatch(LANDSCAPE_VERTEX_SHADER, /lpGrass/);

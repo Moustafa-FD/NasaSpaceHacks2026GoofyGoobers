@@ -5,10 +5,10 @@
 // What it does for the selected site/year:
 //   1. particle trails advected by the real gridded 10 m wind (site box when zoomed in, globe when zoomed out),
 //      cycling through that year's analysis frames (time-lapse);
-//   2. broadcasts the analysed wind at the site as a "cs:wind" event so the fluid sim, clouds and streaks
+//   2. broadcasts the analysed wind at the site as a "cs:wind" event so clouds
 //      follow the actual wind of each frame instead of one annual mean arrow.
-// Evidence: GEOS-FP is a model analysis (observations assimilated). Directions matched Dulles airport
-// observations within ~9 deg (median); speeds read ~37% low vs the airport anemometer, so speed is shown as relative.
+// Evidence: GEOS-FP is a model analysis (observations assimilated), not a local
+// anemometer measurement or a forecast. Display acceleration is illustrative.
 // Particles show where air moves; they are not pollutant concentrations.
 
 const SECONDS_PER_FRAME = 2.0;      // time-lapse: one analysis frame every 2 s
@@ -31,7 +31,9 @@ function loadImage(url) {
 export async function loadField(product) {
   if (cache.has(product.id)) return cache.get(product.id);
   const promise = (async () => {
-    const m = await (await fetch(`data/fields/${product.manifest}`)).json();
+    const response=await fetch(`data/fields/${product.manifest}`);
+    if(!response.ok)throw new Error('Wind analysis unavailable');
+    const m = await response.json();
     const img = await loadImage(`data/fields/${product.files.wind}`);
     const c = document.createElement("canvas"); c.width = img.width; c.height = img.height;
     const ctx = c.getContext("2d", { willReadFrequently: true }); ctx.drawImage(img, 0, 0);
@@ -51,12 +53,16 @@ export async function loadField(product) {
     return { m, frames };
   })();
   cache.set(product.id, promise);
+  promise.catch(()=>{if(cache.get(product.id)===promise)cache.delete(product.id);});
+  while(cache.size>4)cache.delete(cache.keys().next().value);
   return promise;
 }
 
 /** Bilinear in space, linear in time; t = fractional frame index. Returns null outside the grid. */
 export function sampleWind(field, lat, lon, t) {
+  if(!field?.m?.grid||!field.frames?.length||![lat,lon,t].every(Number.isFinite))return null;
   const g = field.m.grid, n = field.frames.length;
+  if(g.nx<2||g.ny<2||g.latMax<=g.latMin||g.lonMax<=g.lonMin)return null;
   const dLat = (g.latMax - g.latMin) / (g.ny - 1), dLon = (g.lonMax - g.lonMin) / (g.nx - 1);
   let fx = (lon - g.lonMin) / dLon;
   if (g.wrapsLongitude) fx = ((fx % g.nx) + g.nx) % g.nx;
@@ -65,12 +71,14 @@ export function sampleWind(field, lat, lon, t) {
   const i0 = Math.floor(fx), j0 = Math.min(Math.floor(fy), g.ny - 2);
   const i1 = g.wrapsLongitude ? (i0 + 1) % g.nx : Math.min(i0 + 1, g.nx - 1);
   const tx = fx - i0, ty = fy - j0;
-  const f0 = Math.floor(t) % n, f1 = (f0 + 1) % n, tt = t - Math.floor(t);
+  const f0 = ((Math.floor(t) % n)+n)%n, f1 = (f0 + 1) % n, tt = t - Math.floor(t);
   let u = 0, v = 0;
   for (const [fr, w] of [[field.frames[f0], 1 - tt], [field.frames[f1], tt]]) {
+    if(w===0)continue;
     const a = j0 * g.nx, b = (j0 + 1) * g.nx;
-    if (!fr.ok[a + i0] || !fr.ok[a + i1] || !fr.ok[b + i0] || !fr.ok[b + i1]) return null;
-    const bl = (arr) => (arr[a + i0] * (1 - tx) + arr[a + i1] * tx) * (1 - ty) + (arr[b + i0] * (1 - tx) + arr[b + i1] * tx) * ty;
+    const corners=[[a+i0,(1-tx)*(1-ty)],[a+i1,tx*(1-ty)],[b+i0,(1-tx)*ty],[b+i1,tx*ty]];
+    if(corners.some(([index,weight])=>weight>1e-9&&(!fr.ok[index]||!Number.isFinite(fr.u[index])||!Number.isFinite(fr.v[index]))))return null;
+    const bl=(arr)=>corners.reduce((sum,[index,weight])=>sum+(weight>1e-9?arr[index]*weight:0),0);
     u += bl(fr.u) * w; v += bl(fr.v) * w;
   }
   return { u, v };
@@ -79,8 +87,9 @@ export function sampleWind(field, lat, lon, t) {
 /** Analysed wind at the site point (exact values from the manifest), vector-interpolated in time. */
 export function siteWindAt(field, t) {
   const s = field.m.siteSeries; if (!s?.length) return null;
-  const n = s.length, a = s[Math.floor(t) % n], b = s[(Math.floor(t) + 1) % n], w = t - Math.floor(t);
-  if (a.u == null || b.u == null) return null;
+  const n = s.length,index=((Math.floor(t)%n)+n)%n,a = s[index], b = s[(index + 1) % n], w = t - Math.floor(t);
+  if(![a.u,a.v].every(v=>typeof v==='number'&&Number.isFinite(v))||(w>0&&![b.u,b.v].every(v=>typeof v==='number'&&Number.isFinite(v))))return null;
+  if(w===0)return {u:a.u,v:a.v,speed:Math.hypot(a.u,a.v),towardDeg:(Math.atan2(a.u,a.v)*180/Math.PI+360)%360,time:a.time};
   const u = a.u * (1 - w) + b.u * w, v = a.v * (1 - w) + b.v * w;
   return { u, v, speed: Math.hypot(u, v), towardDeg: (Math.atan2(u, v) * 180 / Math.PI + 360) % 360, time: (w < 0.5 ? a : b).time };
 }
@@ -88,7 +97,7 @@ export function siteWindAt(field, t) {
 const speedColor = (s) => {
   const k = Math.min(1, s / 12);
   return k < 0.5 ? Cesium.Color.fromCssColorString("#7fd3ff").withAlpha(0.55 + k)
-                 : Cesium.Color.lerp(Cesium.Color.fromCssColorString("#ffffff"), Cesium.Color.fromCssColorString("#ffb347"), (k - 0.5) * 2, new Cesium.Color()).withAlpha(0.95);
+                 : Cesium.Color.fromCssColorString("#e2f5ff").withAlpha(0.8);
 };
 
 /** Particle-trail layer for one field. */
@@ -130,67 +139,112 @@ class Particles {
     }
   }
   set show(v) { this.lines.show = v; }
+  get show() { return this.lines.show; }
   dispose() { this.viewer.scene.primitives.remove(this.lines); }
 }
 
-/** Controller: pick products for the site/year, animate, broadcast site wind. */
-export function attachFlow(viewer) {
-  const disabled = new URLSearchParams(location.search).get("flow") === "off";
-  const F = { site: null, year: null, siteLayer: null, globalLayer: null, siteField: null, t: 0, last: performance.now(), frame: 0, lastEmit: 0, token: 0 };
-  const hud = () => {
-    let el = document.getElementById("tlFlow");
-    if (!el) {
-      el = document.createElement("span"); el.id = "tlFlow"; el.className = "tl-chip muted";
-      el.title = "NASA GEOS-FP analysis wind at the site (time-lapse through the year's analyses). Direction matches airport observations; speed reads low, so treat it as relative.";
-      document.getElementById("tlChips")?.after(el);
-    }
-    return el;
-  };
-
-  async function setYear(site, year, phase) {
-    if (disabled) return;
-    const token = ++F.token;
-    F.site = site; F.year = year; F.siteField = null; // stop broadcasting the previous year's wind immediately
-    const idx = await loadIndex();
-    if (token !== F.token) return;
-    const find = (kind, y, siteId) => idx.products.find((p) => p.kind === kind && p.year === y && (kind === "global" || p.site === siteId));
-    const sp = phase === "projected" ? null : find("site", year, site.id);
-    const gp = phase === "projected" ? null : find("global", year);
-    const [sf, gf] = await Promise.all([sp ? loadField(sp) : null, gp ? loadField(gp) : null]);
-    if (token !== F.token) return;
-    F.siteLayer?.dispose(); F.globalLayer?.dispose(); F.siteLayer = F.globalLayer = null; F.siteField = sf;
-    const q = (window.localStorage?.getItem("csQuality") || "high") === "low" ? 0.5 : 1;
-    if (sf) {
-      const g = sf.m.grid;
-      F.siteLayer = new Particles(viewer, sf, { count: Math.round(900 * q), altitude: 2500, timeLapse: 9000, bbox: [g.lonMin, g.latMin, g.lonMax, g.latMax] });
-    }
-    if (gf) F.globalLayer = new Particles(viewer, gf, { count: Math.round(2200 * q), altitude: 30000, timeLapse: 160000, bbox: Object.assign([-180, -90, 180, 90], { global: true }) });
-    const el = hud();
-    if (!sf) {
-      el.textContent = phase === "projected" ? "Flow: no forecast for projected years" : year < 2018 ? "Flow: GEOS-FP analyses start 2018" : "Flow: no field built";
-    }
+/** Clock deltas are already multiplied by the shared motion slider. Year/light
+ * jumps are discontinuities, not wind time; never apply the multiplier twice. */
+export function analysisDeltaSeconds(delta,animating=true){return animating&&Number.isFinite(delta)&&delta>0&&delta<5?Math.min(delta,.25):0;}
+export const flowBudget=(quality)=>({high:{site:420,global:900},balanced:{site:220,global:500},low:{site:100,global:240}}[quality]||{site:220,global:500});
+export function resolveWindReadout(row={},phase='observed',analysis=null){
+  const known=value=>typeof value==='number'&&Number.isFinite(value);
+  if((phase==='observed'||phase==='present')&&analysis&&known(analysis.speed)&&known(analysis.towardDeg))return {...analysis,label:'GEOS-FP analysis',title:'NASA GEOS-FP assimilated model analysis at the displayed UTC time. Arrow points toward travel; not a local anemometer measurement. Motion is an illustrative time-lapse.'};
+  if(phase==='climate'||phase==='scenario')return null;
+  const speed=row.WS10M==null||row.WS10M===''?null:Number(row.WS10M),direction=row.PlumeTowardDeg==null||row.PlumeTowardDeg===''?null:Number(row.PlumeTowardDeg);
+  if(!known(speed)||!known(direction))return null;
+  return {speed:Math.max(0,speed),towardDeg:direction,label:phase==='projected'?'Illustrative wind':'POWER annual mean',title:phase==='projected'?'Projected-year climatology reference; not a NASA observation or a wind forecast. Arrow points toward travel.':'NASA POWER (MERRA-2) annual mean wind; not the current weather. Arrow points toward travel.'};
+}
+/** Small geographic forcing grid for the optional fluid dev tool. RG are wind
+ * components in solver units, B validity; missing samples never invent wind. */
+export function windForcingGrid(sample,site,{size=16,halfSizeM=16000,units=1,northFirst=false}={},out=new Float32Array(size*size*4)){
+  const latitudeScale=halfSizeM/111320,longitudeScale=latitudeScale/Math.max(.05,Math.cos(site.lat*Math.PI/180));
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+    const north=(northFirst?-1:1)*(2*(y+.5)/size-1),east=2*(x+.5)/size-1;
+    const wind=sample?.(site.lat+north*latitudeScale,site.lon+east*longitudeScale),index=(y*size+x)*4;
+    const valid=wind&&Number.isFinite(wind.u)&&Number.isFinite(wind.v);
+    out[index]=valid?wind.u*units:0;out[index+1]=valid?wind.v*units*(northFirst?-1:1):0;
+    out[index+2]=valid?1:0;out[index+3]=1;
   }
+  return out;
+}
 
-  function tick() {
-    requestAnimationFrame(tick);
-    if (disabled) return;
-    const now = performance.now(), dt = Math.min(0.05, (now - F.last) / 1000); F.last = now; F.frame++;
-    const field = F.siteField;
-    const n = field?.frames.length || F.globalLayer?.field.frames.length || 1;
-    F.t = (F.t + dt / SECONDS_PER_FRAME) % n;
-    const height = viewer.camera.positionCartographic.height;
-    const global = height > GLOBAL_ALTITUDE_M;
-    if (F.siteLayer) { F.siteLayer.show = !global; if (!global) F.siteLayer.step(dt, F.t, F.frame); }
-    if (F.globalLayer) { F.globalLayer.show = global; if (global) F.globalLayer.step(dt, F.t % F.globalLayer.field.frames.length, F.frame); }
-    if (field && now - F.lastEmit > 200) {
-      F.lastEmit = now;
-      const w = siteWindAt(field, F.t);
-      if (w) {
-        window.dispatchEvent(new CustomEvent("cs:wind", { detail: { ...w, source: "NASA GEOS-FP analysis", siteId: F.site?.id } }));
-        hud().innerHTML = `<span class="arrow" style="display:inline-block;transform:rotate(${w.towardDeg.toFixed(0)}deg)">↑</span> GEOS-FP ${w.time.slice(0, 10)} ${w.time.slice(11, 16)}Z · ${w.speed.toFixed(1)} m/s`;
-      }
-    }
+/** One wind layer/model/clock. No field-sized ground rectangles or second HUD. */
+export function attachFlow(viewer,options={}) {
+  const disabled=new URLSearchParams(location.search).get('flow')==='off';
+  const readIndex=options.loadIndex||loadIndex,readField=options.loadField||loadField;
+  const makeLayer=options.createLayer||((field,settings)=>new Particles(viewer,field,settings));
+  const F={site:null,year:null,phase:null,siteLayer:null,globalLayer:null,siteField:null,globalField:null,t:0,frame:0,token:0,localScene:false,quality:options.quality||'high',key:null};
+  let alive=true,lastTime=Cesium.JulianDate.clone(viewer.clock.currentTime),sinceEmit=0,accumulated=0,pending;
+  const emit=(type,detail)=>window.dispatchEvent(new CustomEvent(type,{detail}));
+  const unavailable=(reason)=>emit('cs:wind-state',{active:false,siteId:F.site?.id,year:F.year,reason});
+  const clear=()=>{F.siteLayer?.dispose();F.globalLayer?.dispose();F.siteLayer=F.globalLayer=null;F.siteField=F.globalField=null;};
+  function visibility(){
+    const global=viewer.camera.positionCartographic.height>GLOBAL_ALTITUDE_M;
+    if(F.siteLayer)F.siteLayer.show=!F.localScene&&!global;
+    if(F.globalLayer)F.globalLayer.show=!F.localScene&&global;
   }
-  requestAnimationFrame(tick);
-  return { setYear, get state() { return F; } };
+  function publish(){
+    const field=F.siteField||F.globalField;if(!field)return;
+    let wind=siteWindAt(field,F.t);
+    if(!wind){
+      const value=sampleWind(field,F.site.lat,F.site.lon,F.t);
+      if(value)wind={...value,speed:Math.hypot(value.u,value.v),towardDeg:(Math.atan2(value.u,value.v)*180/Math.PI+360)%360,time:field.m.frames[Math.floor(F.t)%field.frames.length]?.time};
+    }
+    if(!wind){unavailable('Analysis has no valid wind at this location');return;}
+    const token=F.token;
+    emit('cs:wind',{...wind,active:true,source:'NASA GEOS-FP analysis',siteId:F.site.id,year:F.year,
+      sampleWind:(lat,lon)=>token===F.token?sampleWind(field,lat,lon,F.t):null});
+  }
+  function buildLayers(){
+    F.siteLayer?.dispose();F.globalLayer?.dispose();F.siteLayer=F.globalLayer=null;
+    const budget=flowBudget(F.quality);
+    if(F.siteField){const g=F.siteField.m.grid;F.siteLayer=makeLayer(F.siteField,{count:budget.site,altitude:2500,timeLapse:4500,bbox:[g.lonMin,g.latMin,g.lonMax,g.latMax]});}
+    if(F.globalField)F.globalLayer=makeLayer(F.globalField,{count:budget.global,altitude:30000,timeLapse:80000,bbox:Object.assign([-180,-90,180,90],{global:true})});
+    visibility();
+  }
+  function setYear(site,year,phase){
+    const key=`${site?.id}:${year}:${phase}`;
+    if(F.key===key){publish();return pending||Promise.resolve();}
+    F.key=key;F.site=site;F.year=year;F.phase=phase;F.t=0;pending=null;const token=++F.token;
+    const future=phase==='projected'||phase==='climate'||phase==='scenario';
+    clear();unavailable(future?'No GEOS-FP forecast for future scenario years':'Loading wind analysis');
+    lastTime=Cesium.JulianDate.clone(viewer.clock.currentTime);sinceEmit=accumulated=0;
+    if(disabled||!site||future)return Promise.resolve();
+    pending=(async()=>{
+      try{
+        const index=await readIndex();if(!alive||token!==F.token)return;
+        const find=kind=>(index.products||[]).find(p=>p.kind===kind&&p.year===year&&(kind==='global'||p.site===site.id));
+        const sp=find('site'),gp=find('global');
+        const loaded=await Promise.allSettled([sp?readField(sp):null,gp?readField(gp):null]);
+        if(!alive||token!==F.token)return;
+        F.siteField=loaded[0].status==='fulfilled'?loaded[0].value:null;
+        F.globalField=loaded[1].status==='fulfilled'?loaded[1].value:null;
+        buildLayers();
+        if(F.siteField||F.globalField)publish();else unavailable('No wind analysis available for this year');
+      }catch{if(alive&&token===F.token){clear();unavailable('Wind analysis unavailable');}}
+    })();
+    return pending;
+  }
+  function tick(){
+    if(!alive)return;
+    const clock=viewer.clock,delta=Cesium.JulianDate.secondsDifference(clock.currentTime,lastTime);
+    lastTime=Cesium.JulianDate.clone(clock.currentTime,lastTime);
+    visibility();
+    const dt=analysisDeltaSeconds(delta,clock.shouldAnimate!==false&&clock.multiplier!==0&&document.visibilityState!=='hidden');
+    if(!dt||(!F.siteField&&!F.globalField))return;
+    const n=(F.siteField||F.globalField).frames.length;F.t=(F.t+dt/SECONDS_PER_FRAME)%n;
+    accumulated+=dt;sinceEmit+=dt;
+    if(accumulated>=1/30){
+      const step=Math.min(.25,accumulated);accumulated=0;F.frame++;
+      if(F.siteLayer?.show)F.siteLayer.step(step,F.t,F.frame);
+      if(F.globalLayer?.show)F.globalLayer.step(step,F.t%F.globalField.frames.length,F.frame);
+    }
+    if(sinceEmit>=.2){sinceEmit=0;publish();}
+  }
+  const removeTick=viewer.scene.preRender.addEventListener(tick);
+  const onScene=event=>{F.localScene=!!event.detail?.active;visibility();};
+  const onQuality=event=>{const next=event.detail?.quality||'balanced';if(next===F.quality)return;F.quality=next;if(F.siteField||F.globalField)buildLayers();};
+  window.addEventListener('cs:scene-mode',onScene);window.addEventListener('cs:quality',onQuality);
+  return {setYear,reset(site,year){F.token++;F.key=null;pending=null;F.site=site;F.year=year;clear();unavailable('Loading site wind');},get state(){return F;},dispose(){alive=false;F.token++;clear();removeTick();window.removeEventListener('cs:scene-mode',onScene);window.removeEventListener('cs:quality',onQuality);}};
 }

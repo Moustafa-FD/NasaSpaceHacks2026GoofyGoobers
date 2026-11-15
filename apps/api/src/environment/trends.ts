@@ -24,9 +24,9 @@ export function extractVariable(run: Record<string, any>, runId: string, variabl
   switch (run.kind) {
     case "series":            // NASA POWER point series (monthly)
     case "air-quality": {     // CAMS hourly concentrations
-      const found = (run.variables ?? []).find((item: any) => item.id === variable);
+      const found = (run.variables ?? run.metrics ?? []).find((item: any) => (item.id ?? item.variable) === variable);
       if (!found || !Array.isArray(found.series)) throw new Error(`run ${runId} (${run.kind}) has no variable ${variable}; available: ${(run.variables ?? []).map((v: any) => v.id).join(", ")}`);
-      return { label: String(found.label ?? variable), unit: String(found.unit ?? ""), evidence: String(run.evidence ?? "model-derived"), points: plain(found.series) };
+      return { label: String(found.label ?? variable), unit: String(found.unit ?? found.units ?? ""), evidence: String(run.evidence ?? "model-derived"), points: plain(found.series) };
     }
     case "land-water":        // ERA5 daily history
     case "climate": {         // HighResMIP daily scenario
@@ -123,6 +123,7 @@ export async function runTrendAnalysis(store: EnvironmentStore, request: TrendAn
   report(15, "trend:resolving-input");
   const target = await resolveTrendInput(store, request.input, "target");
   const control = request.control ? await resolveTrendInput(store, request.control, "control") : undefined;
+  if (control && target.unit !== control.unit) throw new Error(`Target and control report different units (${target.unit}, ${control.unit}); convert to the same unit before comparing`);
   report(40, "trend:computing");
   const output = await runTrendWorker({
     target: { label: target.label, unit: target.unit, points: target.points },

@@ -1,6 +1,8 @@
 # Part 3 integration guide (web + Unreal)
 
-Parts 1 and 2 are connected and tested; what remains is front-end plumbing and presentation. This page lists everything a front end can call or load, and where each piece belongs on screen. Visual clean-up items are tracked in issue #4.
+Parts 1 and 2 are connected to the web app's **Environmental evidence** inspector. This page documents the underlying contracts and remaining limits. Run `npm run web` for both the web service and its current environmental API; the same-origin `/api/environment` proxy uses the owned loopback API, including a private port fallback if 3000 is occupied. `ENVIRONMENT_API_AUTOSTART=0` instead uses a separately managed API on `ENVIRONMENT_API_PORT` (default 3000). Static builds offer prepared products; live acquisition requires the local service.
+
+Implemented web views: climate ensemble period summaries for all five study sites; Colossus 1 relative plume grid/receptors; guided weather, air, soil/rain and station-quality jobs with source-aware charts; Python trend reports and saved job reuse; source inventories; real station markers and native POWER weather grids. NASA satellite layers support absolute values or same-season snapshot differences with fixed scales and missing-data transparency. These and plume/weather rasters can tint the existing 3D ground without changing its shape. One GEOS-FP wind readout/clock replaces conflicting weather displays; broad decorative fluid rectangles are disabled. After 2035 the timeline selects climate context through 2100 and supplies no annual facility-impact series.
 
 ## How the parts connect
 
@@ -61,14 +63,17 @@ Served by the web app at `data/…` (from `data/cloudshadow/…`) and copied by 
 
 Formats: `docs/flow-fields.md` (with the Niagara recipe) and `docs/projections.md`.
 
-## Where each product belongs (Part 3 to-do)
+## Presentation status and remaining work
 
-- [ ] **Timeline future zone (2027+):** show `data/projections/<site>.json` (SSP2-4.5/SSP5-8.5 medians with model whiskers) **next to** the existing "if the trend continues" extrapolation, clearly labelled "climate scenario". Don't merge the two.
-- [ ] **Colossus 1 plume:** replace the stylised smoke density with the `data/plumes/colossus1.json` χ/Q heat-map (relative), with Boxtown as a receptor label. Keep "screening scenario, assumed stack height" in the legend.
-- [ ] **Water layer:** chart the Giovanni series (groundwater, soil moisture, rainfall) or ERA5/USGS through `trend-analysis`. There is no river-flow animation yet (see issue #4 §6).
-- [ ] **Live mode (click anywhere):** offer "Run climate projection" and "Run plume screening" for the clicked point via the job API when it is running locally (1–5 min jobs; show WebSocket progress).
+- [x] **Climate future context:** `data/projections/<site>.json` is displayed as baseline/mid/late-century ensemble medians and min–max ranges, separately from trend extensions. Period summaries do not imply annual interpolation or facility attribution.
+- [x] **Colossus 1 plume:** optional χ/Q map on globe and low-poly ground, with Boxtown receptor and screening/assumed-height labels. Its aggregate wind footprint is not a year-specific plume or measured concentration.
+- [x] **Water evidence:** ERA5 soil/rain and USGS station series can be acquired/charted/analyzed, with nearby USGS stream-location discovery. Water markers show returned coverage; no river-wide chemistry is fabricated.
+- [x] **Live mode:** selected points can submit climate/plume/data jobs through the inspector. HTTP polling reports progress and stops at terminal status; stopping the browser observer does not cancel server work.
+- [ ] **Giovanni:** authenticated local CSV downloads still need an export/picker for the web; source-referenced inline series are accepted by trend jobs.
+- [ ] **River discharge animation:** needs a connected source network, direction and gauge data plus a suitable model. River morphology, water-quality transport, groundwater balance and crop response remain unimplemented.
 - [ ] **Unreal:** drive Niagara wind from `fields/*.wind.png` and plume direction from `siteSeries`; show the projection chart in UMG.
-- [ ] UI coherence items in issue #4: one wind number, no 3D columns, layer groups and legends.
+- [x] One wind readout/shared motion clock, no 3D columns, no unsourced fluid impulses; one satellite overlay with a persistent legend. Spatial wind forcing remains available in the optional fluid development harness; default globe view uses GEOS-FP trails.
+- [ ] Additional issue #4 ideas: pressure isobars, gauge-driven flow networks, monitor-calibrated transport and additional regional products.
 
 ## Not provided by Parts 1–2 (don't fake in the UI)
 

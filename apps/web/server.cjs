@@ -10,6 +10,8 @@
 //   GET /api/layers/:var?date=2025-07-15    Cesium-ready URL template (date snapped to available data)
 const http = require("http"), fs = require("fs"), path = require("path");
 const { spawn } = require("child_process");
+const { environmentGateway } = require('./environment-gateway.cjs');
+const { nearbyWaterStations } = require('./water-stations.cjs');
 const { DATA, VARS, loadAll, analyzeOne, summarize } = require("../../scripts/summary.cjs");
 const WEB = __dirname;
 const ROOT = path.resolve(WEB, "../.."), STREAM_CACHE = path.join(ROOT, "tmp", "streamed-neighborhoods");
@@ -194,10 +196,15 @@ function createNeighborhoodService({ runner = pythonNeighborhoodRunner,
   };
 }
 
-function createWebServer({ neighborhoodService = createNeighborhoodService() } = {}) {
+function createWebServer({ neighborhoodService = createNeighborhoodService(), gateway = environmentGateway() } = {}) {
 const server = http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, "http://x"); const p = decodeURIComponent(u.pathname);
+    if (gateway(req, res, u)) return;
+    if(p === '/api/water-stations'){
+      if(req.method!=='GET')return send(res,405,{error:'Use GET'});
+      try{return send(res,200,await nearbyWaterStations(u.searchParams));}catch(error){return send(res,503,{stations:[],error:error.message});}
+    }
     if (p === "/api/neighborhood") {
       if (req.method !== "GET") return send(res, 405, { status: "failed", error: "use GET for neighborhood acquisition" });
       const result = await neighborhoodService.get(u.searchParams);
@@ -228,4 +235,25 @@ return server;
 }
 
 module.exports = { createWebServer, createNeighborhoodService, neighborhoodQuery, pythonNeighborhoodRunner, validNeighborhoodResult };
-if (require.main === module) createWebServer().listen(PORT, () => console.log(`Cloud Shadow on http://localhost:${PORT}  (API: /api/sites, /api/neighborhood?lat=35.06&lon=-90.16, /api/analysis?site=colossus1&var=NO2, /api/layers/NO2?date=2025-07-15)`));
+if (require.main === module) {
+  (async () => {
+    let apiPort = Number(process.env.ENVIRONMENT_API_PORT || 3000);
+    if(!Number.isInteger(apiPort)||apiPort<1||apiPort>65535)throw new Error('Invalid ENVIRONMENT_API_PORT');
+    let api;
+    if (process.env.ENVIRONMENT_API_AUTOSTART !== '0') {
+      try {
+        const { createApi } = await import('../api/src/server.ts');
+        api = await createApi();
+        const listenApi = port => new Promise((resolve, reject) => { const error=e=>{api.server.off('listening',ready);reject(e);};const ready=()=>{api.server.off('error',error);resolve();};api.server.once('error',error);api.server.once('listening',ready);api.server.listen(port,'127.0.0.1'); });
+        try{await listenApi(apiPort);}catch(error){if(error.code!=='EADDRINUSE')throw error;await listenApi(0);apiPort=api.server.address().port;}
+        console.log(`Environmental models connected on loopback:${apiPort}`);
+      } catch (error) {
+        if (api) await api.close(); api = null;
+        console.warn(`Live environmental jobs unavailable: ${error.message}`);
+      }
+    }
+    const server = createWebServer({gateway:environmentGateway({port:apiPort})});
+    server.listen(PORT, '127.0.0.1', () => console.log(`Footprint Atlas on http://localhost:${PORT} · environmental gateway /api/environment`));
+    for (const signal of ['SIGINT','SIGTERM']) process.once(signal, () => { server.close(); void api?.close().finally(()=>process.exit(0)); if(!api)process.exit(0); });
+  })().catch(error=>{console.error(error);process.exitCode=1;});
+}
