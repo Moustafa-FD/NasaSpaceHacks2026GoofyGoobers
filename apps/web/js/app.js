@@ -657,21 +657,26 @@
   if (q.get("tour") != null) showTour(+q.get("tour"));
   if (q.get("embed")) { $("#globe").style.display = "none"; $("#topbar").style.display = "none"; $("#panel").style.width = "100%"; }
   window.CloudShadow = { selectSite: (id, v) => S[id] && selectSite(S[id], { varId: v }), viewer, state, sites: SITES, flyTo, setMapLayer, getMapLayer: () => state.mapLayer };
-  const [{attachEnvironmentPanel},{attachEnvironmentMap},{attachEnvironmentStory},{attachSiteEvidence},{attachFutureData},{attachFutureScene}]=await Promise.all([import('./environment-panel.js'),import('./environment-map.js'),import('./environment-story.js'),import('./scene-evidence.js'),import('./future-data.js'),import('./future-scene.js')]);
+  const [{attachEnvironmentPanel},{attachEnvironmentMap},{attachEnvironmentStory},{attachSiteEvidence},{attachFutureData},{attachFutureScene},{attachEvidenceWorkbench},{attachSceneReadout},{attachEvidenceScene}]=await Promise.all([import('./environment-panel.js'),import('./environment-map.js'),import('./environment-story.js'),import('./scene-evidence.js'),import('./future-data.js'),import('./future-scene.js'),import('./evidence-workbench.js'),import('./scene-readout.js'),import('./evidence-scene.js')]);
   const initialYear=+q.get('year')||+$('#tlSlider').value||2025;
   attachEnvironmentMap(viewer,{sites:SITES});
-  const futureData=attachFutureData({site:state.site,year:initialYear,onRequest:(kind,options)=>environmentPanel?.runAction(kind,options)});
+  attachSceneReadout(viewer);
+  const futureData=attachFutureData({site:state.site,year:initialYear,loadSupplemental:true,onRequest:(kind,options)=>environmentPanel?.runAction(kind,options)});
   window.addEventListener('cs:future-state',({detail})=>{
     // The future scene carries model-period labels; an empty satellite legend
     // must not obscure those results or suggest every model is unavailable.
     if(detail?.state?.year>new Date().getUTCFullYear())$('#mapLegend').hidden=true;
   });
   const futureScene=attachFutureScene(viewer,{site:state.site,year:initialYear});
+  const evidenceScene=attachEvidenceScene(viewer);
   environmentStory=attachEnvironmentStory({site:state.site,sites:SITES,seriesBySite:SERIES,varId:state.varId,year:initialYear,futureState:futureData.state,onSelectVariable:id=>setMapLayer(id,null,null,false),onOpenEvidence:action=>environmentPanel.openAction(action),onSelectYear:year=>window.CloudShadowTimeline?.setYear(year)});
   environmentPanel=attachEnvironmentPanel({site:state.site,sites:SITES,year:initialYear,apiBase:location.hostname==='localhost'||location.hostname==='127.0.0.1'?'/api/environment':undefined});
+  const evidenceWorkbench=attachEvidenceWorkbench({site:state.site,year:initialYear,futureState:futureData.state,onRequest:payload=>environmentPanel.runAction('environment-screening',{payload}),onSelectYear:year=>window.CloudShadowTimeline?.setYear(year)});
   futureScene.setState(futureData.state);
+  evidenceScene.setState(futureData.state);
   futureData.publish();
   $('#story').before($('#environmentStory'));
+  $('#environmentStory').after(evidenceWorkbench.element);
   for(const [id,analysis] of Object.entries(lastResults[state.site.id]||{}))environmentStory.setAnalysis(id,analysis,state.site.id);
   $('#changeHeadline').hidden=true;
   attachSiteEvidence({site:state.site,year:+q.get('year')||2025,host:document.querySelector('#timeline .tl-main')});
@@ -680,5 +685,6 @@
   syncTimelineInset();
   window.CloudShadow.environment=environmentPanel;
   window.CloudShadow.future=futureData;
+  window.CloudShadow.evidenceWorkbench=evidenceWorkbench;
   window.dispatchEvent(new CustomEvent("cs:ready", { detail: window.CloudShadow }));
 })();

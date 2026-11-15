@@ -1,6 +1,7 @@
 // Model outputs in the scene retain their actual period, source cell and units.
 // A regional point projection is never painted as a detailed impact heat map.
 import {summarizeFutureClimate,futureProductMatchesSite} from './future-data.js';
+import {POWER_PATHWAYS,powerProjectionYear} from './power-projection.js';
 
 const finite=value=>typeof value==='number'&&Number.isFinite(value);
 const number=(value,digits=1)=>finite(value)?value.toLocaleString('en-US',{maximumFractionDigits:digits}):'Unknown';
@@ -27,9 +28,20 @@ export function futureClimateBounds(result){
 
 /** Pure display plan: no inferred pollution, crop mortality or waterway loss. */
 export function futureScenePresentation(state,{group=state?.group||'heat',currentYear=new Date().getUTCFullYear()}={}){
-  if(!safePoint(state?.site)||state.siteId!==state.site.id||!finite(state.year)||state.year<=currentYear)return null;
+  if(!safePoint(state?.site)||state.siteId!==state.site.id||!finite(state.year))return null;
   const products=state.products||{},position={lat:state.site.lat,lon:state.site.lon};
+  if(state.showScreening){
+    const raw=products['environment-screening'],domain=state.screeningDomain||group,row=raw?.years?.find(row=>row.year===state.year),metrics=row?.metrics?.filter(m=>m.domain===domain&&finite(m.value))||[];
+    if(metrics.length&&futureProductMatchesSite(raw,state.site))return {kind:'screening',group:domain,position,raw,domain,year:state.year,color:'#dfbf87',title:'Conditional local scenario',label:`${state.year} · ${domain} screening scenario\n${metrics.slice(0,3).map(m=>`${m.label}: ${number(m.value,3)} ${m.unit}`).join('\n')}\n${row.source?.evidence==='assumed'?'Assumed inputs':'Reported inputs'} · uncalibrated screening`,note:(raw.limitations||[]).join(' ')};
+    return null;
+  }
+  if(state.year<=currentYear)return null;
   if(group==='heat'||group==='water'){
+    const annual=products['power-projection'];
+    if(state.climateView==='annual'&&annual&&futureProductMatchesSite(annual,state.site)){
+      const row=powerProjectionYear(annual,{year:state.year,scenario:state.powerScenario||'ssp245'}),water=group==='water',value=water?row.precipitationMm:row.temperatureC,unit=water?'mm/year':'°C';
+      if(finite(value))return {kind:'annual-climate',group,position,metric:water?'precipMmPerYear':'meanTempC',value,unit,period:{start:state.year,end:state.year,label:String(state.year)},color:water?'#70bedb':'#f3b47c',title:'NASA annual climate simulation',label:`${state.year} · ${water?'Regional precipitation':'Regional air temperature'}\n${number(value,water?0:1)} ${unit}\n${POWER_PATHWAYS[row.scenario]} · climate simulation`,note:`NASA POWER NEX-GDDP-CMIP6 ensemble, 0.25° regional grid. Complete model year, not a weather forecast or facility effect. No model-spread interval supplied.`};
+    }
     const metric=group==='water'?'precipMmPerYear':['meanTempC','hotDays35C'].includes(state.metric)?state.metric:'meanTempC';
     const raw=products['climate-projection'];
     if(raw&&!futureProductMatchesSite(raw,state.site))return null;
@@ -83,7 +95,7 @@ export function attachFutureScene(viewer,{eventTarget=globalThis.window,document
   function paint(){
     if(disposed)return;
     presentation=futureScenePresentation(state,{group});
-    if(!presentation){removeEntities();stopPlume();viewer.scene.requestRender();return;}
+    if(!presentation){removeEntities();stopPlume();emit('cs:future-scene',{siteId:state.siteId,year:state.year,presentation:null});viewer.scene.requestRender();return;}
     const anchor=anchors.get(state.siteId),position=C.Cartesian3.fromDegrees(anchor?.lon??presentation.position.lon,anchor?.lat??presentation.position.lat,finite(anchor?.roofHeight)?anchor.roofHeight+35:280);
     const nextVisual=JSON.stringify([state.siteId,presentation.label,presentation.note,presentation.bounds,presentation.color,anchor?.lat,anchor?.lon,anchor?.roofHeight]);
     if(nextVisual!==visualKey){
@@ -91,6 +103,7 @@ export function attachFutureScene(viewer,{eventTarget=globalThis.window,document
       if(!label){label=viewer.entities.add({id:'future-model-readout',position,label:{text:presentation.label,font:'14px sans-serif',fillColor:C.Color.WHITE,outlineColor:C.Color.BLACK,outlineWidth:2,style:C.LabelStyle?.FILL_AND_OUTLINE,showBackground:true,backgroundColor:C.Color.fromCssColorString('#10242d').withAlpha(.94),backgroundPadding:new C.Cartesian2(12,8),pixelOffset:new C.Cartesian2(0,-95),disableDepthTestDistance:0,distanceDisplayCondition:new C.DistanceDisplayCondition(0,1600000)}});label.addProperty?.('lowPoly');label.lowPoly=true;}
       else {label.position=position;label.label.text=presentation.label;}
       label.description=presentation.note;
+      label.label.show=!doc?.getElementById?.('sceneModelReadout');
       if(presentation.bounds){
         if(!cell){cell=viewer.entities.add({id:'future-climate-source-cell',rectangle:{coordinates:C.Rectangle.fromDegrees(...presentation.bounds),material:color.withAlpha(.035),outline:true,outlineColor:color.withAlpha(.7)}});cell.addProperty?.('lowPoly');cell.lowPoly=true;}
         else {cell.rectangle.coordinates=C.Rectangle.fromDegrees(...presentation.bounds);cell.rectangle.material=color.withAlpha(.035);cell.rectangle.outlineColor=color.withAlpha(.7);}

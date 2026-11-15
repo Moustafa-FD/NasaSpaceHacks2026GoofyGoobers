@@ -247,7 +247,8 @@ export function attachEnvironmentPanel({ apiBase, site, year, sites, container, 
     // returned result retains its own dates and never changes the slider.
     state.action = action; state.tab = 'live'; runError = ''; state.status = '';
     makeRequest();
-    if (Number.isFinite(options.year)) {
+    if(options.payload){state.requestText=JSON.stringify(options.payload,null,2);state.requestError='';}
+    else if (Number.isFinite(options.year)) {
       try { state.requestText = JSON.stringify(buildEnvironmentRequest(action, state.site, options.year), null, 2); state.requestError = ''; state.requestYear = options.year; }
       catch (error) { state.requestError = error.message; }
     }

@@ -111,3 +111,5 @@
 #environmentStory .est-future-mini small{font-size:13px;font-weight:400}
 #environmentStory .est-future-mini p{margin:4px 0;color:#bdd0d7;font-size:13px}
 #environmentStory button:disabled{cursor:progress;opacity:.65}
+.est-annual-chart{width:100%;height:auto;margin:16px 0;overflow:visible}.est-annual-chart text{font:16px Inter,sans-serif;fill:#c5d8da}
+#timeline .tl-chip.climate-model{display:inline-flex;font-size:12px}#timeline .tl-chip.climate-model b{font-size:13px}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "regional-evidence-index/1.0",
+  "products": [
+    {
+      "site": "colossus1",
+      "file": "colossus1.json",
+      "availableVariables": 4,
+      "missingImports": 5
+    },
+    {
+      "site": "colossus2",
+      "file": "colossus2.json",
+      "availableVariables": 4,
+      "missingImports": 5
+    },
+    {
+      "site": "ashburn",
+      "file": "ashburn.json",
+      "availableVariables": 4,
+      "missingImports": 5
+    },
+    {
+      "site": "abilene",
+      "file": "abilene.json",
+      "availableVariables": 4,
+      "missingImports": 5
+    },
+    {
+      "site": "thedalles",
+      "file": "thedalles.json",
+      "availableVariables": 4,
+      "missingImports": 5
+    }
+  ]
+}

@@ -1,0 +1,3673 @@
+{
+  "schemaVersion": "site-audit/1.0",
+  "site": {
+    "id": "colossus1",
+    "name": "xAI Colossus 1",
+    "lat": 35.0601,
+    "lon": -90.1564,
+    "scope": "study-campus"
+  },
+  "generatedAt": "2026-11-15T07:37:10.230Z",
+  "inventoryCoverage": {
+    "reportingYears": [
+      2008,
+      2011,
+      2014,
+      2017,
+      2020,
+      2023
+    ],
+    "source": "Cached EPA NEI NAICS518210 sector candidates",
+    "latestReportingYear": 2023,
+    "notFacilityCensus": true,
+    "snapshots": [
+      {
+        "reportingYear": 2008,
+        "retrievedAt": "2026-11-14T18:58:32.594Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2008/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "d85d2c3bfd4bf7c26205b4b8121da30fa0e77f79ea165cb50038f353b7bec4f3"
+      },
+      {
+        "reportingYear": 2011,
+        "retrievedAt": "2026-11-14T18:58:45.947Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2011/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "7f624b438dc65067987698738be547f230369504b38a6a96cbc7bce4e587f6f8"
+      },
+      {
+        "reportingYear": 2014,
+        "retrievedAt": "2026-11-14T18:58:57.997Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2014/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "974ecc34117a407aed76e9922b90efaf8a5c67a3f8bdeae643a6e17527919e81"
+      },
+      {
+        "reportingYear": 2017,
+        "retrievedAt": "2026-11-14T18:59:19.298Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2017/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "d51f17a00d743d42218539436243241e1b80f5d572e85ca92bc71d362b2c5cd2"
+      },
+      {
+        "reportingYear": 2020,
+        "retrievedAt": "2026-11-14T18:59:46.280Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2020/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "f484df9d43c823434e0d3374400913cb52edb25db1ed069ba26a418b0b904316"
+      },
+      {
+        "reportingYear": 2023,
+        "retrievedAt": "2026-11-14T19:00:01.923Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2023/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "ab13cc8ebe8f39ebbf835dac3dbb824d7bfdca8841ecc84f639b7f0679dad909"
+      }
+    ]
+  },
+  "mappedFacilities": [
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1381264361",
+      "name": "xAI Colossus",
+      "operator": "xAI",
+      "sourceUrl": "https://www.openstreetmap.org/way/1381264361",
+      "lat": 35.0599052,
+      "lon": -90.1563229,
+      "address": {
+        "country": null,
+        "city": "Memphis",
+        "state": "TN",
+        "postcode": null,
+        "street": "Paul R Lowery Road",
+        "housenumber": "3231"
+      },
+      "distanceKm": 0.022769197750287004,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    }
+  ],
+  "facilityMatches": [],
+  "waterDiscovery": {
+    "status": "downloaded",
+    "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items?f=json&bbox=-90.46181813798734%2C34.8101%2C-89.85098186201267%2C35.3101&agency_code=USGS&site_type_code=ST&limit=500",
+    "retrievedAt": "2026-11-15T07:34:34.239Z",
+    "sha256": "2919951aec3cb7e6c3f0e36d156081beb722c189cf8802be0b6f4a9a836ebfe9",
+    "returned": 91,
+    "limit": 500,
+    "truncated": false
+  },
+  "stations": [
+    {
+      "id": "USGS-07032000",
+      "name": "MISSISSIPPI RIVER AT MEMPHIS, TN",
+      "siteType": "Stream",
+      "lat": 35.1231461646833,
+      "lon": -90.0775919509356,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032000/",
+      "coverage": {
+        "status": "source-metadata",
+        "parameters": [
+          {
+            "id": "69ecf6c7e24f4431bf8af22d3732f44b",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": "1933-01-01T06:00:00+00:00",
+            "end": "2026-11-13T06:00:00+00:00",
+            "statisticId": "00003",
+            "computationPeriod": "Daily"
+          },
+          {
+            "id": "9eda7982162e4f109ff85f1a3981b2d1",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": "2014-10-01T05:00:00+00:00",
+            "end": "2026-11-15T06:00:00+00:00",
+            "statisticId": "00011",
+            "computationPeriod": "Points"
+          },
+          {
+            "id": "a8d1891a84b74f47a42f2b95050df8f2",
+            "parameterCode": "63680",
+            "parameterName": "Turbidity, FNU",
+            "unit": "_FNU",
+            "begin": "2023-01-23T09:00:00+00:00",
+            "end": "2026-10-19T10:00:00+00:00",
+            "statisticId": "00011",
+            "computationPeriod": "Points"
+          },
+          {
+            "id": "dd457ecd7e3b426cb2ff2a0a42894a8c",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": "1890-03-20T06:00:00+00:00",
+            "end": "2025-04-17T05:00:00+00:00",
+            "statisticId": null,
+            "computationPeriod": "Water Year"
+          },
+          {
+            "id": "f405557863044066a578a80bc49aef4f",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": "1872-04-24T06:00:00+00:00",
+            "end": "2025-04-17T05:00:00+00:00",
+            "statisticId": null,
+            "computationPeriod": "Water Year"
+          }
+        ],
+        "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/time-series-metadata/items?f=json&monitoring_location_id=USGS-07032000&limit=500",
+        "retrievedAt": "2026-11-15T07:34:35.895Z",
+        "sha256": "90ee861ef21514be754a0358732266676862d29cb328f01ad9d2a8d30b0ba105",
+        "note": "Earliest/latest timestamps are not continuous coverage; source gaps may exist. Metadata does not prove observations in a selected period."
+      },
+      "series": [
+        {
+          "id": "00060",
+          "label": "Daily mean discharge",
+          "unit": "ft^3/s",
+          "statisticId": "00003",
+          "timeStandard": "source daily dates; original timestamp retained",
+          "period": {
+            "start": "2025-01-01",
+            "end": "2025-12-31"
+          },
+          "points": [
+            {
+              "date": "2025-01-01",
+              "sourceTime": "2025-01-01",
+              "value": 455000,
+              "rawValue": "455000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-02",
+              "sourceTime": "2025-01-02",
+              "value": 501000,
+              "rawValue": "501000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-03",
+              "sourceTime": "2025-01-03",
+              "value": 532000,
+              "rawValue": "532000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-04",
+              "sourceTime": "2025-01-04",
+              "value": 540000,
+              "rawValue": "540000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-05",
+              "sourceTime": "2025-01-05",
+              "value": 536000,
+              "rawValue": "536000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-06",
+              "sourceTime": "2025-01-06",
+              "value": 539000,
+              "rawValue": "539000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-07",
+              "sourceTime": "2025-01-07",
+              "value": 542000,
+              "rawValue": "542000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-08",
+              "sourceTime": "2025-01-08",
+              "value": 550000,
+              "rawValue": "550000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-09",
+              "sourceTime": "2025-01-09",
+              "value": 547000,
+              "rawValue": "547000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-10",
+              "sourceTime": "2025-01-10",
+              "value": 539000,
+              "rawValue": "539000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-11",
+              "sourceTime": "2025-01-11",
+              "value": 523000,
+              "rawValue": "523000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-12",
+              "sourceTime": "2025-01-12",
+              "value": 504000,
+              "rawValue": "504000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-13",
+              "sourceTime": "2025-01-13",
+              "value": 488000,
+              "rawValue": "488000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-14",
+              "sourceTime": "2025-01-14",
+              "value": 472000,
+              "rawValue": "472000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-15",
+              "sourceTime": "2025-01-15",
+              "value": 439000,
+              "rawValue": "439000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-16",
+              "sourceTime": "2025-01-16",
+              "value": 394000,
+              "rawValue": "394000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-17",
+              "sourceTime": "2025-01-17",
+              "value": 357000,
+              "rawValue": "357000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-18",
+              "sourceTime": "2025-01-18",
+              "value": 333000,
+              "rawValue": "333000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-19",
+              "sourceTime": "2025-01-19",
+              "value": 316000,
+              "rawValue": "316000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-20",
+              "sourceTime": "2025-01-20",
+              "value": 305000,
+              "rawValue": "305000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-21",
+              "sourceTime": "2025-01-21",
+              "value": 310000,
+              "rawValue": "310000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-22",
+              "sourceTime": "2025-01-22",
+              "value": 332000,
+              "rawValue": "332000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-23",
+              "sourceTime": "2025-01-23",
+              "value": 349000,
+              "rawValue": "349000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-24",
+              "sourceTime": "2025-01-24",
+              "value": 355000,
+              "rawValue": "355000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-25",
+              "sourceTime": "2025-01-25",
+              "value": 347000,
+              "rawValue": "347000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-26",
+              "sourceTime": "2025-01-26",
+              "value": 331000,
+              "rawValue": "331000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-27",
+              "sourceTime": "2025-01-27",
+              "value": 308000,
+              "rawValue": "308000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-28",
+              "sourceTime": "2025-01-28",
+              "value": 281000,
+              "rawValue": "281000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-29",
+              "sourceTime": "2025-01-29",
+              "value": 263000,
+              "rawValue": "263000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-30",
+              "sourceTime": "2025-01-30",
+              "value": 256000,
+              "rawValue": "256000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-01-31",
+              "sourceTime": "2025-01-31",
+              "value": 268000,
+              "rawValue": "268000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-01",
+              "sourceTime": "2025-02-01",
+              "value": 284000,
+              "rawValue": "284000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-02",
+              "sourceTime": "2025-02-02",
+              "value": 311000,
+              "rawValue": "311000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-03",
+              "sourceTime": "2025-02-03",
+              "value": 366000,
+              "rawValue": "366000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-04",
+              "sourceTime": "2025-02-04",
+              "value": 439000,
+              "rawValue": "439000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-05",
+              "sourceTime": "2025-02-05",
+              "value": 500000,
+              "rawValue": "500000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-06",
+              "sourceTime": "2025-02-06",
+              "value": 546000,
+              "rawValue": "546000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-07",
+              "sourceTime": "2025-02-07",
+              "value": 581000,
+              "rawValue": "581000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-08",
+              "sourceTime": "2025-02-08",
+              "value": 605000,
+              "rawValue": "605000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-09",
+              "sourceTime": "2025-02-09",
+              "value": 620000,
+              "rawValue": "620000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-10",
+              "sourceTime": "2025-02-10",
+              "value": 629000,
+              "rawValue": "629000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-11",
+              "sourceTime": "2025-02-11",
+              "value": 640000,
+              "rawValue": "640000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-12",
+              "sourceTime": "2025-02-12",
+              "value": 666000,
+              "rawValue": "666000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-13",
+              "sourceTime": "2025-02-13",
+              "value": 691000,
+              "rawValue": "691000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-14",
+              "sourceTime": "2025-02-14",
+              "value": 720000,
+              "rawValue": "720000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-15",
+              "sourceTime": "2025-02-15",
+              "value": 777000,
+              "rawValue": "777000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-16",
+              "sourceTime": "2025-02-16",
+              "value": 861000,
+              "rawValue": "861000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-17",
+              "sourceTime": "2025-02-17",
+              "value": 912000,
+              "rawValue": "912000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-18",
+              "sourceTime": "2025-02-18",
+              "value": 966000,
+              "rawValue": "966000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-19",
+              "sourceTime": "2025-02-19",
+              "value": 1010000,
+              "rawValue": "1010000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-20",
+              "sourceTime": "2025-02-20",
+              "value": 1050000,
+              "rawValue": "1050000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-21",
+              "sourceTime": "2025-02-21",
+              "value": 1070000,
+              "rawValue": "1070000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-22",
+              "sourceTime": "2025-02-22",
+              "value": 1090000,
+              "rawValue": "1090000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-23",
+              "sourceTime": "2025-02-23",
+              "value": 1100000,
+              "rawValue": "1100000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-24",
+              "sourceTime": "2025-02-24",
+              "value": 1110000,
+              "rawValue": "1110000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-25",
+              "sourceTime": "2025-02-25",
+              "value": 1110000,
+              "rawValue": "1110000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-26",
+              "sourceTime": "2025-02-26",
+              "value": 1110000,
+              "rawValue": "1110000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-27",
+              "sourceTime": "2025-02-27",
+              "value": 1100000,
+              "rawValue": "1100000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-02-28",
+              "sourceTime": "2025-02-28",
+              "value": 1090000,
+              "rawValue": "1090000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-01",
+              "sourceTime": "2025-03-01",
+              "value": 1060000,
+              "rawValue": "1060000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-02",
+              "sourceTime": "2025-03-02",
+              "value": 1030000,
+              "rawValue": "1030000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-03",
+              "sourceTime": "2025-03-03",
+              "value": 971000,
+              "rawValue": "971000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-04",
+              "sourceTime": "2025-03-04",
+              "value": 894000,
+              "rawValue": "894000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-05",
+              "sourceTime": "2025-03-05",
+              "value": 802000,
+              "rawValue": "802000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-06",
+              "sourceTime": "2025-03-06",
+              "value": 711000,
+              "rawValue": "711000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-07",
+              "sourceTime": "2025-03-07",
+              "value": 649000,
+              "rawValue": "649000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-08",
+              "sourceTime": "2025-03-08",
+              "value": 612000,
+              "rawValue": "612000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-09",
+              "sourceTime": "2025-03-09",
+              "value": 582000,
+              "rawValue": "582000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-10",
+              "sourceTime": "2025-03-10",
+              "value": 556000,
+              "rawValue": "556000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-11",
+              "sourceTime": "2025-03-11",
+              "value": 540000,
+              "rawValue": "540000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-12",
+              "sourceTime": "2025-03-12",
+              "value": 531000,
+              "rawValue": "531000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-13",
+              "sourceTime": "2025-03-13",
+              "value": 521000,
+              "rawValue": "521000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-14",
+              "sourceTime": "2025-03-14",
+              "value": 509000,
+              "rawValue": "509000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-15",
+              "sourceTime": "2025-03-15",
+              "value": 505000,
+              "rawValue": "505000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-16",
+              "sourceTime": "2025-03-16",
+              "value": 505000,
+              "rawValue": "505000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-17",
+              "sourceTime": "2025-03-17",
+              "value": 491000,
+              "rawValue": "491000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-18",
+              "sourceTime": "2025-03-18",
+              "value": 498000,
+              "rawValue": "498000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-19",
+              "sourceTime": "2025-03-19",
+              "value": 562000,
+              "rawValue": "562000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-20",
+              "sourceTime": "2025-03-20",
+              "value": 659000,
+              "rawValue": "659000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-21",
+              "sourceTime": "2025-03-21",
+              "value": 735000,
+              "rawValue": "735000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-22",
+              "sourceTime": "2025-03-22",
+              "value": 768000,
+              "rawValue": "768000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-23",
+              "sourceTime": "2025-03-23",
+              "value": 765000,
+              "rawValue": "765000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-24",
+              "sourceTime": "2025-03-24",
+              "value": 735000,
+              "rawValue": "735000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-25",
+              "sourceTime": "2025-03-25",
+              "value": 691000,
+              "rawValue": "691000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-26",
+              "sourceTime": "2025-03-26",
+              "value": 642000,
+              "rawValue": "642000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-27",
+              "sourceTime": "2025-03-27",
+              "value": 599000,
+              "rawValue": "599000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-28",
+              "sourceTime": "2025-03-28",
+              "value": 562000,
+              "rawValue": "562000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-29",
+              "sourceTime": "2025-03-29",
+              "value": 532000,
+              "rawValue": "532000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-30",
+              "sourceTime": "2025-03-30",
+              "value": 505000,
+              "rawValue": "505000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-03-31",
+              "sourceTime": "2025-03-31",
+              "value": 483000,
+              "rawValue": "483000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-01",
+              "sourceTime": "2025-04-01",
+              "value": 461000,
+              "rawValue": "461000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-02",
+              "sourceTime": "2025-04-02",
+              "value": 449000,
+              "rawValue": "449000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-03",
+              "sourceTime": "2025-04-03",
+              "value": 497000,
+              "rawValue": "497000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-04",
+              "sourceTime": "2025-04-04",
+              "value": 575000,
+              "rawValue": "575000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-05",
+              "sourceTime": "2025-04-05",
+              "value": 726000,
+              "rawValue": "726000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-06",
+              "sourceTime": "2025-04-06",
+              "value": 937000,
+              "rawValue": "937000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-07",
+              "sourceTime": "2025-04-07",
+              "value": 1070000,
+              "rawValue": "1070000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-08",
+              "sourceTime": "2025-04-08",
+              "value": 1160000,
+              "rawValue": "1160000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-09",
+              "sourceTime": "2025-04-09",
+              "value": 1220000,
+              "rawValue": "1220000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-10",
+              "sourceTime": "2025-04-10",
+              "value": 1290000,
+              "rawValue": "1290000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-11",
+              "sourceTime": "2025-04-11",
+              "value": 1360000,
+              "rawValue": "1360000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-12",
+              "sourceTime": "2025-04-12",
+              "value": 1410000,
+              "rawValue": "1410000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-13",
+              "sourceTime": "2025-04-13",
+              "value": 1460000,
+              "rawValue": "1460000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-14",
+              "sourceTime": "2025-04-14",
+              "value": 1480000,
+              "rawValue": "1480000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-15",
+              "sourceTime": "2025-04-15",
+              "value": 1500000,
+              "rawValue": "1500000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-16",
+              "sourceTime": "2025-04-16",
+              "value": 1510000,
+              "rawValue": "1510000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-17",
+              "sourceTime": "2025-04-17",
+              "value": 1510000,
+              "rawValue": "1510000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-18",
+              "sourceTime": "2025-04-18",
+              "value": 1510000,
+              "rawValue": "1510000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-19",
+              "sourceTime": "2025-04-19",
+              "value": 1500000,
+              "rawValue": "1500000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-20",
+              "sourceTime": "2025-04-20",
+              "value": 1480000,
+              "rawValue": "1480000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-21",
+              "sourceTime": "2025-04-21",
+              "value": 1460000,
+              "rawValue": "1460000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-22",
+              "sourceTime": "2025-04-22",
+              "value": 1440000,
+              "rawValue": "1440000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-23",
+              "sourceTime": "2025-04-23",
+              "value": 1400000,
+              "rawValue": "1400000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-24",
+              "sourceTime": "2025-04-24",
+              "value": 1370000,
+              "rawValue": "1370000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-25",
+              "sourceTime": "2025-04-25",
+              "value": 1320000,
+              "rawValue": "1320000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-26",
+              "sourceTime": "2025-04-26",
+              "value": 1270000,
+              "rawValue": "1270000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-27",
+              "sourceTime": "2025-04-27",
+              "value": 1200000,
+              "rawValue": "1200000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-28",
+              "sourceTime": "2025-04-28",
+              "value": 1110000,
+              "rawValue": "1110000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-29",
+              "sourceTime": "2025-04-29",
+              "value": 994000,
+              "rawValue": "994000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-04-30",
+              "sourceTime": "2025-04-30",
+              "value": 887000,
+              "rawValue": "887000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-01",
+              "sourceTime": "2025-05-01",
+              "value": 808000,
+              "rawValue": "808000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-02",
+              "sourceTime": "2025-05-02",
+              "value": 757000,
+              "rawValue": "757000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-03",
+              "sourceTime": "2025-05-03",
+              "value": 733000,
+              "rawValue": "733000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-04",
+              "sourceTime": "2025-05-04",
+              "value": 714000,
+              "rawValue": "714000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-05",
+              "sourceTime": "2025-05-05",
+              "value": 705000,
+              "rawValue": "705000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-06",
+              "sourceTime": "2025-05-06",
+              "value": 713000,
+              "rawValue": "713000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-07",
+              "sourceTime": "2025-05-07",
+              "value": 734000,
+              "rawValue": "734000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-08",
+              "sourceTime": "2025-05-08",
+              "value": 768000,
+              "rawValue": "768000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-09",
+              "sourceTime": "2025-05-09",
+              "value": 800000,
+              "rawValue": "800000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-10",
+              "sourceTime": "2025-05-10",
+              "value": 817000,
+              "rawValue": "817000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-11",
+              "sourceTime": "2025-05-11",
+              "value": 822000,
+              "rawValue": "822000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-12",
+              "sourceTime": "2025-05-12",
+              "value": 826000,
+              "rawValue": "826000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-13",
+              "sourceTime": "2025-05-13",
+              "value": 818000,
+              "rawValue": "818000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-14",
+              "sourceTime": "2025-05-14",
+              "value": 797000,
+              "rawValue": "797000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-15",
+              "sourceTime": "2025-05-15",
+              "value": 774000,
+              "rawValue": "774000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-16",
+              "sourceTime": "2025-05-16",
+              "value": 744000,
+              "rawValue": "744000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-17",
+              "sourceTime": "2025-05-17",
+              "value": 714000,
+              "rawValue": "714000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-18",
+              "sourceTime": "2025-05-18",
+              "value": 692000,
+              "rawValue": "692000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-19",
+              "sourceTime": "2025-05-19",
+              "value": 672000,
+              "rawValue": "672000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-20",
+              "sourceTime": "2025-05-20",
+              "value": 655000,
+              "rawValue": "655000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-21",
+              "sourceTime": "2025-05-21",
+              "value": 654000,
+              "rawValue": "654000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-22",
+              "sourceTime": "2025-05-22",
+              "value": 656000,
+              "rawValue": "656000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-23",
+              "sourceTime": "2025-05-23",
+              "value": 671000,
+              "rawValue": "671000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-24",
+              "sourceTime": "2025-05-24",
+              "value": 708000,
+              "rawValue": "708000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-25",
+              "sourceTime": "2025-05-25",
+              "value": 731000,
+              "rawValue": "731000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-26",
+              "sourceTime": "2025-05-26",
+              "value": 733000,
+              "rawValue": "733000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-27",
+              "sourceTime": "2025-05-27",
+              "value": 720000,
+              "rawValue": "720000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-28",
+              "sourceTime": "2025-05-28",
+              "value": 700000,
+              "rawValue": "700000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-29",
+              "sourceTime": "2025-05-29",
+              "value": 680000,
+              "rawValue": "680000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-30",
+              "sourceTime": "2025-05-30",
+              "value": 658000,
+              "rawValue": "658000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-05-31",
+              "sourceTime": "2025-05-31",
+              "value": 635000,
+              "rawValue": "635000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-01",
+              "sourceTime": "2025-06-01",
+              "value": 615000,
+              "rawValue": "615000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-02",
+              "sourceTime": "2025-06-02",
+              "value": 603000,
+              "rawValue": "603000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-03",
+              "sourceTime": "2025-06-03",
+              "value": 603000,
+              "rawValue": "603000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-04",
+              "sourceTime": "2025-06-04",
+              "value": 609000,
+              "rawValue": "609000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-05",
+              "sourceTime": "2025-06-05",
+              "value": 614000,
+              "rawValue": "614000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-06",
+              "sourceTime": "2025-06-06",
+              "value": 628000,
+              "rawValue": "628000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-07",
+              "sourceTime": "2025-06-07",
+              "value": 660000,
+              "rawValue": "660000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-08",
+              "sourceTime": "2025-06-08",
+              "value": 700000,
+              "rawValue": "700000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-09",
+              "sourceTime": "2025-06-09",
+              "value": 719000,
+              "rawValue": "719000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-10",
+              "sourceTime": "2025-06-10",
+              "value": 711000,
+              "rawValue": "711000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-11",
+              "sourceTime": "2025-06-11",
+              "value": 696000,
+              "rawValue": "696000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-12",
+              "sourceTime": "2025-06-12",
+              "value": 684000,
+              "rawValue": "684000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-13",
+              "sourceTime": "2025-06-13",
+              "value": 694000,
+              "rawValue": "694000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-14",
+              "sourceTime": "2025-06-14",
+              "value": 721000,
+              "rawValue": "721000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-15",
+              "sourceTime": "2025-06-15",
+              "value": 725000,
+              "rawValue": "725000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-16",
+              "sourceTime": "2025-06-16",
+              "value": 719000,
+              "rawValue": "719000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-17",
+              "sourceTime": "2025-06-17",
+              "value": 709000,
+              "rawValue": "709000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-18",
+              "sourceTime": "2025-06-18",
+              "value": 692000,
+              "rawValue": "692000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-19",
+              "sourceTime": "2025-06-19",
+              "value": 697000,
+              "rawValue": "697000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-20",
+              "sourceTime": "2025-06-20",
+              "value": 706000,
+              "rawValue": "706000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-21",
+              "sourceTime": "2025-06-21",
+              "value": 710000,
+              "rawValue": "710000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-22",
+              "sourceTime": "2025-06-22",
+              "value": 712000,
+              "rawValue": "712000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-23",
+              "sourceTime": "2025-06-23",
+              "value": 728000,
+              "rawValue": "728000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-24",
+              "sourceTime": "2025-06-24",
+              "value": 745000,
+              "rawValue": "745000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-25",
+              "sourceTime": "2025-06-25",
+              "value": 748000,
+              "rawValue": "748000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-26",
+              "sourceTime": "2025-06-26",
+              "value": 733000,
+              "rawValue": "733000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-27",
+              "sourceTime": "2025-06-27",
+              "value": 706000,
+              "rawValue": "706000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-28",
+              "sourceTime": "2025-06-28",
+              "value": 664000,
+              "rawValue": "664000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-29",
+              "sourceTime": "2025-06-29",
+              "value": 614000,
+              "rawValue": "614000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-06-30",
+              "sourceTime": "2025-06-30",
+              "value": 564000,
+              "rawValue": "564000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-01",
+              "sourceTime": "2025-07-01",
+              "value": 549000,
+              "rawValue": "549000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-02",
+              "sourceTime": "2025-07-02",
+              "value": 544000,
+              "rawValue": "544000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-03",
+              "sourceTime": "2025-07-03",
+              "value": 546000,
+              "rawValue": "546000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-04",
+              "sourceTime": "2025-07-04",
+              "value": 553000,
+              "rawValue": "553000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-05",
+              "sourceTime": "2025-07-05",
+              "value": 564000,
+              "rawValue": "564000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-06",
+              "sourceTime": "2025-07-06",
+              "value": 573000,
+              "rawValue": "573000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-07",
+              "sourceTime": "2025-07-07",
+              "value": 573000,
+              "rawValue": "573000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-08",
+              "sourceTime": "2025-07-08",
+              "value": 558000,
+              "rawValue": "558000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-09",
+              "sourceTime": "2025-07-09",
+              "value": 525000,
+              "rawValue": "525000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-10",
+              "sourceTime": "2025-07-10",
+              "value": 485000,
+              "rawValue": "485000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-11",
+              "sourceTime": "2025-07-11",
+              "value": 455000,
+              "rawValue": "455000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-12",
+              "sourceTime": "2025-07-12",
+              "value": 432000,
+              "rawValue": "432000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-13",
+              "sourceTime": "2025-07-13",
+              "value": 431000,
+              "rawValue": "431000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-14",
+              "sourceTime": "2025-07-14",
+              "value": 435000,
+              "rawValue": "435000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-15",
+              "sourceTime": "2025-07-15",
+              "value": 432000,
+              "rawValue": "432000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-16",
+              "sourceTime": "2025-07-16",
+              "value": 430000,
+              "rawValue": "430000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-17",
+              "sourceTime": "2025-07-17",
+              "value": 426000,
+              "rawValue": "426000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-18",
+              "sourceTime": "2025-07-18",
+              "value": 430000,
+              "rawValue": "430000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-19",
+              "sourceTime": "2025-07-19",
+              "value": 445000,
+              "rawValue": "445000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-20",
+              "sourceTime": "2025-07-20",
+              "value": 470000,
+              "rawValue": "470000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-21",
+              "sourceTime": "2025-07-21",
+              "value": 489000,
+              "rawValue": "489000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-22",
+              "sourceTime": "2025-07-22",
+              "value": 513000,
+              "rawValue": "513000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-23",
+              "sourceTime": "2025-07-23",
+              "value": 535000,
+              "rawValue": "535000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-24",
+              "sourceTime": "2025-07-24",
+              "value": 552000,
+              "rawValue": "552000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-25",
+              "sourceTime": "2025-07-25",
+              "value": 569000,
+              "rawValue": "569000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-26",
+              "sourceTime": "2025-07-26",
+              "value": 575000,
+              "rawValue": "575000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-27",
+              "sourceTime": "2025-07-27",
+              "value": 563000,
+              "rawValue": "563000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-28",
+              "sourceTime": "2025-07-28",
+              "value": 526000,
+              "rawValue": "526000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-29",
+              "sourceTime": "2025-07-29",
+              "value": 483000,
+              "rawValue": "483000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-30",
+              "sourceTime": "2025-07-30",
+              "value": 470000,
+              "rawValue": "470000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-07-31",
+              "sourceTime": "2025-07-31",
+              "value": 482000,
+              "rawValue": "482000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-01",
+              "sourceTime": "2025-08-01",
+              "value": 513000,
+              "rawValue": "513000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-02",
+              "sourceTime": "2025-08-02",
+              "value": 540000,
+              "rawValue": "540000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-03",
+              "sourceTime": "2025-08-03",
+              "value": 542000,
+              "rawValue": "542000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-04",
+              "sourceTime": "2025-08-04",
+              "value": 517000,
+              "rawValue": "517000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-05",
+              "sourceTime": "2025-08-05",
+              "value": 491000,
+              "rawValue": "491000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-06",
+              "sourceTime": "2025-08-06",
+              "value": 473000,
+              "rawValue": "473000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-07",
+              "sourceTime": "2025-08-07",
+              "value": 459000,
+              "rawValue": "459000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-08",
+              "sourceTime": "2025-08-08",
+              "value": 443000,
+              "rawValue": "443000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-09",
+              "sourceTime": "2025-08-09",
+              "value": 431000,
+              "rawValue": "431000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-10",
+              "sourceTime": "2025-08-10",
+              "value": 428000,
+              "rawValue": "428000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-11",
+              "sourceTime": "2025-08-11",
+              "value": 419000,
+              "rawValue": "419000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-12",
+              "sourceTime": "2025-08-12",
+              "value": 406000,
+              "rawValue": "406000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-13",
+              "sourceTime": "2025-08-13",
+              "value": 396000,
+              "rawValue": "396000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-14",
+              "sourceTime": "2025-08-14",
+              "value": 378000,
+              "rawValue": "378000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-15",
+              "sourceTime": "2025-08-15",
+              "value": 366000,
+              "rawValue": "366000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-16",
+              "sourceTime": "2025-08-16",
+              "value": 367000,
+              "rawValue": "367000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-17",
+              "sourceTime": "2025-08-17",
+              "value": 366000,
+              "rawValue": "366000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-18",
+              "sourceTime": "2025-08-18",
+              "value": 363000,
+              "rawValue": "363000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-19",
+              "sourceTime": "2025-08-19",
+              "value": 356000,
+              "rawValue": "356000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-20",
+              "sourceTime": "2025-08-20",
+              "value": 353000,
+              "rawValue": "353000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-21",
+              "sourceTime": "2025-08-21",
+              "value": 352000,
+              "rawValue": "352000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-22",
+              "sourceTime": "2025-08-22",
+              "value": 350000,
+              "rawValue": "350000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-23",
+              "sourceTime": "2025-08-23",
+              "value": 343000,
+              "rawValue": "343000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-24",
+              "sourceTime": "2025-08-24",
+              "value": 332000,
+              "rawValue": "332000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-25",
+              "sourceTime": "2025-08-25",
+              "value": 322000,
+              "rawValue": "322000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-26",
+              "sourceTime": "2025-08-26",
+              "value": 315000,
+              "rawValue": "315000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-27",
+              "sourceTime": "2025-08-27",
+              "value": 308000,
+              "rawValue": "308000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-28",
+              "sourceTime": "2025-08-28",
+              "value": 307000,
+              "rawValue": "307000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-29",
+              "sourceTime": "2025-08-29",
+              "value": 309000,
+              "rawValue": "309000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-30",
+              "sourceTime": "2025-08-30",
+              "value": 307000,
+              "rawValue": "307000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-08-31",
+              "sourceTime": "2025-08-31",
+              "value": 308000,
+              "rawValue": "308000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-01",
+              "sourceTime": "2025-09-01",
+              "value": 304000,
+              "rawValue": "304000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-02",
+              "sourceTime": "2025-09-02",
+              "value": 292000,
+              "rawValue": "292000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-03",
+              "sourceTime": "2025-09-03",
+              "value": 287000,
+              "rawValue": "287000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-04",
+              "sourceTime": "2025-09-04",
+              "value": 279000,
+              "rawValue": "279000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-05",
+              "sourceTime": "2025-09-05",
+              "value": 269000,
+              "rawValue": "269000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-06",
+              "sourceTime": "2025-09-06",
+              "value": 264000,
+              "rawValue": "264000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-07",
+              "sourceTime": "2025-09-07",
+              "value": 254000,
+              "rawValue": "254000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-08",
+              "sourceTime": "2025-09-08",
+              "value": 245000,
+              "rawValue": "245000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-09",
+              "sourceTime": "2025-09-09",
+              "value": 237000,
+              "rawValue": "237000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-10",
+              "sourceTime": "2025-09-10",
+              "value": 238000,
+              "rawValue": "238000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-11",
+              "sourceTime": "2025-09-11",
+              "value": 234000,
+              "rawValue": "234000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-12",
+              "sourceTime": "2025-09-12",
+              "value": 232000,
+              "rawValue": "232000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-13",
+              "sourceTime": "2025-09-13",
+              "value": 233000,
+              "rawValue": "233000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-14",
+              "sourceTime": "2025-09-14",
+              "value": 232000,
+              "rawValue": "232000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-15",
+              "sourceTime": "2025-09-15",
+              "value": 228000,
+              "rawValue": "228000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-16",
+              "sourceTime": "2025-09-16",
+              "value": 218000,
+              "rawValue": "218000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-17",
+              "sourceTime": "2025-09-17",
+              "value": 216000,
+              "rawValue": "216000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-18",
+              "sourceTime": "2025-09-18",
+              "value": 218000,
+              "rawValue": "218000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-19",
+              "sourceTime": "2025-09-19",
+              "value": 211000,
+              "rawValue": "211000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-20",
+              "sourceTime": "2025-09-20",
+              "value": 201000,
+              "rawValue": "201000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-21",
+              "sourceTime": "2025-09-21",
+              "value": 194000,
+              "rawValue": "194000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-22",
+              "sourceTime": "2025-09-22",
+              "value": 189000,
+              "rawValue": "189000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-23",
+              "sourceTime": "2025-09-23",
+              "value": 187000,
+              "rawValue": "187000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-24",
+              "sourceTime": "2025-09-24",
+              "value": 193000,
+              "rawValue": "193000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-25",
+              "sourceTime": "2025-09-25",
+              "value": 201000,
+              "rawValue": "201000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-26",
+              "sourceTime": "2025-09-26",
+              "value": 214000,
+              "rawValue": "214000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-27",
+              "sourceTime": "2025-09-27",
+              "value": 224000,
+              "rawValue": "224000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-28",
+              "sourceTime": "2025-09-28",
+              "value": 230000,
+              "rawValue": "230000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-29",
+              "sourceTime": "2025-09-29",
+              "value": 242000,
+              "rawValue": "242000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-09-30",
+              "sourceTime": "2025-09-30",
+              "value": 255000,
+              "rawValue": "255000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-01",
+              "sourceTime": "2025-10-01",
+              "value": 248000,
+              "rawValue": "248000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-02",
+              "sourceTime": "2025-10-02",
+              "value": 225000,
+              "rawValue": "225000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-03",
+              "sourceTime": "2025-10-03",
+              "value": 210000,
+              "rawValue": "210000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-04",
+              "sourceTime": "2025-10-04",
+              "value": 210000,
+              "rawValue": "210000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-05",
+              "sourceTime": "2025-10-05",
+              "value": 210000,
+              "rawValue": "210000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-06",
+              "sourceTime": "2025-10-06",
+              "value": 207000,
+              "rawValue": "207000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-07",
+              "sourceTime": "2025-10-07",
+              "value": 209000,
+              "rawValue": "209000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-08",
+              "sourceTime": "2025-10-08",
+              "value": 203000,
+              "rawValue": "203000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-09",
+              "sourceTime": "2025-10-09",
+              "value": 202000,
+              "rawValue": "202000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-10",
+              "sourceTime": "2025-10-10",
+              "value": 221000,
+              "rawValue": "221000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-11",
+              "sourceTime": "2025-10-11",
+              "value": 243000,
+              "rawValue": "243000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-12",
+              "sourceTime": "2025-10-12",
+              "value": 243000,
+              "rawValue": "243000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-13",
+              "sourceTime": "2025-10-13",
+              "value": 229000,
+              "rawValue": "229000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-14",
+              "sourceTime": "2025-10-14",
+              "value": 213000,
+              "rawValue": "213000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-15",
+              "sourceTime": "2025-10-15",
+              "value": 194000,
+              "rawValue": "194000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-16",
+              "sourceTime": "2025-10-16",
+              "value": 184000,
+              "rawValue": "184000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-17",
+              "sourceTime": "2025-10-17",
+              "value": 180000,
+              "rawValue": "180000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-18",
+              "sourceTime": "2025-10-18",
+              "value": 176000,
+              "rawValue": "176000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-19",
+              "sourceTime": "2025-10-19",
+              "value": 174000,
+              "rawValue": "174000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-20",
+              "sourceTime": "2025-10-20",
+              "value": 173000,
+              "rawValue": "173000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-21",
+              "sourceTime": "2025-10-21",
+              "value": 176000,
+              "rawValue": "176000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-22",
+              "sourceTime": "2025-10-22",
+              "value": 179000,
+              "rawValue": "179000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-23",
+              "sourceTime": "2025-10-23",
+              "value": 183000,
+              "rawValue": "183000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-24",
+              "sourceTime": "2025-10-24",
+              "value": 185000,
+              "rawValue": "185000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-25",
+              "sourceTime": "2025-10-25",
+              "value": 180000,
+              "rawValue": "180000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-26",
+              "sourceTime": "2025-10-26",
+              "value": 180000,
+              "rawValue": "180000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-27",
+              "sourceTime": "2025-10-27",
+              "value": 181000,
+              "rawValue": "181000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-28",
+              "sourceTime": "2025-10-28",
+              "value": 183000,
+              "rawValue": "183000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-29",
+              "sourceTime": "2025-10-29",
+              "value": 193000,
+              "rawValue": "193000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-30",
+              "sourceTime": "2025-10-30",
+              "value": 207000,
+              "rawValue": "207000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-10-31",
+              "sourceTime": "2025-10-31",
+              "value": 218000,
+              "rawValue": "218000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-01",
+              "sourceTime": "2025-11-01",
+              "value": 226000,
+              "rawValue": "226000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-02",
+              "sourceTime": "2025-11-02",
+              "value": 231000,
+              "rawValue": "231000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-03",
+              "sourceTime": "2025-11-03",
+              "value": 234000,
+              "rawValue": "234000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-04",
+              "sourceTime": "2025-11-04",
+              "value": 236000,
+              "rawValue": "236000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-05",
+              "sourceTime": "2025-11-05",
+              "value": 240000,
+              "rawValue": "240000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-06",
+              "sourceTime": "2025-11-06",
+              "value": 238000,
+              "rawValue": "238000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-07",
+              "sourceTime": "2025-11-07",
+              "value": 231000,
+              "rawValue": "231000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-08",
+              "sourceTime": "2025-11-08",
+              "value": 220000,
+              "rawValue": "220000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-09",
+              "sourceTime": "2025-11-09",
+              "value": 207000,
+              "rawValue": "207000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-10",
+              "sourceTime": "2025-11-10",
+              "value": 197000,
+              "rawValue": "197000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-11",
+              "sourceTime": "2025-11-11",
+              "value": 193000,
+              "rawValue": "193000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-12",
+              "sourceTime": "2025-11-12",
+              "value": 194000,
+              "rawValue": "194000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-13",
+              "sourceTime": "2025-11-13",
+              "value": 199000,
+              "rawValue": "199000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-14",
+              "sourceTime": "2025-11-14",
+              "value": 210000,
+              "rawValue": "210000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-15",
+              "sourceTime": "2025-11-15",
+              "value": 217000,
+              "rawValue": "217000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-16",
+              "sourceTime": "2025-11-16",
+              "value": 213000,
+              "rawValue": "213000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-17",
+              "sourceTime": "2025-11-17",
+              "value": 200000,
+              "rawValue": "200000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-18",
+              "sourceTime": "2025-11-18",
+              "value": 188000,
+              "rawValue": "188000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-19",
+              "sourceTime": "2025-11-19",
+              "value": 187000,
+              "rawValue": "187000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-20",
+              "sourceTime": "2025-11-20",
+              "value": 193000,
+              "rawValue": "193000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-21",
+              "sourceTime": "2025-11-21",
+              "value": 201000,
+              "rawValue": "201000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-22",
+              "sourceTime": "2025-11-22",
+              "value": 215000,
+              "rawValue": "215000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-23",
+              "sourceTime": "2025-11-23",
+              "value": 241000,
+              "rawValue": "241000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-24",
+              "sourceTime": "2025-11-24",
+              "value": 261000,
+              "rawValue": "261000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-25",
+              "sourceTime": "2025-11-25",
+              "value": 271000,
+              "rawValue": "271000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-26",
+              "sourceTime": "2025-11-26",
+              "value": 273000,
+              "rawValue": "273000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-27",
+              "sourceTime": "2025-11-27",
+              "value": 273000,
+              "rawValue": "273000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-28",
+              "sourceTime": "2025-11-28",
+              "value": 281000,
+              "rawValue": "281000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-29",
+              "sourceTime": "2025-11-29",
+              "value": 283000,
+              "rawValue": "283000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-11-30",
+              "sourceTime": "2025-11-30",
+              "value": 280000,
+              "rawValue": "280000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-01",
+              "sourceTime": "2025-12-01",
+              "value": 278000,
+              "rawValue": "278000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-02",
+              "sourceTime": "2025-12-02",
+              "value": 276000,
+              "rawValue": "276000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-03",
+              "sourceTime": "2025-12-03",
+              "value": 270000,
+              "rawValue": "270000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-04",
+              "sourceTime": "2025-12-04",
+              "value": 257000,
+              "rawValue": "257000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-05",
+              "sourceTime": "2025-12-05",
+              "value": 247000,
+              "rawValue": "247000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-06",
+              "sourceTime": "2025-12-06",
+              "value": 238000,
+              "rawValue": "238000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-07",
+              "sourceTime": "2025-12-07",
+              "value": 234000,
+              "rawValue": "234000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-08",
+              "sourceTime": "2025-12-08",
+              "value": 230000,
+              "rawValue": "230000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-09",
+              "sourceTime": "2025-12-09",
+              "value": 231000,
+              "rawValue": "231000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-10",
+              "sourceTime": "2025-12-10",
+              "value": 233000,
+              "rawValue": "233000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-11",
+              "sourceTime": "2025-12-11",
+              "value": 229000,
+              "rawValue": "229000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-12",
+              "sourceTime": "2025-12-12",
+              "value": 220000,
+              "rawValue": "220000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-13",
+              "sourceTime": "2025-12-13",
+              "value": 205000,
+              "rawValue": "205000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-14",
+              "sourceTime": "2025-12-14",
+              "value": 190000,
+              "rawValue": "190000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-15",
+              "sourceTime": "2025-12-15",
+              "value": 184000,
+              "rawValue": "184000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-16",
+              "sourceTime": "2025-12-16",
+              "value": 186000,
+              "rawValue": "186000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-17",
+              "sourceTime": "2025-12-17",
+              "value": 195000,
+              "rawValue": "195000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-18",
+              "sourceTime": "2025-12-18",
+              "value": 202000,
+              "rawValue": "202000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-19",
+              "sourceTime": "2025-12-19",
+              "value": 193000,
+              "rawValue": "193000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-20",
+              "sourceTime": "2025-12-20",
+              "value": 187000,
+              "rawValue": "187000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-21",
+              "sourceTime": "2025-12-21",
+              "value": 185000,
+              "rawValue": "185000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-22",
+              "sourceTime": "2025-12-22",
+              "value": 199000,
+              "rawValue": "199000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-23",
+              "sourceTime": "2025-12-23",
+              "value": 247000,
+              "rawValue": "247000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-24",
+              "sourceTime": "2025-12-24",
+              "value": 289000,
+              "rawValue": "289000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-25",
+              "sourceTime": "2025-12-25",
+              "value": 306000,
+              "rawValue": "306000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-26",
+              "sourceTime": "2025-12-26",
+              "value": 304000,
+              "rawValue": "304000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-27",
+              "sourceTime": "2025-12-27",
+              "value": 295000,
+              "rawValue": "295000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-28",
+              "sourceTime": "2025-12-28",
+              "value": 281000,
+              "rawValue": "281000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-29",
+              "sourceTime": "2025-12-29",
+              "value": 262000,
+              "rawValue": "262000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-30",
+              "sourceTime": "2025-12-30",
+              "value": 243000,
+              "rawValue": "243000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            },
+            {
+              "date": "2025-12-31",
+              "sourceTime": "2025-12-31",
+              "value": 236000,
+              "rawValue": "236000",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "69ecf6c7e24f4431bf8af22d3732f44b"
+            }
+          ],
+          "evidence": "ground-observation",
+          "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/daily/items?f=json&monitoring_location_id=USGS-07032000&parameter_code=00060&statistic_id=00003&datetime=2025-01-01%2F2025-12-31&limit=400&sortby=time",
+          "retrievedAt": "2026-11-15T07:34:36.143Z",
+          "sha256": "d859c30f8230d970f0cd5bd843c3ac4133aabf53fb80e434a922c12c1e10ca72",
+          "complete": true,
+          "note": "Discharge measured at this source station; no downstream/campus connection or facility effect has been established."
+        }
+      ],
+      "distanceKm": 10.027877560695993
+    },
+    {
+      "id": "USGS-07032280",
+      "name": "MISSISSIPPI RIVER NEAR MEMPHIS, TN",
+      "siteType": "Stream",
+      "lat": 35.056759539899,
+      "lon": -90.1803720977573,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032280/",
+      "coverage": {
+        "status": "source-metadata",
+        "parameters": [],
+        "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/time-series-metadata/items?f=json&monitoring_location_id=USGS-07032280&limit=500",
+        "retrievedAt": "2026-11-15T07:34:34.773Z",
+        "sha256": "4f85c82f47bec2d1f16efd8694eee5f7bf738ecc40c587e65c8981fe426961fa",
+        "note": "Earliest/latest timestamps are not continuous coverage; source gaps may exist. Metadata does not prove observations in a selected period."
+      },
+      "series": [],
+      "distanceKm": 2.2133447321489426
+    },
+    {
+      "id": "USGS-07032270",
+      "name": "CYPRESS CREEK AT WEAVER RD AT MEMPHIS, TN",
+      "siteType": "Stream",
+      "lat": 35.0619444444444,
+      "lon": -90.0925,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032270/",
+      "coverage": {
+        "status": "source-metadata",
+        "parameters": [],
+        "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/time-series-metadata/items?f=json&monitoring_location_id=USGS-07032270&limit=500",
+        "retrievedAt": "2026-11-15T07:34:35.326Z",
+        "sha256": "a1bcd31b15520d55bab544b64255080f0fd2f5d8d5907407b1e916e8dd7ddd33",
+        "note": "Earliest/latest timestamps are not continuous coverage; source gaps may exist. Metadata does not prove observations in a selected period."
+      },
+      "series": [],
+      "distanceKm": 5.819645864435882
+    },
+    {
+      "id": "USGS-07032010",
+      "name": "MISSISSIPPI RIVER AT WEST MEMPHIS, ARK.",
+      "siteType": "Stream",
+      "lat": 35.1250911328961,
+      "lon": -90.1592604815737,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032010/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 7.231378953933861
+    },
+    {
+      "id": "USGS-07032252",
+      "name": "NONCONNAH CREEK AT RIVERPORT RD AT MEMPHIS, TN",
+      "siteType": "Stream",
+      "lat": 35.0802777777778,
+      "lon": -90.0791666666667,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032252/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 7.378226899422579
+    },
+    {
+      "id": "USGS-07032265",
+      "name": "CYPRESS CREEK AT HORN LAKE ROAD AT MEMPHIS, TN",
+      "siteType": "Stream",
+      "lat": 35.0337035171604,
+      "lon": -90.0700921885833,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032265/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 8.387250998055976
+    },
+    {
+      "id": "USGS-07032251",
+      "name": "NONCONNAH CREEK AT RIVERGATE STREET",
+      "siteType": "Stream",
+      "lat": 35.0756470562176,
+      "lon": -90.065369675316,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032251/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 8.463122171982597
+    },
+    {
+      "id": "USGS-07032305",
+      "name": "HORN LAKE CREEK NEAR BARNESVILLE, MS",
+      "siteType": "Stream",
+      "lat": 34.9975934336684,
+      "lon": -90.0964817081465,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032305/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 8.835939747191835
+    },
+    {
+      "id": "USGS-07032008",
+      "name": "Mississippi River nr. West Memphis, AR",
+      "siteType": "Stream",
+      "lat": 35.120466666666665,
+      "lon": -90.09056666666666,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032008/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 8.996423382309029
+    },
+    {
+      "id": "USGS-07032260",
+      "name": "CYPRESS CREEK AT NEELY RD, AT MEMPHIS TN",
+      "siteType": "Stream",
+      "lat": 35.026811868266,
+      "lon": -90.0566558520155,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032260/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 9.805877250567143
+    },
+    {
+      "id": "USGS-07032307",
+      "name": "HORN LAKE CREEK AT ST LINE RD AT BARNESVILLE, MS",
+      "siteType": "Stream",
+      "lat": 34.9917601089977,
+      "lon": -90.0800925201631,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032307/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 10.296833287002398
+    },
+    {
+      "id": "USGS-07032249",
+      "name": "LATHAM BRANCH AT VALLEY BOULEVARD AT MEMPHIS, TN",
+      "siteType": "Stream",
+      "lat": 35.098979759037,
+      "lon": -90.0453691260243,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-07032249/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 10.989572938749943
+    }
+  ],
+  "gaps": [
+    {
+      "id": "facility-identity",
+      "status": "needs-verification",
+      "label": "Exact campus → regulatory identity",
+      "detail": "Nearby inventory records remain candidates until documentary review links both identities. Operator affiliation alone is not campus identity."
+    },
+    {
+      "id": "inventory-time",
+      "status": "predates-study-start",
+      "label": "Emissions inventory timing",
+      "detail": "Cached reporting years: 2008, 2011, 2014, 2017, 2020, 2023. Study comparison starts 2024-06. Missing or pre-opening reports do not mean zero emissions."
+    },
+    {
+      "id": "water-observations",
+      "status": "dated-station-observations",
+      "label": "Water station observations",
+      "detail": "Station metadata, sampled parameters and actual downloaded dates are separate. Measurements at a nearby station do not establish downstream connection."
+    },
+    {
+      "id": "water-balance",
+      "status": "missing-inputs-and-model",
+      "label": "Facility withdrawals and receiving-water effects",
+      "detail": "Complete sourced withdrawal/consumption/return/discharge records and watershed/aquifer connectivity remain necessary for a facility-impact model."
+    }
+  ],
+  "sources": [
+    {
+      "title": "USGS Water Data OGC API documentation",
+      "url": "https://api.waterdata.usgs.gov/docs/ogcapi/",
+      "publisher": "USGS",
+      "evidence": "primary-documentation"
+    },
+    {
+      "title": "EPA National Emissions Inventory point source identity guidance",
+      "url": "https://www.epa.gov/system/files/documents/2024-04/point-source-best-practices-training_508-.pdf",
+      "publisher": "EPA",
+      "evidence": "primary-documentation"
+    }
+  ],
+  "note": "No automatic facility attribution. Inventory emissions, ambient concentrations, water use, river flow and regional climate remain distinct quantities."
+}
