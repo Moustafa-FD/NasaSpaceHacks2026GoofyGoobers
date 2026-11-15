@@ -1,0 +1,41 @@
+{
+ "schemaVersion": "trend-map-index/1.0",
+ "sites": {
+  "colossus1": [
+   "NDVI",
+   "LST_Day",
+   "LST_Night",
+   "AOD",
+   "NO2_OMI"
+  ],
+  "colossus2": [
+   "NDVI",
+   "LST_Day",
+   "LST_Night",
+   "AOD",
+   "NO2_OMI"
+  ],
+  "ashburn": [
+   "NDVI",
+   "LST_Day",
+   "LST_Night",
+   "AOD",
+   "NO2_OMI"
+  ],
+  "abilene": [
+   "NDVI",
+   "LST_Day",
+   "LST_Night",
+   "AOD",
+   "NO2_OMI"
+  ],
+  "thedalles": [
+   "NDVI",
+   "LST_Day",
+   "LST_Night",
+   "AOD",
+   "NO2_OMI"
+  ]
+ },
+ "projectionThrough": 2035
+}

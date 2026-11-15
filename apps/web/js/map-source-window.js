@@ -20,5 +20,5 @@ export function seasonalFallbackDate(dates, desired, maxDays = 24) {
 }
 
 export function mapRequestKey({ kind, center, a, b, baseline, change, compare }) {
-  return JSON.stringify([kind, center.id || '', center.lat, center.lon, a?.layer, a?.date, b?.date, baseline?.date, !!change, !!compare]);
+  return JSON.stringify([kind, center.id || '', center.lat, center.lon, a?.layer, a?.date, a?.projectYear ?? null, b?.date, baseline?.date, !!change, !!compare]);
 }
