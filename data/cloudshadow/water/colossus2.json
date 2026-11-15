@@ -1,0 +1,637 @@
+{
+ "schemaVersion": "water-evidence/1.0",
+ "site": "colossus2",
+ "evidence": "satellite-and-land-model",
+ "evidenceNote": "Regional NASA water context around the site (area average of a \u00b10.25\u00b0 box). It describes the water setting, not the facility's own water use, and a trend here does not identify its cause.",
+ "method": "Annual values from deseasonalized monthly means (\u226510 months). Trend: Sen's slope, Mann-Kendall with Hamed-Rao correction and an autocorrelation-adjusted t-test (services/models/trends).",
+ "source": "NASA Giovanni via Harmony (area average)",
+ "generated": "2026-11-15T09:35Z",
+ "variables": {
+  "groundwater": {
+   "label": "Groundwater storage",
+   "unit": "mm",
+   "available": true,
+   "giovanniId": "GRACEDADM_CLSM0125US_7D_4_0_gws_inst",
+   "meaning": "NASA GRACE satellite gravity assimilated into a land model (0.125\u00b0, but effective GRACE detail is ~300 km). Storage in mm of water, not a well level.",
+   "bbox": [
+    -90.2849,
+    34.748,
+    -89.7849,
+    35.248
+   ],
+   "retrieved": "2026-11-14T20:10:26Z",
+   "monthsUsed": 275,
+   "period": {
+    "start": "2003",
+    "end": "2025"
+   },
+   "annual": [
+    {
+     "year": 2003,
+     "value": 98.3556,
+     "months": 11
+    },
+    {
+     "year": 2004,
+     "value": 90.4446,
+     "months": 12
+    },
+    {
+     "year": 2005,
+     "value": 81.0551,
+     "months": 12
+    },
+    {
+     "year": 2006,
+     "value": 34.8023,
+     "months": 12
+    },
+    {
+     "year": 2007,
+     "value": 26.1788,
+     "months": 12
+    },
+    {
+     "year": 2008,
+     "value": 41.4374,
+     "months": 12
+    },
+    {
+     "year": 2009,
+     "value": 55.8335,
+     "months": 12
+    },
+    {
+     "year": 2010,
+     "value": 54.4946,
+     "months": 12
+    },
+    {
+     "year": 2011,
+     "value": 35.3133,
+     "months": 12
+    },
+    {
+     "year": 2012,
+     "value": 29.9317,
+     "months": 12
+    },
+    {
+     "year": 2013,
+     "value": 41.9164,
+     "months": 12
+    },
+    {
+     "year": 2014,
+     "value": 36.7496,
+     "months": 12
+    },
+    {
+     "year": 2015,
+     "value": 31.0236,
+     "months": 12
+    },
+    {
+     "year": 2016,
+     "value": 51.0342,
+     "months": 12
+    },
+    {
+     "year": 2017,
+     "value": 40.1699,
+     "months": 12
+    },
+    {
+     "year": 2018,
+     "value": 66.5691,
+     "months": 12
+    },
+    {
+     "year": 2019,
+     "value": 93.156,
+     "months": 12
+    },
+    {
+     "year": 2020,
+     "value": 96.6923,
+     "months": 12
+    },
+    {
+     "year": 2021,
+     "value": 90.5583,
+     "months": 12
+    },
+    {
+     "year": 2022,
+     "value": 74.1073,
+     "months": 12
+    },
+    {
+     "year": 2023,
+     "value": 63.2326,
+     "months": 12
+    },
+    {
+     "year": 2024,
+     "value": 43.26,
+     "months": 12
+    },
+    {
+     "year": 2025,
+     "value": 68.9787,
+     "months": 12
+    }
+   ],
+   "trend": {
+    "status": "ok",
+    "direction": "no significant trend",
+    "slopePerDecade": 6.056,
+    "ci": [
+     -12.7623,
+     24.0467
+    ],
+    "pMannKendall": 0.548709,
+    "pTTest": 0.850957,
+    "verdict": "not significant",
+    "note": "Both tests agree."
+   }
+  },
+  "soilMoisture": {
+   "label": "Topsoil moisture (0\u201310 cm)",
+   "unit": "mm",
+   "available": true,
+   "giovanniId": "GLDAS_NOAH025_M_2_1_SoilMoi0_10cm_inst",
+   "meaning": "NASA GLDAS land model, 0.25\u00b0. kg/m\u00b2 of water in the top 10 cm equals mm of water. Model estimate, not a probe measurement.",
+   "bbox": [
+    -90.2849,
+    34.748,
+    -89.7849,
+    35.248
+   ],
+   "retrieved": "2026-11-14T20:09:52Z",
+   "monthsUsed": 300,
+   "period": {
+    "start": "2001",
+    "end": "2025"
+   },
+   "annual": [
+    {
+     "year": 2001,
+     "value": 33.2497,
+     "months": 12
+    },
+    {
+     "year": 2002,
+     "value": 34.3911,
+     "months": 12
+    },
+    {
+     "year": 2003,
+     "value": 33.9571,
+     "months": 12
+    },
+    {
+     "year": 2004,
+     "value": 34.0365,
+     "months": 12
+    },
+    {
+     "year": 2005,
+     "value": 31.7031,
+     "months": 12
+    },
+    {
+     "year": 2006,
+     "value": 31.5202,
+     "months": 12
+    },
+    {
+     "year": 2007,
+     "value": 30.5561,
+     "months": 12
+    },
+    {
+     "year": 2008,
+     "value": 31.9649,
+     "months": 12
+    },
+    {
+     "year": 2009,
+     "value": 34.1807,
+     "months": 12
+    },
+    {
+     "year": 2010,
+     "value": 30.0526,
+     "months": 12
+    },
+    {
+     "year": 2011,
+     "value": 31.4766,
+     "months": 12
+    },
+    {
+     "year": 2012,
+     "value": 30.6814,
+     "months": 12
+    },
+    {
+     "year": 2013,
+     "value": 32.5906,
+     "months": 12
+    },
+    {
+     "year": 2014,
+     "value": 33.0935,
+     "months": 12
+    },
+    {
+     "year": 2015,
+     "value": 31.5939,
+     "months": 12
+    },
+    {
+     "year": 2016,
+     "value": 31.3719,
+     "months": 12
+    },
+    {
+     "year": 2017,
+     "value": 32.2641,
+     "months": 12
+    },
+    {
+     "year": 2018,
+     "value": 32.2288,
+     "months": 12
+    },
+    {
+     "year": 2019,
+     "value": 33.3573,
+     "months": 12
+    },
+    {
+     "year": 2020,
+     "value": 33.3086,
+     "months": 12
+    },
+    {
+     "year": 2021,
+     "value": 32.2509,
+     "months": 12
+    },
+    {
+     "year": 2022,
+     "value": 30.47,
+     "months": 12
+    },
+    {
+     "year": 2023,
+     "value": 30.8337,
+     "months": 12
+    },
+    {
+     "year": 2024,
+     "value": 30.1213,
+     "months": 12
+    },
+    {
+     "year": 2025,
+     "value": 31.084,
+     "months": 12
+    }
+   ],
+   "trend": {
+    "status": "ok",
+    "direction": "no significant trend",
+    "slopePerDecade": -0.7615,
+    "ci": [
+     -1.6065,
+     0.0491
+    ],
+    "pMannKendall": 0.058524,
+    "pTTest": 0.117925,
+    "verdict": "not significant",
+    "note": "Both tests agree."
+   }
+  },
+  "rainfall": {
+   "label": "Rainfall",
+   "unit": "mm/day",
+   "available": true,
+   "giovanniId": "GPM_3IMERGM_07_precipitation",
+   "meaning": "NASA GPM IMERG satellite precipitation, 0.1\u00b0, converted from mm/hour to mm/day.",
+   "bbox": [
+    -90.2849,
+    34.748,
+    -89.7849,
+    35.248
+   ],
+   "retrieved": "2026-11-14T20:09:35Z",
+   "monthsUsed": 297,
+   "period": {
+    "start": "2001",
+    "end": "2024"
+   },
+   "annual": [
+    {
+     "year": 2001,
+     "value": 4.7039,
+     "months": 12
+    },
+    {
+     "year": 2002,
+     "value": 4.8818,
+     "months": 12
+    },
+    {
+     "year": 2003,
+     "value": 4.0824,
+     "months": 12
+    },
+    {
+     "year": 2004,
+     "value": 4.4476,
+     "months": 12
+    },
+    {
+     "year": 2005,
+     "value": 3.0578,
+     "months": 12
+    },
+    {
+     "year": 2006,
+     "value": 3.8345,
+     "months": 12
+    },
+    {
+     "year": 2007,
+     "value": 3.1,
+     "months": 12
+    },
+    {
+     "year": 2008,
+     "value": 4.1551,
+     "months": 12
+    },
+    {
+     "year": 2009,
+     "value": 4.9747,
+     "months": 12
+    },
+    {
+     "year": 2010,
+     "value": 3.2256,
+     "months": 12
+    },
+    {
+     "year": 2011,
+     "value": 4.234,
+     "months": 12
+    },
+    {
+     "year": 2012,
+     "value": 2.8405,
+     "months": 12
+    },
+    {
+     "year": 2013,
+     "value": 4.1702,
+     "months": 12
+    },
+    {
+     "year": 2014,
+     "value": 3.9889,
+     "months": 12
+    },
+    {
+     "year": 2015,
+     "value": 4.0621,
+     "months": 12
+    },
+    {
+     "year": 2016,
+     "value": 3.9452,
+     "months": 12
+    },
+    {
+     "year": 2017,
+     "value": 3.4639,
+     "months": 12
+    },
+    {
+     "year": 2018,
+     "value": 5.0027,
+     "months": 12
+    },
+    {
+     "year": 2019,
+     "value": 5.1938,
+     "months": 12
+    },
+    {
+     "year": 2020,
+     "value": 4.6047,
+     "months": 12
+    },
+    {
+     "year": 2021,
+     "value": 4.2199,
+     "months": 12
+    },
+    {
+     "year": 2022,
+     "value": 3.9027,
+     "months": 12
+    },
+    {
+     "year": 2023,
+     "value": 3.7565,
+     "months": 12
+    },
+    {
+     "year": 2024,
+     "value": 4.4224,
+     "months": 12
+    },
+    {
+     "year": 2025,
+     "value": null,
+     "months": 9
+    }
+   ],
+   "trend": {
+    "status": "ok",
+    "direction": "no significant trend",
+    "slopePerDecade": 0.0307,
+    "ci": [
+     -0.3821,
+     0.4119
+    ],
+    "pMannKendall": 0.980211,
+    "pTTest": 0.738633,
+    "verdict": "not significant",
+    "note": "Both tests agree."
+   }
+  },
+  "evapotranspiration": {
+   "label": "Evapotranspiration",
+   "unit": "mm/day",
+   "available": true,
+   "giovanniId": "GLDAS_NOAH025_M_2_1_Evap_tavg",
+   "meaning": "NASA GLDAS land model, 0.25\u00b0: water returning to the air from soil and plants (kg/m\u00b2/s \u00d7 86,400 = mm/day). Does not isolate cooling-tower evaporation.",
+   "bbox": [
+    -90.2849,
+    34.748,
+    -89.7849,
+    35.248
+   ],
+   "retrieved": "2026-11-14T20:10:09Z",
+   "monthsUsed": 300,
+   "period": {
+    "start": "2001",
+    "end": "2025"
+   },
+   "annual": [
+    {
+     "year": 2001,
+     "value": 1.6492,
+     "months": 12
+    },
+    {
+     "year": 2002,
+     "value": 1.6095,
+     "months": 12
+    },
+    {
+     "year": 2003,
+     "value": 1.6506,
+     "months": 12
+    },
+    {
+     "year": 2004,
+     "value": 1.6905,
+     "months": 12
+    },
+    {
+     "year": 2005,
+     "value": 1.7687,
+     "months": 12
+    },
+    {
+     "year": 2006,
+     "value": 1.7745,
+     "months": 12
+    },
+    {
+     "year": 2007,
+     "value": 1.7618,
+     "months": 12
+    },
+    {
+     "year": 2008,
+     "value": 1.8681,
+     "months": 12
+    },
+    {
+     "year": 2009,
+     "value": 1.8571,
+     "months": 12
+    },
+    {
+     "year": 2010,
+     "value": 1.7039,
+     "months": 12
+    },
+    {
+     "year": 2011,
+     "value": 1.7829,
+     "months": 12
+    },
+    {
+     "year": 2012,
+     "value": 1.7937,
+     "months": 12
+    },
+    {
+     "year": 2013,
+     "value": 1.7673,
+     "months": 12
+    },
+    {
+     "year": 2014,
+     "value": 1.8496,
+     "months": 12
+    },
+    {
+     "year": 2015,
+     "value": 1.8076,
+     "months": 12
+    },
+    {
+     "year": 2016,
+     "value": 1.7909,
+     "months": 12
+    },
+    {
+     "year": 2017,
+     "value": 1.8099,
+     "months": 12
+    },
+    {
+     "year": 2018,
+     "value": 1.8763,
+     "months": 12
+    },
+    {
+     "year": 2019,
+     "value": 1.8931,
+     "months": 12
+    },
+    {
+     "year": 2020,
+     "value": 1.8505,
+     "months": 12
+    },
+    {
+     "year": 2021,
+     "value": 1.9056,
+     "months": 12
+    },
+    {
+     "year": 2022,
+     "value": 1.8022,
+     "months": 12
+    },
+    {
+     "year": 2023,
+     "value": 1.8919,
+     "months": 12
+    },
+    {
+     "year": 2024,
+     "value": 1.7886,
+     "months": 12
+    },
+    {
+     "year": 2025,
+     "value": 1.9943,
+     "months": 12
+    }
+   ],
+   "trend": {
+    "status": "ok",
+    "direction": "increasing",
+    "slopePerDecade": 0.097,
+    "ci": [
+     0.0572,
+     0.1339
+    ],
+    "pMannKendall": 2.9e-05,
+    "pTTest": 2.4e-05,
+    "verdict": "significant",
+    "note": "Both tests agree."
+   }
+  }
+ }
+}

@@ -117,7 +117,8 @@
 
   // ------------------------------------------------------------ map overlay + compare
   let overlayA = null, overlayB = null;
-  const state = { site: SITES[0], live: null, varId: "NO2", mapLayer: "none" };
+  // Default Air view = the 20-year OMI record, the same dataset as the top "Air pollution" button.
+  const state = { site: SITES[0], live: null, varId: "NO2_OMI", mapLayer: "none" };
   let environmentPanel=null, environmentStory=null;
   const today = new Date().toISOString().slice(0, 10);
 
@@ -288,7 +289,7 @@
     const kind=state.mapLayer,change=$('#mapChange').checked&&!!VARS[kind],compare=$('#cmpToggle').checked&&!change;
     const desired=$('#dateA').value||today;
     let a=overlaySpec(kind,desired);
-    window.dispatchEvent(new CustomEvent('cs:map-layer',{detail:{kind,change}}));
+    window.dispatchEvent(new CustomEvent('cs:map-layer',{detail:{kind,change,date:a?.date??null}}));
     if(!a){clearScientificMap();syncLayerControls(null);return;}
     if(VARS[kind]){
       const date=sourceDateForYear(expandIntervals(a.layer),+desired.slice(0,4),desired);

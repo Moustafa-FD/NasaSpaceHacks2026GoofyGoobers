@@ -29,6 +29,10 @@ def run(request: dict) -> dict:
         if prepared:
             frames = plume.load_site_frames(site["id"])
             source = "prepared GEOS-FP site fields"
+        elif (boxed := plume.prepared_box_frames(site["lat"], site["lon"])) is not None:
+            # Inside a prepared site box: read stored GEOS-FP winds instead of re-downloading (~50 s -> <1 s).
+            frames, box = boxed
+            source = f"prepared GEOS-FP wind box around {box} (8-bit atlas, 0.31 m/s steps)"
         else:
             frames = plume.point_frames(site["lat"], site["lon"], progress=lambda d, n: emit(
                 {"type": "progress", "progress": 0.8 * d / n, "stage": "plume:reading-geos-fp-wind"}))
