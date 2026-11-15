@@ -70,6 +70,10 @@ Why the trend extension stops at 2035: a straight line from ~23 years of data is
 
 ## 4. System architecture
 
+![Footprint Atlas system architecture](presentation/architecture.png)
+
+Slide version above; the diagram below shows the same flow as text.
+
 ```mermaid
 flowchart LR
   subgraph NASA["NASA services"]

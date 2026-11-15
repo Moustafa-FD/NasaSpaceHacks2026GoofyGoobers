@@ -1,0 +1,195 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>Footprint Atlas system architecture</title>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#80d9c0"/></marker>
+    <marker id="arv" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c9a7ff"/></marker>
+
+    <!-- original icons (24x24 grid, drawn with currentColor-like fills) -->
+    <symbol id="i-sat" viewBox="0 0 48 48"><rect x="18" y="18" width="12" height="12" rx="2" fill="#edf5f5"/><rect x="2" y="20" width="13" height="8" fill="#3490be" stroke="#9fd3ef"/><rect x="33" y="20" width="13" height="8" fill="#3490be" stroke="#9fd3ef"/><line x1="15" y1="24" x2="18" y2="24" stroke="#edf5f5" stroke-width="2"/><line x1="30" y1="24" x2="33" y2="24" stroke="#edf5f5" stroke-width="2"/><path d="M24 30 v6 M19 40 q5 -6 10 0" stroke="#80d9c0" stroke-width="2.5" fill="none"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 48 48"><circle cx="20" cy="20" r="8" fill="#f3b47c"/><g stroke="#f3b47c" stroke-width="3" stroke-linecap="round"><line x1="20" y1="4" x2="20" y2="8"/><line x1="20" y1="32" x2="20" y2="36"/><line x1="4" y1="20" x2="8" y2="20"/><line x1="32" y1="20" x2="36" y2="20"/><line x1="9" y1="9" x2="12" y2="12"/><line x1="28" y1="28" x2="31" y2="31"/></g><path d="M22 38 h18 a6 6 0 0 0 -2 -11.5 a8 8 0 0 0 -15 2.5 a5 5 0 0 0 -1 9z" fill="#d8e6e8"/></symbol>
+    <symbol id="i-wind" viewBox="0 0 48 48"><g stroke="#80d9c0" stroke-width="3.5" fill="none" stroke-linecap="round"><path d="M4 16 h26 a6 6 0 1 0 -6 -6"/><path d="M4 26 h34 a6 6 0 1 1 -6 6"/><path d="M4 36 h18"/></g></symbol>
+    <symbol id="i-drop" viewBox="0 0 48 48"><path d="M24 4 C24 4 9 22 9 31 a15 15 0 0 0 30 0 C39 22 24 4 24 4z" fill="#70bedb"/><path d="M17 31 a7 7 0 0 0 7 7" stroke="#edf5f5" stroke-width="3" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="i-climate" viewBox="0 0 48 48"><rect x="3" y="5" width="42" height="38" rx="4" fill="none" stroke="#9fb8bd" stroke-width="2.5"/><polyline points="8,36 17,30 25,32 33,20 41,12" fill="none" stroke="#cc202e" stroke-width="3.5" stroke-linejoin="round"/><polyline points="8,36 17,32 25,33 33,27 41,24" fill="none" stroke="#f3b47c" stroke-width="3" stroke-linejoin="round"/></symbol>
+    <symbol id="i-map" viewBox="0 0 48 48"><path d="M4 10 l13 -5 l14 5 l13 -5 v33 l-13 5 l-14 -5 l-13 5z" fill="#1d3a4c" stroke="#9fd3ef" stroke-width="2"/><path d="M17 5 v33 M31 10 v33" stroke="#9fd3ef" stroke-width="2"/><circle cx="24" cy="22" r="4" fill="#cc202e"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 48 48"><g fill="#80d9c0"><circle cx="24" cy="24" r="12"/><g><rect x="21" y="3" width="6" height="9" rx="1"/><rect x="21" y="36" width="6" height="9" rx="1"/><rect x="3" y="21" width="9" height="6" rx="1"/><rect x="36" y="21" width="9" height="6" rx="1"/></g><g transform="rotate(45 24 24)"><rect x="21" y="3" width="6" height="9" rx="1"/><rect x="21" y="36" width="6" height="9" rx="1"/><rect x="3" y="21" width="9" height="6" rx="1"/><rect x="36" y="21" width="9" height="6" rx="1"/></g></g><circle cx="24" cy="24" r="5" fill="#12263a"/></symbol>
+    <symbol id="i-stats" viewBox="0 0 48 48"><g fill="#3490be"><rect x="6" y="28" width="7" height="14"/><rect x="17" y="20" width="7" height="22"/><rect x="28" y="24" width="7" height="18"/><rect x="39" y="12" width="5" height="30"/></g><line x1="4" y1="34" x2="46" y2="10" stroke="#cc202e" stroke-width="3" stroke-dasharray="5 3"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 48 48"><g stroke="#0b1620" stroke-width="2"><rect x="4" y="4" width="13" height="13" fill="#e5e5d9"/><rect x="17" y="4" width="13" height="13" fill="#e08a8f"/><rect x="30" y="4" width="13" height="13" fill="#e5e5d9"/><rect x="4" y="17" width="13" height="13" fill="#cc202e"/><rect x="17" y="17" width="13" height="13" fill="#cc202e"/><rect x="30" y="17" width="13" height="13" fill="#7fb6d6"/><rect x="4" y="30" width="13" height="13" fill="#e5e5d9"/><rect x="17" y="30" width="13" height="13" fill="#e08a8f"/><rect x="30" y="30" width="13" height="13" fill="#3490be"/></g></symbol>
+    <symbol id="i-plume" viewBox="0 0 48 48"><rect x="6" y="30" width="8" height="14" fill="#9fb8bd"/><circle cx="16" cy="24" r="6" fill="#a678e6" opacity=".8"/><circle cx="25" cy="18" r="7.5" fill="#a678e6" opacity=".65"/><circle cx="36" cy="13" r="9" fill="#a678e6" opacity=".45"/></symbol>
+    <symbol id="i-db" viewBox="0 0 48 48"><ellipse cx="24" cy="9" rx="17" ry="6" fill="#80d9c0"/><path d="M7 9 v28 a17 6 0 0 0 34 0 v-28" fill="#2f6f62"/><ellipse cx="24" cy="9" rx="17" ry="6" fill="#80d9c0"/><path d="M7 19 a17 6 0 0 0 34 0 M7 28 a17 6 0 0 0 34 0" stroke="#80d9c0" stroke-width="2" fill="none"/></symbol>
+    <symbol id="i-server" viewBox="0 0 48 48"><g fill="#1d3a4c" stroke="#9fd3ef" stroke-width="2"><rect x="5" y="5" width="38" height="11" rx="2"/><rect x="5" y="19" width="38" height="11" rx="2"/><rect x="5" y="33" width="38" height="11" rx="2"/></g><g fill="#80d9c0"><circle cx="12" cy="10.5" r="2"/><circle cx="12" cy="24.5" r="2"/><circle cx="12" cy="38.5" r="2"/></g><g stroke="#9fd3ef" stroke-width="2"><line x1="20" y1="10.5" x2="36" y2="10.5"/><line x1="20" y1="24.5" x2="36" y2="24.5"/><line x1="20" y1="38.5" x2="36" y2="38.5"/></g></symbol>
+    <symbol id="i-jobs" viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="32" rx="4" fill="#1d3a4c" stroke="#9fd3ef" stroke-width="2"/><path d="M11 18 l6 6 l-6 6" stroke="#80d9c0" stroke-width="3" fill="none"/><line x1="21" y1="30" x2="34" y2="30" stroke="#80d9c0" stroke-width="3"/></symbol>
+    <symbol id="i-web" viewBox="0 0 48 48"><rect x="3" y="6" width="42" height="36" rx="4" fill="#1d3a4c" stroke="#9fd3ef" stroke-width="2"/><line x1="3" y1="14" x2="45" y2="14" stroke="#9fd3ef" stroke-width="2"/><g fill="#9fd3ef"><circle cx="8" cy="10" r="1.6"/><circle cx="13" cy="10" r="1.6"/><circle cx="18" cy="10" r="1.6"/></g><circle cx="24" cy="28" r="10" fill="#3490be"/><path d="M14 28 h20 M24 18 q-7 10 0 20 q7 -10 0 -20" stroke="#d8e6e8" stroke-width="1.6" fill="none"/></symbol>
+    <symbol id="i-film" viewBox="0 0 48 48"><rect x="4" y="16" width="40" height="26" rx="3" fill="#1d3a4c" stroke="#9fd3ef" stroke-width="2"/><path d="M4 16 l38 -9 l2 7" fill="#edf5f5"/><path d="M12 14 l5 -6 M22 12 l5 -6 M32 10 l5 -6" stroke="#0b1620" stroke-width="3"/><polygon points="20,23 31,29 20,35" fill="#80d9c0"/></symbol>
+    <symbol id="i-people" viewBox="0 0 48 48"><g fill="#d8e6e8"><circle cx="16" cy="15" r="7"/><path d="M3 41 a13 12 0 0 1 26 0z"/><circle cx="33" cy="17" r="6" opacity=".7"/><path d="M24 41 a11 11 0 0 1 22 0z" opacity=".7"/></g></symbol>
+    <symbol id="i-ctx" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="none" stroke="#9fb8bd" stroke-width="2.5"/><path d="M6 24 h36 M24 6 q-10 18 0 36 q10 -18 0 -36" stroke="#9fb8bd" stroke-width="2" fill="none"/></symbol>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#0b1620"/>
+  <text x="60" y="78" font-size="48" font-weight="700" fill="#edf5f5">Footprint Atlas · system architecture</text>
+  <text x="60" y="118" font-size="23" fill="#9fb8bd">From NASA data services to a 3D globe · example site: xAI Colossus 1, Memphis</text>
+
+  <!-- column headers -->
+  <g font-size="21" font-weight="700" letter-spacing="1.5" fill="#80d9c0">
+    <text x="60" y="172">1 · NASA DATA</text>
+    <text x="555" y="172">2 · INGEST + ANALYSE  (Python)</text>
+    <text x="1035" y="172">3 · PREPARED DATA</text>
+    <text x="1300" y="172">4 · SERVE  (Node.js)</text>
+    <text x="1610" y="172">5 · EXPERIENCE</text>
+  </g>
+
+  <!-- ===== column 1: NASA sources ===== -->
+  <g font-size="21" fill="#edf5f5">
+    <rect x="50" y="190" width="430" height="128" rx="16" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <use href="#i-sat" x="66" y="206" width="56" height="56"/>
+    <text x="136" y="226" font-weight="700">GIBS map tiles</text>
+    <text x="136" y="254" font-size="17" fill="#b9ccd0">MODIS heat · greenness · haze</text>
+    <text x="136" y="278" font-size="17" fill="#b9ccd0">OMI / TROPOMI NO₂ · MERRA-2 · HLS 30 m</text>
+    <text x="136" y="304" font-size="15" fill="#80d9c0">WMTS · no login</text>
+
+    <rect x="50" y="330" width="430" height="100" rx="16" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <use href="#i-sun" x="66" y="346" width="56" height="56"/>
+    <text x="136" y="366" font-weight="700">NASA POWER</text>
+    <text x="136" y="392" font-size="17" fill="#b9ccd0">site weather: wind, temperature, rain</text>
+    <text x="136" y="416" font-size="15" fill="#80d9c0">REST / JSON API</text>
+
+    <rect x="50" y="442" width="430" height="100" rx="16" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <use href="#i-wind" x="66" y="458" width="56" height="56"/>
+    <text x="136" y="478" font-weight="700">GEOS-FP (NASA GMAO)</text>
+    <text x="136" y="504" font-size="17" fill="#b9ccd0">real 3-hourly winds, temperature, pressure</text>
+    <text x="136" y="528" font-size="15" fill="#80d9c0">OPeNDAP</text>
+
+    <rect x="50" y="554" width="430" height="100" rx="16" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <use href="#i-drop" x="66" y="570" width="56" height="56"/>
+    <text x="136" y="590" font-weight="700">Giovanni</text>
+    <text x="136" y="616" font-size="17" fill="#b9ccd0">groundwater, soil moisture, rainfall</text>
+    <text x="136" y="640" font-size="15" fill="#80d9c0">Harmony API · Earthdata token</text>
+
+    <rect x="50" y="666" width="430" height="100" rx="16" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <use href="#i-climate" x="66" y="682" width="56" height="56"/>
+    <text x="136" y="702" font-weight="700">NEX-GDDP-CMIP6</text>
+    <text x="136" y="728" font-size="17" fill="#b9ccd0">5 climate models · 2 pathways · to 2100</text>
+    <text x="136" y="752" font-size="15" fill="#80d9c0">THREDDS subset service</text>
+
+    <rect x="50" y="778" width="430" height="74" rx="16" fill="#0f1c26" stroke="#2f4552" stroke-width="2" stroke-dasharray="6 5"/>
+    <use href="#i-ctx" x="66" y="790" width="48" height="48"/>
+    <text x="130" y="808" font-size="17" fill="#b9ccd0">Context (not NASA): Esri imagery ·</text>
+    <text x="130" y="832" font-size="17" fill="#b9ccd0">OpenStreetMap · USGS gauges · EPA</text>
+  </g>
+
+  <!-- ===== column 2: Python processing ===== -->
+  <rect x="535" y="190" width="440" height="662" rx="20" fill="#0f1f2c" stroke="#2f5b78" stroke-width="2"/>
+  <g font-size="20" fill="#edf5f5">
+    <use href="#i-gear" x="555" y="208" width="50" height="50"/>
+    <text x="620" y="230" font-weight="700">Decode map colours → values</text>
+    <text x="620" y="254" font-size="16" fill="#b9ccd0">site vs. surrounding ring, monthly 2003–2026</text>
+
+    <use href="#i-stats" x="555" y="290" width="50" height="50"/>
+    <text x="620" y="312" font-weight="700">Trend engine</text>
+    <text x="620" y="336" font-size="16" fill="#b9ccd0">Mann-Kendall · Hamed-Rao · Sen · Welch t</text>
+    <text x="620" y="358" font-size="15" fill="#80d9c0">checked against SciPy</text>
+
+    <use href="#i-grid" x="555" y="390" width="50" height="50"/>
+    <text x="620" y="412" font-weight="700">Per-pixel trend maps</text>
+    <text x="620" y="436" font-size="16" fill="#b9ccd0">a trend for every map pixel, false-discovery</text>
+    <text x="620" y="458" font-size="16" fill="#b9ccd0">control → projected maps 2027–2035</text>
+
+    <use href="#i-wind" x="555" y="490" width="50" height="50"/>
+    <text x="620" y="512" font-weight="700">Wind flow fields</text>
+    <text x="620" y="536" font-size="16" fill="#b9ccd0">12 frames/year, shared by web + Unreal</text>
+
+    <use href="#i-plume" x="555" y="572" width="50" height="50"/>
+    <text x="620" y="594" font-weight="700">Plume screening</text>
+    <text x="620" y="618" font-size="16" fill="#b9ccd0">Gaussian plume on real winds (Colossus 1)</text>
+
+    <use href="#i-climate" x="555" y="654" width="50" height="50"/>
+    <text x="620" y="676" font-weight="700">Climate summaries</text>
+    <text x="620" y="700" font-size="16" fill="#b9ccd0">baseline vs. 2041–60 and 2081–2100</text>
+
+    <use href="#i-drop" x="555" y="736" width="50" height="50"/>
+    <text x="620" y="758" font-weight="700">Water evidence</text>
+    <text x="620" y="782" font-size="16" fill="#b9ccd0">annual values + trend verdicts</text>
+    <text x="555" y="834" font-size="15" fill="#80d9c0">scripts/ · services/models/  ·  npm run data:*</text>
+  </g>
+
+  <!-- ===== column 3: data store ===== -->
+  <rect x="1020" y="300" width="230" height="440" rx="20" fill="#10202b" stroke="#80d9c0" stroke-width="2"/>
+  <use href="#i-db" x="1095" y="322" width="80" height="80"/>
+  <g font-size="18" fill="#edf5f5" text-anchor="middle">
+    <text x="1135" y="436" font-weight="700">data/cloudshadow</text>
+    <text x="1135" y="462" font-size="15" fill="#9fb8bd">static JSON + PNG</text>
+    <g font-size="17" fill="#cfe9e1">
+      <text x="1135" y="506">series</text><text x="1135" y="534">timeline</text><text x="1135" y="562">trend maps</text>
+      <text x="1135" y="590">wind fields</text><text x="1135" y="618">plumes</text><text x="1135" y="646">climate</text><text x="1135" y="674">water</text>
+    </g>
+    <text x="1135" y="716" font-size="15" fill="#80d9c0">versioned in Git</text>
+  </g>
+
+  <!-- ===== column 4: Node servers ===== -->
+  <g font-size="20" fill="#edf5f5">
+    <rect x="1290" y="250" width="280" height="230" rx="18" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <use href="#i-server" x="1306" y="266" width="52" height="52"/>
+    <text x="1370" y="290" font-weight="700">Web server</text>
+    <text x="1370" y="314" font-size="16" fill="#80d9c0">server.cjs · :8765</text>
+    <g font-size="16" fill="#b9ccd0"><text x="1306" y="356">• static app + data</text><text x="1306" y="382">• /api/sites · /api/analysis</text><text x="1306" y="408">• /api/layers (for Unreal)</text><text x="1306" y="434">• /api/environment gateway</text></g>
+    <text x="1306" y="464" font-size="14" fill="#9fb8bd">or any static host (npm run web:build)</text>
+
+    <rect x="1290" y="530" width="280" height="210" rx="18" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <use href="#i-jobs" x="1306" y="546" width="52" height="52"/>
+    <text x="1370" y="570" font-weight="700">Job API</text>
+    <text x="1370" y="594" font-size="16" fill="#80d9c0">apps/api · /v1 jobs</text>
+    <g font-size="16" fill="#b9ccd0"><text x="1306" y="636">• live calculations</text><text x="1306" y="662">• validated contracts</text><text x="1306" y="688">• Python workers,</text><text x="1306" y="712">  JSON progress</text></g>
+  </g>
+
+  <!-- ===== column 5: experience ===== -->
+  <g font-size="20" fill="#edf5f5">
+    <rect x="1605" y="190" width="270" height="300" rx="18" fill="#12263a" stroke="#80d9c0" stroke-width="2.5"/>
+    <use href="#i-web" x="1621" y="206" width="56" height="56"/>
+    <text x="1690" y="230" font-weight="700">Web app</text>
+    <text x="1690" y="254" font-size="15" fill="#80d9c0">the judged product</text>
+    <g font-size="16" fill="#b9ccd0"><text x="1621" y="296">• CesiumJS 3D globe</text><text x="1621" y="322">• timeline 2003 → 2100</text><text x="1621" y="348">• NASA maps recoloured</text><text x="1621" y="370">  live in the browser</text><text x="1621" y="396">• WebGL2 fluid plume</text><text x="1621" y="422">• wind particles</text><text x="1621" y="448">• p-value on every number</text></g>
+
+    <rect x="1605" y="510" width="270" height="140" rx="18" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <use href="#i-film" x="1621" y="526" width="56" height="56"/>
+    <text x="1690" y="550" font-weight="700">Unreal 5.8</text>
+    <text x="1690" y="574" font-size="15" fill="#80d9c0">+ Cesium · demo film</text>
+    <text x="1621" y="616" font-size="16" fill="#b9ccd0">same data + wind fields,</text>
+    <text x="1621" y="638" font-size="16" fill="#b9ccd0">Niagara smoke, 30 s video</text>
+
+    <rect x="1605" y="670" width="270" height="182" rx="18" fill="#0f1c26" stroke="#2f4552" stroke-width="2"/>
+    <use href="#i-people" x="1621" y="686" width="56" height="56"/>
+    <text x="1690" y="716" font-weight="700">People</text>
+    <g font-size="16" fill="#b9ccd0"><text x="1621" y="760">communities · journalists</text><text x="1621" y="786">regulators · judges</text><text x="1621" y="816" fill="#80d9c0">click any point for a live</text><text x="1621" y="838" fill="#80d9c0">NASA trend check</text></g>
+  </g>
+
+  <!-- ===== arrows ===== -->
+  <g stroke="#80d9c0" stroke-width="3.5" fill="none" marker-end="url(#ar)">
+    <line x1="482" y1="254" x2="530" y2="254"/>
+    <line x1="482" y1="380" x2="530" y2="380"/>
+    <line x1="482" y1="492" x2="530" y2="492"/>
+    <line x1="482" y1="604" x2="530" y2="604"/>
+    <line x1="482" y1="716" x2="530" y2="716"/>
+    <line x1="978" y1="520" x2="1015" y2="520"/>
+    <line x1="1252" y1="380" x2="1285" y2="380"/>
+    <line x1="1572" y1="340" x2="1600" y2="340"/>
+  </g>
+  <!-- live calculations loop: web app ↔ job API -->
+  <g stroke="#c9a7ff" stroke-width="3" fill="none">
+    <path d="M1625 492 C1612 545 1600 600 1575 620" marker-end="url(#arv)"/>
+    <path d="M1430 742 V 868 H 760 V 858" stroke-dasharray="8 6" marker-end="url(#arv)"/>
+  </g>
+  <text x="1442" y="790" font-size="15" fill="#c9a7ff">live jobs run the</text><text x="1442" y="810" font-size="15" fill="#c9a7ff">same Python workers</text>
+  <!-- live tiles straight from NASA GIBS to the browser -->
+  <path d="M420 188 V 144 H 1840 V 184" stroke="#3490be" stroke-width="3" fill="none" stroke-dasharray="10 7" marker-end="url(#ar)"/>
+  <text x="960" y="136" font-size="17" fill="#7fb6d6">live NASA map tiles straight to the browser (any place on Earth)</text>
+
+  <!-- ===== bottom band ===== -->
+  <rect x="50" y="880" width="1825" height="140" rx="20" fill="#10202b" stroke="#80d9c0" stroke-width="2"/>
+  <text x="85" y="925" font-size="25" font-weight="700" fill="#80d9c0">No trained AI model: every number is traceable</text>
+  <g font-size="21" fill="#edf5f5">
+    <text x="85" y="965"><tspan font-weight="700">Measurements</tspan> <tspan fill="#9fb8bd">NASA satellites + reanalysis</tspan></text>
+    <text x="545" y="965"><tspan font-weight="700">Statistics</tspan> <tspan fill="#9fb8bd">Mann-Kendall, Sen, Welch</tspan></text>
+    <text x="995" y="965"><tspan font-weight="700">Physics</tspan> <tspan fill="#9fb8bd">Gaussian plume on NASA winds</tspan></text>
+    <text x="1435" y="965"><tspan font-weight="700">Climate</tspan> <tspan fill="#9fb8bd">NASA's CMIP6 runs</tspan></text>
+    <text x="85" y="1003" font-size="18" fill="#9fb8bd">Trends to 2035 extend the record (not a forecast) · after 2035: climate models · change near a facility is evidence, not proof of cause</text>
+  </g>
+</svg>

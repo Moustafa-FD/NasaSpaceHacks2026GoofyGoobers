@@ -6,6 +6,12 @@ Use this for the judged demo: **7 slides maximum, or a 30-second video** (Englis
 
 ![How we measure xAI Colossus 1](colossus1-how-it-works.png)
 
+**Detailed architecture slide** (for technical questions): [`architecture.png`](architecture.png) (1920×1080; editable [`architecture.svg`](architecture.svg)).
+
+![Footprint Atlas system architecture](architecture.png)
+
+**One-page cheat sheet for answering questions:** [cheat-sheet.md](cheat-sheet.md).
+
 All the technical detail behind it (every dataset, API and model) is in [../technical-details.md](../technical-details.md).
 
 ---
