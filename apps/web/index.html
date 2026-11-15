@@ -15,11 +15,13 @@
   <link id="scene-evidence-style" href="css/scene-evidence.css" rel="stylesheet" />
   <link id="future-scene-style" href="css/future-scene.css" rel="stylesheet" />
   <link id="evidence-workbench-style" href="css/evidence-workbench.css" rel="stylesheet" />
+  <link id="declutter-style" href="css/declutter.css" rel="stylesheet" />
 </head>
 <body>
   <div id="globe"></div>
   <div id="split" hidden><div class="split-grip">⟷</div><span class="split-tag left" id="splitL"></span><span class="split-tag right" id="splitR"></span></div>
   <header id="topbar">
+    <button id="panelToggle" type="button" aria-controls="panel" aria-expanded="true" title="Hide the side panel for a larger globe">☰</button>
     <div class="brand"><span class="logo" aria-hidden="true">◐</span><div><strong>Footprint Atlas</strong><small>A closer look at a changing Earth</small></div></div>
     <div class="map-layers" role="group" aria-label="Map layers">
       <button class="map-layer active" data-map-layer="none" aria-pressed="true"><i class="layer-dot satellite"></i>Satellite</button>

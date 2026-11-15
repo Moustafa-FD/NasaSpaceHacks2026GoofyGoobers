@@ -11,14 +11,30 @@
   const toast = (msg, ms = 3500) => { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => (t.hidden = true), ms); };
 
   // ------------------------------------------------------------ data
-  const [sitesDoc, hlsDates] = await Promise.all([
+  const [sitesDoc, hlsDates, appConfig] = await Promise.all([
     fetch("data/sites.json").then((r) => r.json()),
     fetch("data/hls_dates.json").then((r) => r.json()).catch(() => ({})),
+    // FOOTPRINT_STORY_SITE (server env / build time) picks the opening study site.
+    fetch("config.json").then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
     loadCatalog(),
   ]);
-  const SITES = sitesDoc.sites, CTX = sitesDoc.context;
+  const storyId = appConfig?.storySite, storySite = sitesDoc.sites.find((s) => s.id === storyId);
+  const SITES = storySite ? [storySite, ...sitesDoc.sites.filter((s) => s !== storySite)] : sitesDoc.sites, CTX = sitesDoc.context;
   const SERIES = {};
   await Promise.all(SITES.map(async (s) => { try { SERIES[s.id] = (await (await fetch(`data/series/${s.id}.json`)).json()).vars; } catch { SERIES[s.id] = {}; } }));
+
+  // ------------------------------------------------------------ side panel collapse (more globe)
+  {
+    const toggle = $("#panelToggle"), apply = (collapsed) => {
+      document.body.classList.toggle("panel-collapsed", collapsed);
+      toggle?.setAttribute("aria-expanded", String(!collapsed));
+      if (toggle) toggle.title = collapsed ? "Show the side panel" : "Hide the side panel for a larger globe";
+      try { localStorage.setItem("csPanelCollapsed", collapsed ? "1" : "0"); } catch { /* storage optional */ }
+    };
+    let saved = null; try { saved = localStorage.getItem("csPanelCollapsed"); } catch { /* storage optional */ }
+    apply(saved === "1");
+    toggle?.addEventListener("click", () => apply(!document.body.classList.contains("panel-collapsed")));
+  }
 
   // ------------------------------------------------------------ globe
   Cesium.Ion.defaultAccessToken = localStorage.getItem("cesiumIonToken") || "";

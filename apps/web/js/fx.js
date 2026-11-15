@@ -11,6 +11,7 @@
 import { getMotionSpeed } from "./motion.js";
 import { AdaptiveQuality } from "./adaptive-quality.js";
 import { analysisDeltaSeconds } from './flowfield.js';
+import { attachFluid } from './fluid-gpu.js';
 import { referenceSunDirection } from './reference-light.js';
 
 let viewer, scene, Q = "high";
@@ -84,6 +85,10 @@ function applyMotionSpeed() {
   viewer.clock.shouldAnimate = speed > 0;
   S.lastTick = performance.now();
   S.lastClock=Cesium.JulianDate.clone(viewer.clock.currentTime);
+}
+function emissionPolicyEligible(site, year) {
+  const onset = /^\d{4}/.test(String(site?.onset || '')) ? Number(String(site.onset).slice(0, 4)) : null;
+  return site?.effects?.plume === true && onset !== null && year >= onset;
 }
 function applySceneVisibility() {
   const visible = !S.localScene;
@@ -180,9 +185,11 @@ export function buildSite(site, rows) {
     },
   }));
 
-  // No site-sized ground weather rectangle or invented growing campus blocks.
-  // GEOS-FP polylines are the globe's only wind visualization; local geometry
-  // comes from the mapped neighborhood. Fluid remains a separate dev tool.
+  // Pollution transport visualization (purple), only for sites with documented
+  // on-site combustion (sites.json effects.plume). Moved by the real GEOS-FP wind
+  // field; released only at the facility. Not a measured concentration.
+  if (site.effects?.plume === true && (typeof location === "undefined" || new URLSearchParams(location.search).get("fluid") !== "off"))
+    S.fluid = attachFluid(viewer, site, { texEvery: qq.fluidTexEvery, halfSizeM: 16000, timeLapse: 400 });
   S.windSample=null;
   setLight(S.light);
   applySceneVisibility();
@@ -196,6 +203,7 @@ window.addEventListener("cs:wind", (e) => {
   S.windDir = w.towardDeg; S.windSpeed = w.speed;
   S.windSample=typeof w.sampleWind==='function'?w.sampleWind:null;
   S.fluid?.setWind?.(w.towardDeg, w.speed);
+  S.fluid?.setWindField?.(S.windSample);
 });
 window.addEventListener('cs:wind-state',({detail})=>{
   if(detail?.siteId!==S.site?.id||detail.year!==S.year||detail.active)return;
@@ -208,6 +216,14 @@ window.addEventListener('cs:wind-state',({detail})=>{
 export function applyYear(year, row, phase) {
   if(year!==S.year||phase==='projected')S.windSample=null;
   S.year = year; S.lastRow = row; S.phase = phase;
+  if (S.fluid) {
+    // Strength follows the measured TROPOMI NO2 site-minus-nearby signal (relative only);
+    // zero before the documented onset. A visualization, not a concentration.
+    const eligible = emissionPolicyEligible(S.site, year);
+    const no2 = Number(row.NO2_Local), signal = Number.isFinite(no2) ? Math.max(0, no2) : 0.3;
+    S.fluid.setWindField(phase === 'projected' ? null : S.windSample);
+    S.fluid.setWeather({ windTowardDeg: Number(row.PlumeTowardDeg), windSpeed: Number(row.WS10M), pollution: eligible && ['observed', 'present'].includes(phase) ? Math.min(1, 0.45 + signal) : 0, projected: phase === 'projected' });
+  }
   const num = (v) => (v == null || v === "" ? null : +v);
   const projected = phase === "projected";
   S.windDir = num(row.PlumeTowardDeg) ?? 0;

@@ -42,13 +42,13 @@ test('original smoke sprite has transparent borders and eroded internal alpha ra
   assert.ok(max<=190,'even the densest sprite texel remains translucent');
 });
 
-test('CPU/GPU weather-display contract is cool colored, translucent and fully transparent at texture borders',()=>{
+test('CPU/GPU weather-display contract is violet (never orange), translucent and fully transparent at texture borders',()=>{
   for(const projected of [false,true])for(let i=0;i<=50;i++)for(let j=0;j<=50;j++){
     const u=i/50,v=j/50,pixel=weatherDyePixel(999,999,999,u,v,10,0,1,projected);
     assert.ok(pixel.every(Number.isFinite));
     assert.ok(pixel.every((c)=>c>=0&&c<=1));
-    assert.ok(pixel[3]<=.19);
-    if(pixel[3]>.001)assert.ok(pixel[2]>pixel[1]&&pixel[1]>pixel[0],'no orange/yellow heat or pollution palette');
+    assert.ok(pixel[3]<=.62);
+    if(pixel[3]>.001)assert.ok(pixel[2]>=pixel[0]&&pixel[2]>pixel[1],'blue-dominant violet palette: no orange/yellow');
     if(i===0||i===50||j===0||j===50)assert.equal(pixel[3],0,'the rectangular texture cannot show an outline');
     assert.equal(weatherDyePixel(999,0,0,u,v,10,0,1)[3],0,'heat alone never produces a visible source');
   }

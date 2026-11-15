@@ -1,0 +1,38 @@
+/* Declutter: give the globe more room. Secondary text appears on hover/focus,
+   floating chrome is translucent, and the left panel can be collapsed. */
+
+/* --- collapsible left panel ------------------------------------------- */
+#panel { transition: transform .25s ease, visibility .25s; }
+body.panel-collapsed { --panel-width: 0px; }
+body.panel-collapsed #panel { transform: translateX(-100%); visibility: hidden; }
+#panelToggle { flex: none; width: 34px; height: 34px; padding: 0; display: grid; place-items: center; border-radius: 9px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); color: var(--text, #edf5f5); font-size: 16px; cursor: pointer; }
+#panelToggle:hover, #panelToggle:focus-visible { background: rgba(128,217,192,.18); border-color: #80d9c0; }
+
+/* --- top bar: lighter, no subtitle ------------------------------------- */
+#topbar { background: rgba(10,20,27,.55) !important; min-height: 52px !important; padding: 7px 12px !important; }
+#topbar .brand small { display: none; }
+
+/* --- Globe view card: right side, compact, translucent ----------------- */
+#sceneDock { left: auto !important; right: 14px !important; top: 80px !important; width: auto !important; max-width: 300px !important;
+  background: rgba(16,26,35,.5) !important; padding: 8px 10px !important; transition: background .2s; }
+#sceneDock:hover, #sceneDock:focus-within { background: rgba(16,26,35,.9) !important; }
+#sceneDock .scene-actions { flex-wrap: wrap; margin-top: 6px !important; }
+/* explanations and attributions on hover */
+#sceneDock #sceneStatus, #sceneDock #sceneActivity, #sceneDock > div[style*="font-size:9px"],
+#sceneDock #campusPlumeNote, #sceneDock #sceneEvidenceBlend, #sceneDock .scene-notes { display: none !important; }
+#sceneDock:hover #sceneStatus, #sceneDock:focus-within #sceneStatus,
+#sceneDock:hover > div[style*="font-size:9px"], #sceneDock:focus-within > div[style*="font-size:9px"],
+#sceneDock:hover .scene-notes, #sceneDock:focus-within .scene-notes { display: block !important; }
+#sceneDock:hover #campusPlumeNote:not([hidden]), #sceneDock:focus-within #campusPlumeNote:not([hidden]) { display: block !important; }
+
+/* --- timeline: translucent, story/imagery details on hover ------------- */
+#timeline { background: rgba(10,20,27,.62) !important; padding: 10px 14px 8px !important; transition: background .2s; }
+#timeline:hover, #timeline:focus-within { background: rgba(10,20,27,.9) !important; }
+#timeline .tl-bottom, #timeline .scene-history-notice, #timeline .motion-extremes { display: none !important; }
+#timeline:hover .tl-bottom, #timeline:focus-within .tl-bottom { display: flex !important; }
+#timeline:hover .scene-history-notice:not([hidden]), #timeline:focus-within .scene-history-notice:not([hidden]) { display: flex !important; }
+
+/* --- legends and notes: lighter ----------------------------------------- */
+#mapLegend, #environmentMapNote { background: rgba(10,20,27,.6) !important; }
+#mapLegend:hover, #environmentMapNote:hover { background: rgba(10,20,27,.92) !important; }
