@@ -2,7 +2,7 @@
 // Logic lives in ui-facts.js; this file only renders and wires the existing app (window.CloudShadow,
 // window.CloudShadowTimeline). The panel renders from the data files immediately, so a slow 3D scene
 // never leaves the user on an empty globe. ?ui=classic disables it.
-import { THEMES, PUBLISHED, shown, statFor, confidence, measuredVerdict, claim, reportedWater, reportedPower, levelFact, beforeAfterYears } from "./ui-facts.js";
+import { THEMES, PUBLISHED, shown, statFor, confidence, measuredVerdict, claim, reportedWater, reportedPower, levelFact, beforeAfterYears, CITY_FACTS, SITE_CITIES } from "./ui-facts.js";
 
 const q = new URLSearchParams(location.search);
 const $ = (s, r = document) => r.querySelector(s);
@@ -58,7 +58,7 @@ const icon = (k) => `<svg class="v3-ico" viewBox="0 0 24 24" aria-hidden="true" 
 function buildChrome() {
   document.body.insertAdjacentHTML("beforeend", `
     <header id="v2Header" hidden><button id="v2Back" class="v3-round" aria-label="Back to search">←</button>
-      <div><div class="v3-name" id="v3Name"></div><div class="v3-where" id="v3Where"></div></div>
+      <div><div class="v3-name" id="v3Name"></div><div class="v3-where" id="v3Where"></div><div class="v3-city" id="v3City"></div></div>
       <button id="v2Help" class="v3-round" aria-label="How to read this">?</button></header>
     <section id="v3Panel" hidden aria-live="polite">
       <nav class="v3-tabs" role="tablist" aria-label="What to look at">${Object.entries(THEMES).map(([k, t]) => `<button class="v3-tab" role="tab" data-theme="${k}" style="--c:${t.hex}">${icon(k)}<span>${t.label}</span></button>`).join("")}</nav>
@@ -284,6 +284,10 @@ async function openSite(id) {
   S.site = site; stopFlip();
   $("#v2Landing")?.classList.add("gone"); document.body.classList.remove("v2-landing-open");
   $("#v3Name").textContent = site.name; $("#v3Where").textContent = `${site.place} · ${site.operator}`;
+  // City context (2020 Census people; ACS 2020–24 households), always visible under the site name.
+  const fmt = (n) => n.toLocaleString("en-US");
+  $("#v3City").innerHTML = (SITE_CITIES[site.id] || []).map((id) => { const c = CITY_FACTS[id];
+    return `<span><b>${esc(c.name)}</b> ${fmt(c.people)} people · ${fmt(c.households)} households</span>`; }).join("");
   $("#v2Header").hidden = false;
   await loadFacts(site);
   // Themes without Clear/Strong evidence (or a documented figure) are not offered for this site.

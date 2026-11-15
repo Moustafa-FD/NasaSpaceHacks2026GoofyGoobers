@@ -205,3 +205,8 @@ body.ui-v2.v2-landing-open #mapLegend { display: none !important; }
 .v3-speed { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font: 600 12px var(--sans); color: inherit; opacity: .9; }
 .v3-speed input { width: 84px; accent-color: #e2a33b; }
 .v3-speed output { min-width: 32px; font-variant-numeric: tabular-nums; }
+
+/* city context under the site name */
+.v3-city { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 5px; font-size: 13px; color: #fff; }
+.v3-city span { background: rgba(23,32,29,.55); border-radius: 999px; padding: 2px 10px; }
+.v3-city b { font-weight: 700; margin-right: 4px; }
