@@ -8,16 +8,15 @@
 // Data-driven effects take their inputs from the timeline row; they are VISUALIZATIONS,
 // the numbers in the HUD/panel are the measurements.
 
-import { attachFluid } from "./fluid-gpu.js";
 import { getMotionSpeed } from "./motion.js";
 import { AdaptiveQuality } from "./adaptive-quality.js";
-import { globeSmokePolicy } from "./smoke-policy.js";
+import { analysisDeltaSeconds } from './flowfield.js';
 
 let viewer, scene, Q = "high";
 let automaticQuality = true, qualityController, sampledFps = null;
 const S = { site: null, rows: null, light: "golden", nightLights: null, clouds: null, cloudList: [], rain: null,
   massing: [], orbit: null, fluid: null, windDir: 0, windSpeed: 3, precip: 0, heat: 0, meanT2M: null, preRender: null,
-  localScene: false, year: 2025, lastTick: 0, animationTime: 0, lastRow: null, phase: "observed" };
+  localScene: false, year: 2025, lastTick: 0, lastClock:null,animationTime: 0, lastRow: null, phase: "observed",windSample:null };
 const QUALITY = {
   high: { hdr: true, bloom: false, shadows: true, clouds: 14, rainRate: 380, fluidTexEvery: 1, resolution: 1, shadowSize: 2048 },
   balanced: { hdr: false, bloom: false, shadows: true, clouds: 8, rainRate: 220, fluidTexEvery: 2, resolution: 0.85, shadowSize: 1024 },
@@ -83,6 +82,7 @@ function applyMotionSpeed() {
   viewer.clock.multiplier = speed;
   viewer.clock.shouldAnimate = speed > 0;
   S.lastTick = performance.now();
+  S.lastClock=Cesium.JulianDate.clone(viewer.clock.currentTime);
 }
 function applySceneVisibility() {
   const visible = !S.localScene;
@@ -157,7 +157,7 @@ export function buildSite(site, rows) {
     const e = (Math.random() - 0.5) * 40000, n = (Math.random() - 0.5) * 40000, h = 2200 + Math.random() * 1400;
     const c = S.clouds.add({
       position: Cesium.Matrix4.multiplyByPoint(enuAt(lat, lon), new Cesium.Cartesian3(e, n, h), new Cesium.Cartesian3()),
-      scale: new Cesium.Cartesian2(2600 + Math.random() * 2600, 900 + Math.random() * 700),
+      scale: new Cesium.Cartesian2(600 + Math.random() * 800, 250 + Math.random() * 250),
       maximumSize: new Cesium.Cartesian3(50, 16, 14), slice: 0.33 + Math.random() * 0.1, brightness: 1.0,
     });
     c.show = i < qq.clouds;
@@ -168,40 +168,20 @@ export function buildSite(site, rows) {
   const enu = enuAt(lat, lon), wind = new Cesium.Cartesian3();
   S.rain = scene.primitives.add(new Cesium.ParticleSystem({
     image: RAIN, startColor: Cesium.Color.fromCssColorString("#d8ecff").withAlpha(0.32), endColor: Cesium.Color.fromCssColorString("#d8ecff").withAlpha(0.08),
-    imageSize: new Cesium.Cartesian2(5, 140), sizeInMeters: true, minimumParticleLife: 2.2, maximumParticleLife: 2.8,
+    imageSize: new Cesium.Cartesian2(1.5, 25), sizeInMeters: true, minimumParticleLife: 1.2, maximumParticleLife: 2.0,
     minimumSpeed: 35, maximumSpeed: 50, emissionRate: 0, lifetime: 16,
     emitter: new Cesium.BoxEmitter(new Cesium.Cartesian3(22000, 22000, 800)), modelMatrix: enuAt(lat, lon, 1500),
     updateCallback: (p) => {
-      const th = Cesium.Math.toRadians(S.windDir), sp = S.windSpeed * 4;
+      const th = Cesium.Math.toRadians(S.windDir), sp = S.windSpeed;
       Cesium.Matrix4.multiplyByPointAsVector(enu, new Cesium.Cartesian3(Math.sin(th) * sp, Math.cos(th) * sp, -45), wind);
       Cesium.Cartesian3.clone(wind, p.velocity);
     },
   }));
 
-  // illustrative server-hall massing: blocks rise after the site's start year
-  const onset = +String(site.onset).slice(0, 4);
-  const count = site.id === "ashburn" ? 16 : 6;
-  for (let i = 0; i < count; i++) {
-    const ang = (i / count) * Math.PI * 2 + (i % 2) * 0.4, rad = (site.id === "ashburn" ? 1700 : 650) * (0.35 + ((i * 37) % 10) / 14);
-    const pos = Cesium.Matrix4.multiplyByPoint(enuAt(lat, lon), new Cesium.Cartesian3(Math.cos(ang) * rad, Math.sin(ang) * rad, 0), new Cesium.Cartesian3());
-    const carto = Cesium.Cartographic.fromCartesian(pos);
-    const startYear = site.id === "ashburn" ? onset - 4 + Math.round((i / count) * 16) : onset + (i % 3 === 0 ? 1 : 0);
-    const st = { h: 1, target: 0 };
-    const block = viewer.entities.add({
-      position: Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, 0),
-      orientation: Cesium.Transforms.headingPitchRollQuaternion(pos, new Cesium.HeadingPitchRoll(ang, 0, 0)),
-      box: {
-        dimensions: new Cesium.CallbackProperty(() => new Cesium.Cartesian3(320, 140, Math.max(1, st.h)), false),
-        material: Cesium.Color.fromCssColorString("#dfe7f2").withAlpha(0.92), outline: true, outlineColor: Cesium.Color.fromCssColorString("#9fe8ff"),
-        shadows: Cesium.ShadowMode.ENABLED, heightReference: Cesium.HeightReference.NONE,
-      },
-      show: false,
-    });
-    block._startYear = startYear; block._st = st;
-    S.massing.push(block);
-  }
-  // Qualitative blue-gray wind wisps; only documented combustion gets a source.
-  if (new URLSearchParams(location.search).get("fluid") !== "off") S.fluid = attachFluid(viewer, site, { texEvery: QUALITY[Q].fluidTexEvery });
+  // No site-sized ground weather rectangle or invented growing campus blocks.
+  // GEOS-FP polylines are the globe's only wind visualization; local geometry
+  // comes from the mapped neighborhood. Fluid remains a separate dev tool.
+  S.windSample=null;
   setLight(S.light);
   applySceneVisibility();
 }
@@ -210,42 +190,36 @@ export function buildSite(site, rows) {
 // Time-varying analysed wind at the site replaces the single annual POWER arrow for clouds + fluid.
 window.addEventListener("cs:wind", (e) => {
   const w = e.detail; if (!w || !S.site || w.siteId !== S.site.id) return;
+  if(w.year!==S.year||!['observed','present'].includes(S.phase))return;
   S.windDir = w.towardDeg; S.windSpeed = w.speed;
+  S.windSample=typeof w.sampleWind==='function'?w.sampleWind:null;
   S.fluid?.setWind?.(w.towardDeg, w.speed);
+});
+window.addEventListener('cs:wind-state',({detail})=>{
+  if(detail?.siteId!==S.site?.id||detail.year!==S.year||detail.active)return;
+  S.windSample=null;
+  const row=S.lastRow||{},direction=row.PlumeTowardDeg==null||row.PlumeTowardDeg===''?null:Number(row.PlumeTowardDeg),speed=row.WS10M==null||row.WS10M===''?null:Number(row.WS10M);
+  S.windDir=Number.isFinite(direction)?direction:0;S.windSpeed=Number.isFinite(direction)&&Number.isFinite(speed)&&speed>=0?speed:0;
 });
 
 // ------------------------------------------------------------------ per-year update
 export function applyYear(year, row, phase) {
+  if(year!==S.year||phase==='projected')S.windSample=null;
   S.year = year; S.lastRow = row; S.phase = phase;
   const num = (v) => (v == null || v === "" ? null : +v);
   const projected = phase === "projected";
-  if (num(row.PlumeTowardDeg) != null) S.windDir = num(row.PlumeTowardDeg);
-  if (num(row.WS10M) != null) S.windSpeed = num(row.WS10M);
+  S.windDir = num(row.PlumeTowardDeg) ?? 0;
+  S.windSpeed = num(row.PlumeTowardDeg)!=null&&num(row.WS10M)!=null?Math.max(0,num(row.WS10M)):0;
   // rain: wetter-than-usual years rain harder
   const pr = num(row.PrecipMMDay);
-  if (S.rain) S.rain.emissionRate = pr == null ? 0 : Math.max(0, pr - 2.6) * QUALITY[Q].rainRate * (projected ? 0.5 : 1);
-  // atmosphere tint from regional air-temperature anomaly
-  const t = num(row.T2M);
-  if (t != null && S.meanT2M != null) {
-    const a = t - S.meanT2M;
-    scene.skyAtmosphere.hueShift = Cesium.Math.clamp(-a * 0.035, -0.1, 0.1);
-    scene.skyAtmosphere.saturationShift = Cesium.Math.clamp(a * 0.1, -0.2, 0.35);
-    scene.skyAtmosphere.brightnessShift = projected ? -0.1 : 0;
-  }
+  if (S.rain) S.rain.emissionRate = projected || pr == null ? 0 : Math.min(180,Math.max(0, pr - 2.6) * QUALITY[Q].rainRate);
+  // Temperature remains a numerical/map signal, not an atmosphere color claim.
+  scene.skyAtmosphere.hueShift=scene.skyAtmosphere.saturationShift=scene.skyAtmosphere.brightnessShift=0;
   // massing blocks: rise after their start year (ghosted in the future)
   for (const b of S.massing) {
     b.show = !S.localScene && year >= b._startYear;
     b._st.target = year >= b._startYear ? 28 + Math.min(3, year - b._startYear) * 8 : 1;
     b.box.material = projected ? Cesium.Color.fromCssColorString("#9fe8ff").withAlpha(0.35) : Cesium.Color.fromCssColorString("#dfe7f2").withAlpha(0.92);
-  }
-  // fluid weather field
-  if (S.fluid) {
-    const policy = globeSmokePolicy(S.site, year, row, phase);
-    S.fluid.setWeather({
-      windTowardDeg: policy.windTowardDeg, windSpeed: policy.windSpeedMs,
-      heat: policy.heat, pollution: policy.fluidPollution, moisture: policy.moisture,
-      projected,
-    });
   }
   // sun follows the year (same date & hour each year → consistent look)
   setLight(S.light, Math.min(year, 2026));
@@ -256,17 +230,17 @@ export function applyYear(year, row, phase) {
 function applyParticleBudget(row, phase) {
   const qq = QUALITY[Q], projected = phase === "projected";
   const pr = row.PrecipMMDay == null || row.PrecipMMDay === "" ? null : +row.PrecipMMDay;
-  if (S.rain) S.rain.emissionRate = pr == null ? 0 : Math.max(0, pr - 2.6) * qq.rainRate * (projected ? 0.5 : 1);
+  if (S.rain) S.rain.emissionRate = projected || pr == null ? 0 : Math.min(180,Math.max(0, pr - 2.6) * qq.rainRate);
 }
 
 // ------------------------------------------------------------------ animation
 let pulseT = 0;
 function pulse() { pulseT = S.animationTime; }
 function tick() {
-  const now = performance.now();
-  const speed = getMotionSpeed();
-  const dt = Math.min(0.05, Math.max(0, (now - (S.lastTick || now)) / 1000)) * speed;
-  S.lastTick = now;
+  const clock=viewer.clock;
+  const delta=S.lastClock?Cesium.JulianDate.secondsDifference(clock.currentTime,S.lastClock):0;
+  S.lastClock=Cesium.JulianDate.clone(clock.currentTime,S.lastClock);
+  const dt=analysisDeltaSeconds(delta,clock.shouldAnimate!==false&&clock.multiplier!==0&&document.visibilityState!=='hidden');
   if (dt === 0) return;
   S.animationTime += dt;
   // bloom pulse on year change
@@ -276,10 +250,12 @@ function tick() {
   if (!S.localScene) for (const b of S.massing) b._st.h += (b._st.target - b._st.h) * (1 - Math.exp(-3.6 * dt));
   // clouds drift with the wind (time-lapse), wrapping around the site
   if (!S.localScene && S.site && S.cloudList.length) {
-    const th = Cesium.Math.toRadians(S.windDir), sp = S.windSpeed * 2;
+    const th = Cesium.Math.toRadians(S.windDir), sp = S.windSpeed;
     const enu = enuAt(S.site.lat, S.site.lon);
     for (const cl of S.cloudList) {
-      cl.e += Math.sin(th) * sp * dt; cl.n += Math.cos(th) * sp * dt;
+      const localWind=S.windSample?.(S.site.lat+cl.n/111320,S.site.lon+cl.e/(111320*Math.cos(S.site.lat*Math.PI/180)));
+      const east=S.windSample?(localWind?.u||0):Math.sin(th)*sp,north=S.windSample?(localWind?.v||0):Math.cos(th)*sp;
+      cl.e += east*dt; cl.n += north*dt;
       if (Math.abs(cl.e) > 22000) cl.e = -Math.sign(cl.e) * 22000;
       if (Math.abs(cl.n) > 22000) cl.n = -Math.sign(cl.n) * 22000;
       cl.c.position = Cesium.Matrix4.multiplyByPoint(enu, new Cesium.Cartesian3(cl.e, cl.n, cl.h), new Cesium.Cartesian3());

@@ -348,6 +348,18 @@ test('available DEM elevation changes instance bases while missing terrain stays
   assert.ok(result.focusHeight > 100);
 });
 
+test('data-center bases sit on raised campus concrete and export the exact absolute roof-marker base',()=>{
+  const data=fixture({buildings:[{id:'way/data-center',polygon:rectangle(-35,-20,35,20),tags:{building:'data_center'}}],roads:[],areas:[],trees:[]});
+  const elevation={status:'available',width:2,height:2,extentM:[-260,-260,260,260],heights:[100,100,100,100]};
+  const result=buildNeighborhoodGlb(data,manifest,kit,{elevation,maxTrees:0,maxCrops:0,maxInfillBuildings:0});
+  assert.equal(result.campuses.length,1);const campus=result.campuses[0];assert.equal(campus.padLiftM,.42);
+  const {gltf,values}=verifyGlb(result.buffer),node=gltf.nodes.find((n)=>n.extensions?.EXT_mesh_gpu_instancing);
+  const translation=values[node.extensions.EXT_mesh_gpu_instancing.attributes.TRANSLATION];
+  assert.ok(Math.abs(translation[1]-campus.baseHeight)<1e-4,'marker and mesh share the same absolute terrain plus pad elevation');
+  assert.ok(Math.abs(campus.baseHeight-104.42)<.001,'the reference scene offset is applied exactly once');
+  const pad=result.urbanStats;assert.equal(pad.campuses,1);assert.ok(pad.campusSwitchyards>0);
+});
+
 test('the saved real Colossus 1 snapshot generates a bounded, valid instanced neighborhood', () => {
   const data = JSON.parse(readFileSync(new URL('../data/cloudshadow/neighborhoods/colossus1.json', import.meta.url)));
   assert.equal(data.source.name, 'OpenStreetMap');

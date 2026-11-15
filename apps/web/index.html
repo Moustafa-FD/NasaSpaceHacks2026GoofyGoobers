@@ -9,6 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
   <link href="css/style.css" rel="stylesheet" />
+  <link href="css/environment.css" rel="stylesheet" />
+  <link href="css/evidence.css" rel="stylesheet" />
 </head>
 <body>
   <div id="globe"></div>
@@ -23,21 +25,24 @@
     </div>
     <button id="tourBtn" class="quiet-button">Take a tour <span aria-hidden="true">↗</span></button>
   </header>
-  <aside id="mapLegend" class="map-legend" aria-label="Map layer legend" hidden><strong id="mapLegendTitle"></strong><span id="mapLegendDetail"></span><img id="mapLegendScale" alt="NASA layer colour scale" /></aside>
+  <aside id="mapLegend" class="map-legend" aria-label="Map layer legend" hidden><strong id="mapLegendTitle"></strong><span id="mapLegendDetail"></span><img id="mapLegendScale" alt="NASA layer colour scale" hidden /><div id="mapColorScale"><div class="evidence-ramp"></div><div class="evidence-scale"><span id="mapScaleLow"></span><span id="mapScaleHigh"></span></div><p id="mapScaleMeaning"></p></div><p id="mapResolution"></p></aside>
   <aside id="panel" aria-label="Places and information">
-    <div class="panel-heading"><span class="eyebrow">EARTH, OVER TIME</span><h1>Explore places<span>.</span></h1><p>Pick a place. Zoom in to discover its neighborhood.</p></div>
+    <div class="panel-heading"><span class="eyebrow">EARTH, OVER TIME</span><h1>What changes here<span>?</span></h1><p>Five study areas. Compare environmental evidence over time.</p></div>
     <section class="places-section" aria-label="Choose a place"><div id="siteChips" class="chips"></div></section>
     <section id="story" class="card"></section>
+    <section id="changeHeadline" class="change-headline" aria-label="Selected environmental trend" aria-live="polite"><span>Choose Heat, Vegetation or Air pollution to compare evidence.</span></section>
     <div class="navigation-hint"><span aria-hidden="true">⌁</span><p><b>Scroll</b> to zoom · <b>Drag</b> to move<br /><b>Ctrl + drag</b> to tilt the view</p></div>
     <details class="panel-detail" id="mapSettings">
       <summary>Map settings <span class="detail-caption" id="layerSummary">Satellite</span></summary>
       <div class="detail-content controls">
         <p id="layerNote" class="hint">Satellite imagery shows the real-world landscape.</p>
+        <label class="cmp"><input type="checkbox" id="mapChange" checked /> Show change from an earlier year</label>
+        <label>Compare with July of <select id="baselineYear"><option>2003</option><option selected>2005</option><option>2010</option><option>2015</option><option>2020</option><option>2023</option></select></label>
         <label>All layers<select id="layerSel"><option value="none">Satellite</option><option value="LST_Day">Heat · daytime</option><option value="NDVI">Vegetation</option><option value="NO2_OMI">Air pollution · NO₂</option><option value="LST_Night">Heat · nighttime</option><option value="NO2">NO₂ · recent detailed record</option><option value="AOD">Particles / haze</option><option value="AirTemp">Regional air temperature</option><option value="HLS">High-resolution satellite (HLS)</option><option value="DIST">Land disturbance</option></select></label>
         <label>Map date<input type="date" id="dateA" /></label>
         <label class="cmp"><input type="checkbox" id="cmpToggle" /> Compare two dates</label>
         <label id="dateBWrap" hidden>Second date<input type="date" id="dateB" /></label>
-        <label>Layer opacity<input type="range" id="opacity" min="0" max="1" step="0.05" value="0.75" /></label>
+        <label>Layer opacity<input type="range" id="opacity" min="0" max="1" step="0.05" value="0.65" /></label>
       </div>
     </details>
     <details class="panel-detail" id="analysisDetails">
@@ -60,7 +65,7 @@
     <div class="tl-main">
       <div class="tl-top"><span id="tlYear" class="tl-year">2025</span><span id="tlPhase" class="tl-phase observed">OBSERVED</span><div id="tlChips" class="tl-chips"></div><div class="motion-control"><label for="motionSpeed">Motion speed <output id="motionValue" for="motionSpeed">0.35×</output></label><input id="motionSpeed" type="range" min="0" max="2" step="0.05" value="0.35" aria-label="Wind and timeline speed" title="Slows or speeds up wind, weather, and timeline playback. Zero pauses motion." /><span class="motion-extremes"><span>Still</span><span>Fast</span></span></div></div>
       <div id="tlTrack" class="tl-track"><input type="range" id="tlSlider" step="1" aria-label="Year" /><div class="tl-zones"><span>Past · observed</span><span>Now</span><span>Future · trend extension</span></div></div>
-      <div class="tl-bottom"><div id="tlImagery" class="tl-imagery"></div><details class="view-options"><summary>View options</summary><div class="view-options-popover"><label class="tl-ring" title="Variable shown by the yearly bars">Yearly bars<select id="tlRingVar"></select></label><button id="tlLight" class="tl-btn" title="Switch between golden hour and night">☀ Golden hour</button><button id="tlQuality" class="tl-btn" title="Graphics quality: shadows, bloom, and particle counts">HQ</button></div></details></div>
+      <div class="tl-bottom"><div id="tlImagery" class="tl-imagery"></div><details class="view-options"><summary>View options</summary><div class="view-options-popover"><label class="tl-ring" title="Measurement shown by the annual trend strip">Trend strip<select id="tlRingVar"></select></label><button id="tlLight" class="tl-btn" title="Switch between golden hour and night">☀ Golden hour</button><button id="tlQuality" class="tl-btn" title="Graphics quality: shadows, bloom, and particle counts">HQ</button></div></details></div>
     </div>
   </section>
   <div id="tourCard" hidden><div id="tourText"></div><div class="tour-nav"><button id="tourPrev">‹</button><span id="tourStep"></span><button id="tourNext" class="primary">Next ›</button><button id="tourEnd" aria-label="Close tour">✕</button></div></div>

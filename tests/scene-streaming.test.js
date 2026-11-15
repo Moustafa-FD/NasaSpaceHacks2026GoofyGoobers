@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {createSceneStreamer,streamKey,streamRadius,radialCoverage,fadeWeights,waitForModelReady} from '../apps/web/js/scene-streaming.js';
 import {createSceneCompiler} from '../apps/web/js/scene-compiler.js';
+import {setLandscapeEvidence,normalizeEvidenceTexture} from '../apps/web/js/landscape-shader.js';
 const ready=(point)=>({status:200,json:async()=>({status:'ready',center:point,snapshot:{center:point}})});
 const turn=()=>new Promise((resolve)=>setImmediate(resolve));
 const deferred=()=>{let resolve;const promise=new Promise((r)=>resolve=r);return {promise,resolve};};
@@ -99,14 +100,14 @@ async function rendererHarness() {
   const element=(id)=>{if(!nodes.has(id))nodes.set(id,{dataset:{},hidden:false,textContent:''});return nodes.get(id);};
   class V3{constructor(x=0,y=0,z=0){Object.assign(this,{x,y,z});}static fromDegrees(x,y){return new V3(x*111320,y*111320,0);}static distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);}static normalize(v,out){const length=Math.hypot(v.x,v.y,v.z);out.x=v.x/length;out.y=v.y/length;out.z=v.z/length;return out;}}
   class M4{static inverseTransformation(m){return m;}static multiplyByPoint(m,p,out){return Object.assign(out,p);}static multiplyByPointAsVector(m,p,out){return Object.assign(out,p);}}
-  const C={Cartesian3:V3,Cartesian2:V3,Matrix4:M4,Axis:{Y:1,X:0},ShadowMode:{ENABLED:1},Transforms:{eastNorthUpToFixedFrame:()=>new M4()},
+  const C={Cartesian3:V3,Cartesian2:V3,Cartesian4:class{constructor(...values){this.values=values;}},TextureUniform:class{constructor(options){Object.assign(this,options);}},PixelFormat:{RGBA:1},PixelDatatype:{UNSIGNED_BYTE:1},TextureMinificationFilter:{NEAREST:1},TextureMagnificationFilter:{NEAREST:1},Matrix4:M4,Axis:{Y:1,X:0},ShadowMode:{ENABLED:1},Transforms:{eastNorthUpToFixedFrame:()=>new M4()},
     Math:{toDegrees:(v)=>v,toRadians:(v)=>v},DirectionalLight:class {constructor(options){Object.assign(this,options);}},Cartographic:{fromCartesian:(p)=>({latitude:p.y/111320,longitude:p.x/111320,height:p.z})},BoundingSphere:class {},HeadingPitchRange:class {},
     Model:{fromGltfAsync:async(options)=>{
       const model={...options,ready:false,readyEvent:event(),errorEvent:event(),destroyed:false,isDestroyed(){return this.destroyed;},destroy(){assert.equal(this.destroyed,false,'model destroyed only once');this.destroyed=true;}};
       models.push(model);if(parseGate)await parseGate;return model;
     }}};
   const controller=()=>{const c={active:false,destroyed:false,setYear(){},setQuality(){},setActive(v){assert.equal(this.destroyed,false);this.active=v;},destroy(){assert.equal(this.destroyed,false,'controller destroyed only once');this.destroyed=true;}};controllers.push(c);return c;};
-  const shader=()=>{const s={values:{},destroyed:false,setUniform(k,v){assert.equal(this.destroyed,false);this.values[k]=v;},isDestroyed(){return this.destroyed;},destroy(){assert.equal(this.destroyed,false,'shader destroyed only once');this.destroyed=true;}};shaders.push(s);return s;};
+  const shader=()=>{const s={values:{},destroyed:false,setUniform(k,v){assert.equal(this.destroyed,false);this.values[k]=v;},isDestroyed(){return this.destroyed;},destroy(){assert.equal(this.destroyed,false,'shader destroyed only once');this.destroyed=true;this.values={};}};shaders.push(s);return s;};
   let lookAt=new V3();
   const viewer={canvas:{clientWidth:1000,clientHeight:700},shadowMap:{_primitiveBias:{depthBias:1,normalOffsetScale:1},maximumDistance:10000},camera:{positionCartographic:{height:500},pickEllipsoid:()=>lookAt,flyToBoundingSphere(){}},
     scene:{light:{},highDynamicRange:true,postProcessStages:{bloom:{enabled:true}},screenSpaceCameraController:{},globe:{ellipsoid:{}},primitives:{add(m){primitives.push(m);return m;},remove(m){const i=primitives.indexOf(m);if(i<0)return false;primitives.splice(i,1);m.destroy();return true;}}}};
@@ -117,18 +118,42 @@ async function rendererHarness() {
     emit(data){this.onmessage?.({data});}
     terminate(){this.terminated=true;}
   }
+  const windowEvents=new Map();
   const context={Cesium:C,URL,Blob,AbortController,DOMException,setTimeout,clearTimeout,performance:{now:()=>clock},console:{...console,warn:(...args)=>warnings.push(args)},Worker,
-    location:{search:''},URLSearchParams,window:{addEventListener(){},dispatchEvent(){}},CustomEvent:class {},
-    document:{querySelector:element,body:{classList:{toggle(){}}}},createLandscapeShader:shader,sampleElevation:()=>0,scenarioHeightOffset:()=>0,
+    location:{search:''},URLSearchParams,window:{addEventListener(type,fn){if(!windowEvents.has(type))windowEvents.set(type,[]);windowEvents.get(type).push(fn);},dispatchEvent(event){for(const fn of windowEvents.get(event.type)||[])fn(event);}},CustomEvent:class {constructor(type,options){this.type=type;this.detail=options.detail;}},
+    document:{querySelector:element,body:{classList:{toggle(){}}}},createLandscapeShader:shader,setLandscapeEvidence,normalizeEvidenceTexture,sampleElevation:()=>0,
     attachCampusEffects:controller,attachCityLife:controller,attachLocalAtmosphere:controller,currentQuality:()=> 'low',
     createSceneCompiler,createSceneStreamer,streamKey,streamRadius,fadeWeights,waitForModelReady,
     fetch:async()=>({ok:true,json:async()=>({status:'ready'})})};
   const source=(await readFile(new URL('../apps/web/js/neighborhood.js',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'').replaceAll('import.meta.url',JSON.stringify(import.meta.url));
   runInNewContext(source+`\nglobalThis.sceneHooks={showData,removeModel,tickPatches,enter,evaluateCamera,prepare,ensureOverview,get active(){return active;},get current(){return currentPatch;},get retiring(){return retiringPatch;},get uploading(){return uploadingPatch;},seed(v,d,options={}){viewer=v;currentSite={id:'selected',lat:0,lon:0,effects:{plume:true}};baseData=sceneData=d;active=options.active??true;enabled=options.enabled??true;streamer={reset(){},cancel(){},setAnchor(){},update(){}};},invalidate(){generation++;removeModel();},destroy(){prepareAbort?.abort();removeModel();compiler.destroy();}};`,context);
   return {h:context.sceneHooks,viewer,models,shaders,controllers,primitives,workers,warnings,element,C,
+    evidence(detail){context.window.dispatchEvent({type:'cs:evidence-texture',detail});},
     setClock(value){clock=value;},setFocus(lat,lon){lookAt=V3.fromDegrees(lon,lat);},setParseGate(value){parseGate=value;}};
 }
 const sceneData=(n,stage)=>({buffer:new ArrayBuffer(4),overviewBuffer:stage?undefined:new ArrayBuffer(4),stage,center:{lat:n,lon:n},radius:3300,campuses:[],focus:{x:100,y:0},stats:{buildings:3,trees:5,dataCenters:1}});
+
+test('real evidence events reach current and uploading shaders, persist for future assets, clear without exiting 3D and release with retired models',async(t)=>{
+  const {h,viewer,models,shaders,evidence,setClock}=await rendererHarness(),base=sceneData(0,'detail');
+  t.after(()=>h.destroy());h.seed(viewer,base);
+  const rgba=new Uint8Array([255,0,0,255,0,255,0,255,0,0,255,255,255,255,0,0]),bounds=[-.02,-.02,.02,.02];
+  evidence({active:true,rgba,width:2,height:2,bounds});
+  const first=h.showData(base,true);await turn();
+  assert.equal(shaders[0].values.u_evidenceActive,1,'an event before the first model upload remains selected');
+  assert.deepEqual([...shaders[0].values.u_evidence.typedArray],[...rgba]);
+  models[0].ready=true;models[0].readyEvent.raise();await first;
+  const replacement=h.showData(sceneData(.01,'detail'),false);await turn();
+  assert.equal(h.current.data,base);assert.equal(shaders[1].values.u_evidenceActive,1,'the future upload inherits the existing raster');
+  const next=rgba.slice();next[3]=100;evidence({active:true,rgba:next,width:2,height:2,bounds});
+  for(const shader of shaders)assert.equal(shader.values.u_evidence.typedArray[3],100,'current and pending models get the new actual alpha');
+  assert.equal(h.active,true,'evidence selection leaves the local camera and scene active');
+  evidence({active:false});
+  for(const shader of shaders){assert.equal(shader.values.u_evidenceActive,0);assert.equal(shader.values.u_evidence.width,1);assert.deepEqual([...shader.values.u_evidence.typedArray],[0,0,0,0]);}
+  models[1].ready=true;models[1].readyEvent.raise();await replacement;setClock(2100);h.tickPatches();
+  assert.equal(shaders[0].destroyed,true,'retired CustomShader releases its texture manager');
+  assert.equal(shaders[0].values.u_evidence,undefined);
+  h.destroy();assert.ok(shaders.every((shader)=>shader.destroyed&&shader.values.u_evidence===undefined));
+});
 
 test('renderer retains old geometry until GPU-ready, reactivates new controllers and destroys retired/stale resources',async()=>{
   const {h,viewer,models,shaders,controllers,primitives,setClock,setFocus}=await rendererHarness(),data=sceneData,base=data(0);

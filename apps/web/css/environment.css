@@ -1,0 +1,45 @@
+/* Isolated environmental inspector, embedded in the existing place panel. */
+#environmentInspector { border-top: 1px solid var(--line, #34505a); margin-top: 10px; color: var(--text, #e6eef0); font-size: 11px; line-height: 1.55; }
+#environmentInspector > summary { display: flex; align-items: center; gap: 7px; cursor: pointer; padding: 15px 4px; font-weight: 600; list-style: none; }
+#environmentInspector > summary::before { content: '+'; color: var(--accent, #8ed0a9); font-size: 16px; }
+#environmentInspector[open] > summary::before { content: '−'; }
+#environmentInspector .env-state { margin-left: auto; font-size: 8px; font-weight: 400; color: var(--muted, #91a6ae); }
+#environmentInspector .env-body { padding: 0 4px 15px; }
+#environmentInspector .env-location { color: var(--text-2, #bed0d6); font-size: 10px; margin: 0 0 10px; }
+#environmentInspector .env-tabs { display: flex; gap: 3px; border-bottom: 1px solid var(--line, #34505a); margin-bottom: 12px; }
+#environmentInspector .env-tabs button { flex: 1; padding: 7px 3px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; font-size: 10px; color: var(--muted, #91a6ae); }
+#environmentInspector .env-tabs button[aria-selected='true'] { color: var(--accent, #8ed0a9); border-bottom-color: currentColor; }
+#environmentInspector label { display: grid; gap: 4px; color: var(--text-2, #bed0d6); margin: 8px 0; font-size: 10px; }
+#environmentInspector select, #environmentInspector input, #environmentInspector textarea { min-width: 0; max-width: 100%; width: 100%; border: 1px solid var(--line, #34505a); border-radius: 5px; background: var(--card, #10272e); color: var(--text, #e6eef0); font: inherit; padding: 7px; box-sizing: border-box; }
+#environmentInspector textarea { font-family: ui-monospace, monospace; font-size: 10px; resize: vertical; min-height: 140px; }
+#environmentInspector .env-check { display: flex; align-items: flex-start; gap: 7px; }
+#environmentInspector .env-check input { width: auto; flex: 0 0 auto; margin-top: 2px; accent-color: var(--accent, #8ed0a9); }
+#environmentInspector button { cursor: pointer; border: 1px solid var(--accent, #8ed0a9); border-radius: 6px; background: var(--accent, #8ed0a9); color: #10242c; padding: 7px 9px; font: inherit; font-weight: 500; }
+#environmentInspector button.env-secondary, #environmentInspector .env-history { color: var(--text-2, #bed0d6); background: none; border-color: var(--line, #34505a); }
+#environmentInspector button:disabled { opacity: .45; cursor: default; }
+#environmentInspector button:focus-visible, #environmentInspector select:focus-visible, #environmentInspector input:focus-visible, #environmentInspector textarea:focus-visible, #environmentInspector summary:focus-visible { outline: 2px solid var(--accent, #8ed0a9); outline-offset: 3px; }
+#environmentInspector .env-inline { display: flex; gap: 6px; flex-wrap: wrap; margin: 9px 0; }
+#environmentInspector .env-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 10px 0; }
+#environmentInspector .env-note { font-size: 9px; color: var(--muted, #91a6ae); margin: 8px 0; overflow-wrap: anywhere; }
+#environmentInspector .env-evidence { color: var(--accent, #8ed0a9); font-size: 9px; margin: 12px 0 6px; }
+#environmentInspector .env-table-scroll { max-width: 100%; overflow-x: auto; }
+#environmentInspector table { width: 100%; border-collapse: collapse; font-size: 9px; font-variant-numeric: tabular-nums; }
+#environmentInspector caption { text-align: left; padding: 10px 0 5px; color: var(--text, #e6eef0); }
+#environmentInspector th, #environmentInspector td { text-align: right; vertical-align: top; padding: 6px 3px; border-bottom: 1px solid var(--line, #34505a); font-weight: 400; }
+#environmentInspector th:first-child, #environmentInspector td:first-child { text-align: left; }
+#environmentInspector thead { color: var(--muted, #91a6ae); }
+#environmentInspector .env-change { color: var(--muted, #91a6ae); font-size: 8px; }
+#environmentInspector details { border-top: 1px solid var(--line, #34505a); margin: 9px 0; }
+#environmentInspector details > summary { cursor: pointer; font-size: 9px; color: var(--text-2, #bed0d6); padding: 8px 0; }
+#environmentInspector .env-live-status { font-size: 9px; padding: 8px; background: var(--card, #10272e); border-radius: 5px; overflow-wrap: anywhere; }
+#environmentInspector .env-chart { margin: 9px 0; color: #80c5d9; }
+#environmentInspector .env-chart svg { width: 100%; height: auto; display: block; background: #80c5d908; border-radius: 5px; }
+#environmentInspector .env-chart figcaption { color: var(--muted, #91a6ae); font-size: 8px; }
+#environmentInspector .env-history { display: block; text-align: left; width: 100%; font-size: 9px; margin: 5px 0; overflow-wrap: anywhere; }
+#environmentInspector .env-library-record { border-bottom: 1px solid var(--line, #34505a); padding: 8px 0; }
+#environmentInspector .env-library-record strong, #environmentInspector .env-library-record span { display: block; font-size: 9px; overflow-wrap: anywhere; }
+#environmentInspector .env-library-record span { color: var(--muted, #91a6ae); }
+#environmentInspector .env-capability { font-size: 9px; color: var(--text-2, #bed0d6); overflow-wrap: anywhere; }
+#environmentInspector .env-capability span { color: var(--muted, #91a6ae); }
+#environmentInspector a { color: #8fcedb; font-size: 9px; }
+#environmentInspector [hidden] { display: none !important; }

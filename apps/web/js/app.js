@@ -1,6 +1,7 @@
 // Cloud Shadow - main app: globe, panel, charts, ledger, tour.
 (async function () {
   const { campusMarkerFromEvent, formatSiteMarkerLabel, siteMarkerPresentation } = await import("./site-marker.js");
+  const { MAP_SCALES, createEvidenceProvider, comparisonDates, evidenceTexture } = await import('./evidence-map.js');
   const $ = (s) => document.querySelector(s);
   const fmt = (v, d = 2) => (v == null || !isFinite(v) ? "–" : (v > 0 ? "+" : "") + v.toFixed(d));
   const fmtP = (p) => (p == null || !isFinite(p) ? "–" : p < 0.001 ? "p < 0.001" : "p = " + p.toFixed(3));
@@ -114,6 +115,7 @@
   // ------------------------------------------------------------ map overlay + compare
   let overlayA = null, overlayB = null;
   const state = { site: SITES[0], live: null, varId: "NO2", mapLayer: "none" };
+  let environmentPanel=null;
   const today = new Date().toISOString().slice(0, 10);
 
   // This accessible caption also exposes the exact source anchor for inspection.
@@ -184,19 +186,25 @@
       const L = "HLS_S30_Nadir_BRDF_Adjusted_Reflectance"; return { layer: L, date: snapDate(L, date) };
     }
   }
-  function makeLayer(spec) {
+  function makeLayer(spec, baseline = null) {
     const z = CATALOG[spec.layer].z;
-    const p = new Cesium.UrlTemplateImageryProvider({ url: tileUrl(spec.layer, spec.date), maximumLevel: z, credit: "NASA GIBS" });
+    const v=VARS[state.mapLayer],lut=v? _luts[v.cmap]:null;
+    const p = lut ? createEvidenceProvider(Cesium,{url:tileUrl(spec.layer,spec.date),baselineUrl:baseline?tileUrl(spec.layer,baseline.date):null,lut,variable:state.mapLayer,offset:v.offset,factor:v.scale,change:!!baseline,maximumLevel:z,onError:()=>{ $('#mapLegendDetail').textContent='Some comparison pixels unavailable · transparent gaps are missing data.'; }})
+      : new Cesium.UrlTemplateImageryProvider({ url: tileUrl(spec.layer, spec.date), maximumLevel: z, credit: "NASA GIBS",...(state.mapLayer==='HLS'?{rectangle:Cesium.Rectangle.fromDegrees(Math.max(-180,(state.live||state.site).lon-.2),Math.max(-90,(state.live||state.site).lat-.15),Math.min(180,(state.live||state.site).lon+.2),Math.min(90,(state.live||state.site).lat+.15))}: {}) });
     const l = viewer.imageryLayers.addImageryProvider(p);
     l.alpha = +$("#opacity").value;
     return l;
   }
+  let textureGeneration=0;
   function refreshOverlay() {
+    const textureToken=++textureGeneration;
     [overlayA, overlayB].forEach((l) => l && viewer.imageryLayers.remove(l, true)); overlayA = overlayB = null;
-    const cmp = $("#cmpToggle").checked;
+    const change = $('#mapChange').checked && !!VARS[state.mapLayer];
+    const cmp = $("#cmpToggle").checked && !change;
     const a = overlaySpec(state.mapLayer, $("#dateA").value || today);
     if (a) {
-      overlayA = makeLayer(a); $("#dateA").value = a.date;
+      const baseline=change?overlaySpec(state.mapLayer,$('#baselineYear').value+'-07-15'):null;
+      overlayA = makeLayer(a,baseline); $("#dateA").value = a.date;
       if (cmp) {
         const b = overlaySpec(state.mapLayer, $("#dateB").value || today);
         overlayB = makeLayer(b); $("#dateB").value = b.date;
@@ -206,6 +214,12 @@
     }
     $("#split").hidden = !(cmp && a); $("#dateBWrap").hidden = !cmp;
     syncLayerControls(a);
+    window.dispatchEvent(new CustomEvent('cs:map-layer',{detail:{kind:state.mapLayer,change}}));
+    const v=VARS[state.mapLayer];
+    if(a&&v&&_luts[v.cmap]){
+      const b=overlaySpec(state.mapLayer,$('#baselineYear').value+'-07-15');
+      evidenceTexture({center:state.live||state.site,url:tileUrl(a.layer,a.date),baselineUrl:tileUrl(a.layer,b.date),lut:_luts[v.cmap],variable:state.mapLayer,offset:v.offset,factor:v.scale,change,maximumLevel:CATALOG[a.layer].z}).then(texture=>{if(textureToken!==textureGeneration)return;$('#mapLegend').dataset.validPixels=String(texture.validPixelCount);if(!texture.validPixelCount)$('#mapResolution').textContent='No comparable NASA pixels in this close-up area for these dates. Try another date or the absolute-value view. Missing coverage is transparent.';window.dispatchEvent(new CustomEvent('cs:evidence-texture',{detail:texture}));}).catch(()=>{if(textureToken===textureGeneration)window.dispatchEvent(new CustomEvent('cs:evidence-texture',{detail:{active:false}}));});
+    }else window.dispatchEvent(new CustomEvent('cs:evidence-texture',{detail:{active:false}}));
   }
   function syncLayerControls(spec) {
     const descriptions = {
@@ -232,15 +246,31 @@
     $("#mapLegend").hidden = !showLegend;
     if (showLegend) {
       $("#mapLegendTitle").textContent = label;
-      $("#mapLegendDetail").textContent = `${VARS[state.mapLayer]?.short || label} · ${spec.date}`;
-      $("#mapLegendScale").src = `https://gibs.earthdata.nasa.gov/legends/${spec.layer}_H.svg`;
+      const scale=MAP_SCALES[state.mapLayer],change=$('#mapChange').checked;
+      const base=overlaySpec(state.mapLayer,$('#baselineYear').value+'-07-15');
+      $('#mapLegendDetail').textContent = `${change?`${spec.date} minus ${base.date}`:spec.date} · ${scale.resolution} native data`;
+      $('#mapLegendScale').hidden=true;
+      $('#mapColorScale').hidden=false;
+      $('#mapScaleLow').textContent=change?`−${scale.delta}`:scale.min;
+      $('#mapScaleHigh').textContent=(change?`+${scale.delta}`:scale.max)+' '+scale.unit;
+      $('#mapScaleMeaning').textContent=state.mapLayer==='NDVI'?(change?'Blue: greener · red: less green':'Blue: greener · red: sparse vegetation'):(change?'Blue: lower · red: higher':'Blue: lower · red: higher');
+      $('#mapResolution').textContent='Colour-class estimates from NASA imagery. Transparent = no data. Comparison is between snapshots, not a long-term trend or proof of a facility effect.';
     }
   }
-  function setMapLayer(kind, dateA, dateB, compare) {
+  let layerRequest=0;
+  async function setMapLayer(kind, dateA, dateB, compare) {
+    const token=++layerRequest;
     const changed = state.mapLayer !== kind;
     state.mapLayer = kind; $("#layerSel").value = kind;
     if (dateA) $("#dateA").value = dateA; if (dateB) $("#dateB").value = dateB;
     if (compare != null) $("#cmpToggle").checked = compare;
+    if(VARS[kind]){
+      if(!dateA)$('#dateA').value=comparisonDates(kind,+$('#tlSlider').value||2025,+$('#baselineYear').value).current;
+      try{await loadLut(VARS[kind].cmap);}catch{toast('Map colour scale unavailable. Try again.');return;}
+      if(token!==layerRequest)return;
+      state.varId=kind;renderTabs();runAnalysis();
+      const strip=$('#tlRingVar');if([...strip.options].some(option=>option.value===kind)){strip.value=kind;strip.dispatchEvent(new Event('change'));}
+    }
     refreshOverlay();
     if (changed) window.dispatchEvent(new CustomEvent('cs:map-layer', { detail: { kind } }));
   }
@@ -256,6 +286,14 @@
   }));
   $("#dateA").onchange = $("#dateB").onchange = $("#cmpToggle").onchange = refreshOverlay;
   $("#opacity").oninput = (e) => [overlayA, overlayB].forEach((l) => l && (l.alpha = +e.target.value));
+  $('#mapChange').onchange=()=>setMapLayer(state.mapLayer,$('#dateA').value);
+  $('#baselineYear').onchange=()=>setMapLayer(state.mapLayer,$('#dateA').value);
+  window.addEventListener('cs:year',({detail})=>{
+    if(!detail?.year||!VARS[state.mapLayer])return;
+    if(detail.year>new Date().getFullYear()){$('#mapResolution').textContent='Historical satellite reference map; its source date is shown above. Use the climate scenario panel for future conditions.';return;}
+    const date=comparisonDates(state.mapLayer,detail.year,+$('#baselineYear').value).current;
+    if($('#dateA').value.slice(0,4)!==date.slice(0,4))setMapLayer(state.mapLayer,date);
+  });
 
   // draggable split
   scene.splitPosition = 0.5;
@@ -315,6 +353,7 @@
   }
 
   function selectSite(s, { fly = true, varId } = {}) {
+    textureGeneration++;layerRequest++;
     if (state.site?.id !== s.id) localMarkerMode = false;
     state.site = s; state.live = null; liveAbort?.abort();
     state.varId = varId || s.watchFor?.[0] || "LST_Day";
@@ -322,6 +361,7 @@
     updateSitePins();
     if (fly) flyTo(s.lat, s.lon, 40, -45);
     window.dispatchEvent(new CustomEvent("cs:site", { detail: { site: s, fly } }));
+    if(state.mapLayer!=='none')void setMapLayer(state.mapLayer,$('#dateA').value);
   }
 
   // ------------------------------------------------------------ analysis + charts
@@ -389,6 +429,9 @@
     const dir = (x) => (x > 0 ? "rising" : "falling");
     let head;
     const span = `${a.first?.slice(0, 4)}–${a.last?.slice(0, 4)}`;
+    const regional=v.layer.startsWith('MERRA2'),headlineTrend=regional?a.trendSite:d;
+    $('#changeHeadline').innerHTML=`<span class="eyebrow">${v.short} · ${span}</span><strong>${Number.isFinite(headlineTrend.slope)?fmt(headlineTrend.slope*10,v.digits):'Unavailable'} <small>${v.unit} / decade</small></strong><p>${regional?'Regional air temperature':'Change at the site relative to its surroundings'} · ${headlineTrend.p<.05?'statistically significant':'no statistically significant trend'}</p><p class="muted">${v.sensor}. Nearby change alone does not establish a facility effect.</p><button type="button" id="showTrendDetail">See chart and method</button>`;
+    $('#showTrendDetail').onclick=()=>{$('#analysisDetails').open=true;$('#analysisDetails').scrollIntoView({behavior:'smooth',block:'start'});};
     if (v.layer.startsWith("MERRA2")) {
       const t = a.trendSite;
       head = `☁️ Regional climate control: air temperature here is ${t.slope > 0 ? "warming" : "cooling"} <b>${fmt(t.slope * 10, 2)} °C/decade</b> (${fmtP(t.p)}, ${span}). A site's local heat signal has to stand out against this background.`;
@@ -431,7 +474,7 @@
       series = SERIES[state.site.id]?.[state.varId];
       onset = state.site.onset;
       drawRings(state.site.lat, state.site.lon, v.ring);
-      if (!series) { $("#verdict").innerHTML = '<div class="muted">No precomputed data yet. Run <code>python3 scripts/precompute.py</code>.</div>'; chartMain?.destroy(); chartDiff?.destroy(); return; }
+      if (!series) { $('#changeHeadline').textContent='No prepared observations for this measurement and location.'; $("#verdict").innerHTML = '<div class="muted">No prepared source data for this measurement.</div>'; chartMain?.destroy(); chartDiff?.destroy(); return; }
     }
     const a = Stats.analyze(series, onset);
     if (!state.live) (lastResults[state.site.id] ||= {})[state.varId] = a;
@@ -483,6 +526,11 @@
     const cart = viewer.camera.pickEllipsoid(ev.position, scene.globe.ellipsoid); if (!cart) return;
     const c = Cesium.Cartographic.fromCartesian(cart);
     state.live = { lat: Cesium.Math.toDegrees(c.latitude), lon: Cesium.Math.toDegrees(c.longitude) };
+    textureGeneration++;
+    const pointSite={...state.live,id:'point-'+state.live.lat.toFixed(4)+','+state.live.lon.toFixed(4),name:'Selected map location'};
+    environmentPanel?.setSite(pointSite);
+    window.dispatchEvent(new CustomEvent('cs:location',{detail:{site:pointSite}}));
+    refreshOverlay();
     renderChips(); renderStory(); renderTabs(); runAnalysis();
     $("#ledger").innerHTML = '<div class="led"><div class="val">The ledger is available for the case-study sites. For your own spot, the satellite results above are the measured part.</div></div>';
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
@@ -517,7 +565,7 @@
     if ($("#analysisDetails").open) { chartMain?.resize(); chartDiff?.resize(); }
   });
   $("#mapLegendScale").addEventListener("error", () => { $("#mapLegendScale").hidden = true; });
-  $("#mapLegendScale").addEventListener("load", () => { $("#mapLegendScale").hidden = false; });
+  $("#mapLegendScale").addEventListener("load", () => { $("#mapLegendScale").hidden = !!VARS[state.mapLayer]; });
   syncLayerControls(null);
   // pre-run the satellite analyses so the ledger shows measured cards immediately
   for (const s of SITES) for (const id of Object.keys(VARS)) { const ser = SERIES[s.id]?.[id]; if (ser) (lastResults[s.id] ||= {})[id] = Stats.analyze(ser, s.onset); }
@@ -528,5 +576,9 @@
   if (q.get("tour") != null) showTour(+q.get("tour"));
   if (q.get("embed")) { $("#globe").style.display = "none"; $("#topbar").style.display = "none"; $("#panel").style.width = "100%"; }
   window.CloudShadow = { selectSite: (id, v) => S[id] && selectSite(S[id], { varId: v }), viewer, state, sites: SITES, flyTo, setMapLayer, getMapLayer: () => state.mapLayer };
+  const [{attachEnvironmentPanel},{attachEnvironmentMap}]=await Promise.all([import('./environment-panel.js'),import('./environment-map.js')]);
+  attachEnvironmentMap(viewer,{sites:SITES});
+  environmentPanel=attachEnvironmentPanel({site:state.site,sites:SITES,year:+$('#tlSlider').value||2025,apiBase:location.hostname==='localhost'||location.hostname==='127.0.0.1'?'/api/environment':undefined});
+  window.CloudShadow.environment=environmentPanel;
   window.dispatchEvent(new CustomEvent("cs:ready", { detail: window.CloudShadow }));
 })();

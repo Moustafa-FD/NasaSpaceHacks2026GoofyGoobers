@@ -103,6 +103,9 @@ test("control comparison and failure modes", async t => {
   assert.equal(same.run.status, "completed", JSON.stringify(same.run.error));
   assert.equal(same.result!.report.target.direction, "increasing");
   assert.equal(same.result!.report.difference.direction, "no significant trend");
+  const incompatible = await finish((await post({ schemaVersion: "1.0", kind: "trend-analysis", input: { series: { label: "target", unit: "degC", points } }, control: { series: { label: "control", unit: "degF", points } } })).body.id);
+  assert.equal(incompatible.run.status, "failed");
+  assert.match(incompatible.run.error!.message, /different units/);
 
   const short = await finish((await post({ schemaVersion: "1.0", kind: "trend-analysis", input: { series: { label: "short", unit: "K", points: synthetic(4, 0.05) } } })).body.id);
   assert.equal(short.run.status, "completed");
@@ -149,6 +152,9 @@ test("Part 1 → Part 2: stitches consecutive land-water runs and refuses unsafe
 
 test("Part 1 → Part 2: hourly air quality becomes daily means; censored water quality stays missing", async () => {
   const { extractVariable, toDaily } = await import("../apps/api/src/environment/trends.ts");
+  const grid = extractVariable({kind:'series',metrics:[{variable:'T2M',units:'C',series:[{date:'2000-01',value:10},{date:'2000-02',value:null}]}]},'grid','T2M');
+  assert.equal(grid.unit,'C');
+  assert.deepEqual(grid.points,[{date:'2000-01',value:10},{date:'2000-02',value:null}]);
   const hourly = toDaily([{ date: "2024-01-01T00:00", value: 10 }, { date: "2024-01-01T12:00", value: 20 }, { date: "2024-01-02T00:00", value: null }]);
   assert.deepEqual(hourly, [{ date: "2024-01-01", value: 15 }, { date: "2024-01-02", value: null }]);
   const water = extractVariable({ kind: "water-quality", evidence: "ground-observation", records: [

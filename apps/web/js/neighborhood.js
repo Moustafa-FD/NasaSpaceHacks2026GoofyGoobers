@@ -1,6 +1,6 @@
 // Zoom-driven local 3D scenery. Mapped layout, authored low-poly architecture.
-import { createLandscapeShader } from './landscape-shader.js';
-import { sampleElevation, scenarioHeightOffset } from './landscape.js';
+import { createLandscapeShader, normalizeEvidenceTexture, setLandscapeEvidence } from './landscape-shader.js';
+import { sampleElevation } from './landscape.js';
 import { attachCampusEffects } from './campus-effects.js';
 import { attachCityLife } from './city-life.js';
 import { attachLocalAtmosphere } from './local-atmosphere.js';
@@ -10,7 +10,7 @@ import { createSceneStreamer, streamKey, streamRadius, fadeWeights, waitForModel
 import { createSceneCompiler } from './scene-compiler.js';
 const ENTER_HEIGHT = 5800, EXIT_HEIGHT = 7600, WARM_HEIGHT = 12000;
 let cs, viewer, currentSite, model, sceneData, active = false, enabled = true, generation = 0;
-let pending = false, scenario = false, lastFrameYear = 2025, lastHealth = 1, savedScene;
+let pending = false, lastFrameYear = 2025, lastHealth = 1, savedScene, latestEvidence=null;
 let failedGeneration = -1;
 let campusEffects, cityLife, localAtmosphere, overviewModel, overviewActive = false, lastQuality = 'high', lastRow = {}, lastPhase = 'observed';
 const generated = new Map();
@@ -29,7 +29,7 @@ function mountControls() {
     <div id="sceneActivity" style="font-size:10px;color:#a9c9be;margin-top:5px" hidden></div>
     <div style="font-size:9px;color:#91a9ac;margin-top:6px"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:inherit">© OpenStreetMap contributors</a> · <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener" style="color:inherit">Copernicus / Open-Meteo</a></div>
     <div id="campusPlumeNote" hidden style="font-size:10px;color:#adbdc3;margin-top:6px">Illustrative combustion plume; not measured visible smoke.</div>
-    <details class="scene-notes"><summary>Landscape &amp; map details</summary><button id="sceneHorizon" title="Lower the viewing angle to see the local HDRI sky">Horizon view ↗</button><p id="sceneSkyState">EXR sky · regional weather selects an illustrative backdrop.</p><label><input id="terrainScenario" type="checkbox"> Terrain evolution scenario</label><p id="landscapeState">Present-day mapped buildings, roads, farms, forests and water. Architecture, planting, traffic and aircraft are illustrative.</p><p>Vegetation changes illustrate the site's NDVI signal, not measured crop death or yield. Terrain scenarios are illustrative. Elevation is interpolated from the available reference DEM.</p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> · <a href="https://polyhaven.com" target="_blank" rel="noopener">HDRI: Poly Haven / CC0</a></details>`;
+    <details class="scene-notes"><summary>Landscape &amp; map details</summary><button id="sceneHorizon" title="Lower the viewing angle to see the local HDRI sky">Horizon view ↗</button><p id="sceneSkyState">EXR sky · regional weather selects an illustrative backdrop.</p><p id="terrainReferenceState">Static DEM; river/terrain forecasts unavailable.</p><p id="landscapeState">Present-day mapped buildings, roads, farms, forests and water. Architecture, planting, traffic and aircraft are illustrative.</p><p>Vegetation changes illustrate the site's NDVI signal, not measured crop death or yield. Elevation is interpolated from the available reference DEM. Evidence maps retain their source coverage and resolution.</p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> · <a href="https://polyhaven.com" target="_blank" rel="noopener">HDRI: Poly Haven / CC0</a></details>`;
   document.body.appendChild(dock);
   const style = document.createElement('style');
   style.textContent = `#sceneDock{position:fixed;left:calc(var(--panel-width,300px) + 18px);top:92px;z-index:7;width:350px;background:#101a23ed;border:1px solid #ffffff1c;border-radius:12px;padding:12px 14px;box-shadow:0 8px 24px #0002;backdrop-filter:blur(12px);font-size:12px}.scene-heading{display:flex;align-items:center;gap:8px}.scene-heading strong{font-size:12px;letter-spacing:.4px}.scene-dot{width:7px;height:7px;background:#7f9ba4;border-radius:50%;flex:none}body.lowpoly-active .scene-dot{background:#7cdbc1;box-shadow:0 0 9px #7cdbc155}#sceneCount{margin-left:auto;color:#a7bcc5;font-size:10px}.scene-actions{display:flex;gap:6px;margin-top:10px;align-items:center}.scene-actions button{font-size:11px;padding:6px 8px}.scene-auto{margin-left:auto;font-size:11px;color:#acbcc6;display:flex;gap:4px;align-items:center}#sceneStatus{color:#9eafb9;font-size:11px;margin-top:8px;line-height:1.4}.scene-notes{margin-top:8px;font-size:10px;color:#94a4af}.scene-notes summary{cursor:pointer;color:#aabac2}.scene-notes label{display:flex;gap:6px;align-items:center;margin:10px 0}.scene-notes p{line-height:1.5;margin:7px 0}.scene-notes a{color:#92c5bb}#gpu-info{top:92px!important;font-size:10px!important;max-width:360px!important}@media(max-width:680px){#sceneDock{left:14px;top:110px;width:min(350px,calc(100vw - 28px))}#gpu-info{display:none}}`;
@@ -44,13 +44,6 @@ function mountControls() {
   document.querySelector('#sceneHorizon').onclick = () => enter('horizon');
   document.querySelector('#sceneGlobe').onclick = () => exit();
   document.querySelector('#sceneAuto').onchange = (e) => { enabled = e.target.checked; evaluateCamera(); };
-  document.querySelector('#terrainScenario').onchange = (e) => {
-    scenario = e.target.checked;
-    document.querySelector('#landscapeState').textContent = scenario ? 'TERRAIN SCENARIO · move the timeline from 2025 toward 2035 to see illustrative uplift, erosion and changing shorelines. Not a historical reconstruction or forecast.' : 'Present-day mapped buildings, farms, forests and water. Roofs, missing heights and planting are illustrative.';
-    for (const patch of [currentPatch,retiringPatch,uploadingPatch]) for(const asset of patch?.assets||[]) asset.shader.setUniform('u_scenario',scenario?1:0);
-    if(baseData)updateCampusMarker(baseData,currentSite.id);
-    document.querySelector('#sceneMode').textContent = active ? (scenario ? 'Landscape scenario' : 'Low-poly neighborhood') : 'Globe view';
-  };
 }
 const status = (message) => { const el = document.querySelector('#sceneStatus'); if (el) el.textContent = message; };
 function removeModel() {
@@ -76,8 +69,7 @@ function disposePatch(patch){
 }
 function updateCampusMarker(data, siteId) {
   const campus = data.campuses?.[0]; if (!campus) return;
-  const base = 4 + (sampleElevation(data.elevation,campus.x,campus.y) ?? 0) - (campus.x**2+campus.y**2)/(2*6371000)
-    + (scenario ? scenarioHeightOffset(campus.x,campus.y,lastFrameYear,data.elevation?.extentM) : 0);
+  const base = Number.isFinite(campus.baseHeight)?campus.baseHeight:4 + (sampleElevation(data.elevation,campus.x,campus.y) ?? 0) - (campus.x**2+campus.y**2)/(2*6371000);
   const frame = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(data.center.lon,data.center.lat));
   const cartographicAt = (height) => Cesium.Cartographic.fromCartesian(Cesium.Matrix4.multiplyByPoint(frame,new Cesium.Cartesian3(campus.x,campus.y,height),new Cesium.Cartesian3()));
   const roof = cartographicAt(base+campus.height+2),ground=cartographicAt(base);
@@ -174,7 +166,7 @@ function setPatchCircle(patch,height) {
 function patchUniforms(patch,asset) {
   asset.shader.setUniform('u_health',lastHealth);
   asset.shader.setUniform('u_year',lastFrameYear);
-  asset.shader.setUniform('u_scenario',scenario?1:0);
+  asset.shader.setUniform('u_scenario',0);
   asset.shader.setUniform('u_viewCircle',patch.circleUniform);
   asset.shader.setUniform('u_patchRadius',patch.data.radius||3300);
   asset.shader.setUniform('u_patchOpacity',asset.ready?patch.opacity:0);
@@ -187,6 +179,7 @@ function disposeAsset(asset) {
 }
 async function makeAsset(patch,buffer,kind) {
   const shader=createLandscapeShader(Cesium,patch.data.elevation,{center:patch.data.center});
+  setLandscapeEvidence(Cesium,shader,latestEvidence);
   const asset={shader,model:null,kind,ready:false};patchUniforms(patch,asset);
   shader.setUniform('u_patchOpacity',0);
   patch.assets.push(asset);
@@ -239,7 +232,7 @@ function attachPatchControllers(patch) {
   lastQuality=currentQuality();
   if(data.stage!=='preview'){
   cityLife=attachCityLife(viewer,currentSite,{...data,viewCircle:()=>patch.circle,
-    heightOffset:(x,y)=>scenario?scenarioHeightOffset(x,y,lastFrameYear,data.elevation?.extentM):0,
+    heightOffset:()=>0,
     onActivity:(activity)=>{
       if(token!==generation||patch!==currentPatch)return;
       const el=document.querySelector('#sceneActivity');el.hidden=!active;
@@ -428,7 +421,8 @@ function enter(fields = false) {
   const data=baseData;
   enabled = true; document.querySelector('#sceneAuto').checked = true;
   const f = (fields === true ? data.fieldFocus : fields === 'homes' ? data.focus : fields==='shops'?data.commercialFocus:fields==='airport'?data.airportFocus:fields==='parks'?data.recreationFocus:data.campusFocus) || { x: 0, y: 0 };
-  const height=(sampleElevation(data.elevation,f.x,f.y)??0)+4-(f.x*f.x+f.y*f.y)/(2*6371000)+(scenario?scenarioHeightOffset(f.x,f.y,lastFrameYear,data.elevation?.extentM):0);
+  const campusBase=data.campuses?.find((c)=>c.id===f.id)?.baseHeight;
+  const height=Number.isFinite(campusBase)?campusBase:(sampleElevation(data.elevation,f.x,f.y)??0)+4-(f.x*f.x+f.y*f.y)/(2*6371000);
   const frame=Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(data.center.lon,data.center.lat));
   const position=Cesium.Matrix4.multiplyByPoint(frame,new Cesium.Cartesian3(f.x,f.y,height),new Cesium.Cartesian3());
   const range = fields === 'airport'?1800:fields===true||fields==='homes'||fields==='shops'||fields==='parks'?650:Math.max(850,Math.hypot(f.width||0,f.depth||0)*1.7);
@@ -472,12 +466,16 @@ function init(context) {
     evaluateCamera();
     if (active) { viewer.scene.highDynamicRange = false; viewer.scene.postProcessStages.bloom.enabled = false; }
   });
-  // Scientific raster layers retain their real geospatial coverage in map view.
-  window.addEventListener('cs:map-layer', (event) => {
-    if (active && !['none', 'HLS'].includes(event.detail.kind)) exit();
-  });
   if (cs.state.site) prepare(cs.state.site);
   window.CloudShadowNeighborhood = { enter, exit, get active(){return active;},get pending(){return pending||!!uploadingPatch||streamer.pending;},get streamState(){return streamer.state;},get center(){return sceneData?.center;} };
 }
+// Register before viewer readiness too: an already-selected raster must survive
+// the first patch upload. No map choice changes the camera or exits 3D mode.
+window.addEventListener('cs:evidence-texture', (event) => {
+  latestEvidence=normalizeEvidenceTexture(event.detail);
+  for(const patch of new Set([currentPatch,retiringPatch,uploadingPatch]))for(const asset of patch?.assets||[])setLandscapeEvidence(Cesium,asset.shader,latestEvidence);
+  const dock=document.querySelector('#sceneDock');if(dock)dock.dataset.evidenceTexture=latestEvidence?'active':'none';
+  viewer?.scene.requestRender?.();
+});
 if (window.CloudShadow) init(window.CloudShadow);
 else window.addEventListener('cs:ready', (event) => init(event.detail), { once: true });

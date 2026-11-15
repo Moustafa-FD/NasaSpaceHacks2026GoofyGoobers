@@ -6,7 +6,7 @@ import { bakeMesh } from './mesh-batching.js';
 import { coarseMesh } from './lod-mesh.js';
 import { createSurfaceHeightSampler } from './surface-height.js';
 import { buildRoadSurface, resolveRoadWidth } from './road-mesh.js';
-import { buildUrbanDetail } from './urban-detail.js';
+import { buildUrbanDetail, CAMPUS_PAD_LIFT_M } from './urban-detail.js';
 import { planStreetInfill } from './street-infill.js';
 import { compactSceneBuffers } from './scene-buffers.js';
 import { buildRecreationDetail } from './recreation-detail.js';
@@ -343,6 +343,7 @@ export function buildNeighborhoodGlb(data, manifest, kitBuffer, options = {}) {
   const r = plan.radius;
   const terrain = buildTerrainSurface(data, landscape, groundHeight, { radius: r, spacingM: options.terrainSpacingM ?? (options.detail === 'overview' ? 110 : 55) });
   const surfaceHeight = createSurfaceHeightSampler(terrain.groups, groundHeight);
+  const instanceBaseHeight=(i)=>i.kind==='data-center'?surfaceHeight(i.x,i.y)+CAMPUS_PAD_LIFT_M:groundHeight(i.x,i.y);
   const roadSurface = buildRoadSurface(data, surfaceHeight, {detail:options.preview?'preview':options.detail || 'close',spacingM:options.preview?50:undefined,urban:options.urban});
   // Upload a small, navigable mapped scene before expensive yards, parking,
   // recreation and dense planting. The full pass retains all of those details.
@@ -387,7 +388,7 @@ export function buildNeighborhoodGlb(data, manifest, kitBuffer, options = {}) {
     const meshIndex = gltf.meshes.length; gltf.meshes.push(mesh);
     const translations = [], rotations = [], scales = [];
     for (const i of instances) {
-      translations.push(i.x, groundHeight(i.x, i.y), -i.y);
+      translations.push(i.x, instanceBaseHeight(i), -i.y);
       rotations.push(0, Math.sin(i.angle / 2), 0, Math.cos(i.angle / 2)); scales.push(...i.scale);
     }
     gltf.scenes[0].nodes.push(gltf.nodes.length);
@@ -438,5 +439,5 @@ export function buildNeighborhoodGlb(data, manifest, kitBuffer, options = {}) {
   const binStart = 20 + jsonLength;
   header.setUint32(binStart, offset, true); header.setUint32(binStart + 4, 0x004e4942, true);
   let p = binStart + 8; for (const chunk of packed.chunks) { result.set(chunk, p); p += chunk.length; }
-  return { buffer: result.buffer, assetStats:{unusedAssetBytesRemoved:packed.savedBytes,sourceSurfaceVertices,packedSurfaceVertices}, stats: { ...plan.stats, terrainAvailable: !!options.elevation?.heights?.every((h) => Number.isFinite(h)) }, focus: plan.focus, campusFocus: plan.campusFocus, campuses: plan.campuses, roads: plan.roads, roadPaths: roadSurface.paths, roadStats:roadSurface.stats, urbanStats:urbanDetail.stats, recreationStats:recreationDetail.stats,recreationFocus:recreationDetail.focus, airportFocus:urbanDetail.airportFocus, commercialFocus:plan.instances.find(i=>['shop','office'].includes(i.kind)) || null, fieldFocus: plan.fieldFocus, focusHeight: groundHeight(plan.focus.x, plan.focus.y), radius: r, center: data.center, source: data.source, elevation: options.elevation };
+  return { buffer: result.buffer, assetStats:{unusedAssetBytesRemoved:packed.savedBytes,sourceSurfaceVertices,packedSurfaceVertices}, stats: { ...plan.stats, terrainAvailable: !!options.elevation?.heights?.every((h) => Number.isFinite(h)) }, focus: plan.focus, campusFocus: plan.campusFocus, campuses: plan.campuses.map((c)=>({...c,baseHeight:instanceBaseHeight({...c,kind:'data-center'}),padLiftM:CAMPUS_PAD_LIFT_M})), roads: plan.roads, roadPaths: roadSurface.paths, roadStats:roadSurface.stats, urbanStats:urbanDetail.stats, recreationStats:recreationDetail.stats,recreationFocus:recreationDetail.focus, airportFocus:urbanDetail.airportFocus, commercialFocus:plan.instances.find(i=>['shop','office'].includes(i.kind)) || null, fieldFocus: plan.fieldFocus, focusHeight: groundHeight(plan.focus.x, plan.focus.y), radius: r, center: data.center, source: data.source, elevation: options.elevation };
 }

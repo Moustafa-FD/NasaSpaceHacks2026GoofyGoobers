@@ -69,6 +69,8 @@ def run(request: dict[str, Any]) -> dict[str, Any]:
 
     target, target_years = _points(request.get("target"), "target")
     control_block = request.get("control")
+    if control_block is not None and str(control_block.get("unit", "")) != str(request["target"].get("unit", "")):
+        raise RequestError("Target and control must use the same unit before subtraction")
     if target_years and cadence != "annual":
         raise RequestError("yearly points (YYYY) require cadence 'annual'")
 
