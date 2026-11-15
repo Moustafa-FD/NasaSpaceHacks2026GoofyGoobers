@@ -64,6 +64,6 @@ export function attachEnvironmentMap(viewer,{sites=[]}={}){
   });
   window.addEventListener('cs:site',({detail})=>{selected=detail?.site?.id;clear();});
   window.addEventListener('cs:location',({detail})=>{selected=detail?.site?.id;clear();});
-  window.addEventListener('cs:map-layer',({detail})=>{if(detail?.kind!=='none')clear();});
+  window.addEventListener('cs:map-layer',({detail})=>{if(detail?.kind!=='none'&&(plumeEntity||stations.length))clear();});
   return {clear};
 }

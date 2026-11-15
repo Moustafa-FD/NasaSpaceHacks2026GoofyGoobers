@@ -92,12 +92,12 @@ test('globe FX builds bounded cloud/rain primitives without weather rectangles o
   class Vector{constructor(x=0,y=0,z=0){Object.assign(this,{x,y,z});}static fromDegrees(x,y,z){return new Vector(x,y,z);}}
   class Options{constructor(options){Object.assign(this,options);}}
   const primitives=[],entities=[];
-  const Cesium={Cartesian3:Vector,Cartesian2:Vector,CloudCollection:class{add(options){return options;}},ParticleSystem:Options,BoxEmitter:Vector,
+  const Cesium={Cartesian3:Vector,Cartesian2:Vector,DirectionalLight:Options,CloudCollection:class{add(options){return options;}},ParticleSystem:Options,BoxEmitter:Vector,
     Color:{fromCssColorString:()=>({withAlpha:()=>({})})},Transforms:{eastNorthUpToFixedFrame:()=>({})},Matrix4:{multiplyByPoint:(_,point)=>point},JulianDate:{fromDate:()=>1},Math:{toRadians:n=>n*Math.PI/180}};
   const viewer={clock:{currentTime:0},scene:{globe:{},skyAtmosphere:{},primitives:{add(value){primitives.push(value);return value;},remove(value){primitives.splice(primitives.indexOf(value),1);}}},entities:{add(value){entities.push(value);throw new Error('No site-sized planes or arbitrary massing');},remove(){}}};
-  const context={Cesium,analysisDeltaSeconds,getMotionSpeed:()=>.35,window:{addEventListener(){},dispatchEvent(){}},CustomEvent:class{},document:{createElement:()=>({getContext:()=>({createLinearGradient:()=>({addColorStop(){}}),fillRect(){}})})},console};
+  const context={Cesium,analysisDeltaSeconds,referenceSunDirection:()=>[1,0,0],getMotionSpeed:()=>.35,window:{addEventListener(){},dispatchEvent(){}},CustomEvent:class{},document:{createElement:()=>({getContext:()=>({createLinearGradient:()=>({addColorStop(){}}),fillRect(){}})})},console};
   const source=readFileSync(new URL('../apps/web/js/fx.js',import.meta.url),'utf8').replace(/^import .*;\r?$/gm,'').replace(/export /g,'');
-  runInNewContext(source+`\nglobalThis.hooks={build(v){viewer=v;scene=v.scene;S.nightLights={};buildSite({id:'a',lat:35,lon:-90,onset:'2020',effects:{plume:true}},new Map());},applyYear,get state(){return S;}};`,context);
+  runInNewContext(source+`\nglobalThis.hooks={build(v){viewer=v;scene=v.scene;S.nightLights={};buildSite({id:'a',lat:35,lon:-90,onset:'2020',effects:{plume:true}},new Map());},applyYear,setLight,get state(){return S;}};`,context);
   context.hooks.build(viewer);
   assert.equal(entities.length,0);assert.equal(primitives.length,2);assert.equal(context.hooks.state.fluid,null);
   assert.equal(context.hooks.state.massing.length,0);
@@ -107,4 +107,12 @@ test('globe FX builds bounded cloud/rain primitives without weather rectangles o
   context.hooks.applyYear(2050,{},'climate');
   assert.equal(context.hooks.state.rain.emissionRate,0);assert.equal(context.hooks.state.windSpeed,0);
   assert.equal(context.hooks.state.fluid,null);assert.equal(primitives.length,2);
+  // Advancing/rewinding data years and switching day/night must never move the
+  // native simulation clock: that formerly caused millions of plume emissions.
+  Object.defineProperty(viewer.clock,'currentTime',{get:()=>123,set(){throw new Error('Lighting jumped the native particle clock');}});
+  for(const year of [2003,2024,2025,2026,2035,2100,2023])context.hooks.applyYear(year,{},year>2026?'projected':'observed');
+  context.hooks.setLight('night',2100);context.hooks.setLight('golden',2003);
+  assert.equal(viewer.clock.currentTime,123);
+  context.hooks.state.localScene=true;const localLight=viewer.scene.light;
+  context.hooks.setLight('night');assert.equal(viewer.scene.light,localLight);assert.equal(localLight.intensity,.35);
 });

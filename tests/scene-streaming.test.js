@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {createSceneStreamer,streamKey,streamRadius,radialCoverage,fadeWeights,waitForModelReady} from '../apps/web/js/scene-streaming.js';
 import {createSceneCompiler} from '../apps/web/js/scene-compiler.js';
-import {setLandscapeEvidence,normalizeEvidenceTexture} from '../apps/web/js/landscape-shader.js';
+import {setLandscapeEvidence,normalizeEvidenceTexture,clearLandscapeEvidencePrevious,createEvidenceTransition} from '../apps/web/js/landscape-shader.js';
 const ready=(point)=>({status:200,json:async()=>({status:'ready',center:point,snapshot:{center:point}})});
 const turn=()=>new Promise((resolve)=>setImmediate(resolve));
 const deferred=()=>{let resolve;const promise=new Promise((r)=>resolve=r);return {promise,resolve};};
@@ -95,7 +95,7 @@ test('GPU readiness wait does not swap on GLB parse and releases event/timer han
   }
 });
 
-async function rendererHarness() {
+async function rendererHarness({raf=false}={}) {
   const nodes=new Map(),models=[],shaders=[],controllers=[],primitives=[],workers=[],warnings=[];let clock=0,parseGate=null;
   const element=(id)=>{if(!nodes.has(id))nodes.set(id,{dataset:{},hidden:false,textContent:''});return nodes.get(id);};
   class V3{constructor(x=0,y=0,z=0){Object.assign(this,{x,y,z});}static fromDegrees(x,y){return new V3(x*111320,y*111320,0);}static distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);}static normalize(v,out){const length=Math.hypot(v.x,v.y,v.z);out.x=v.x/length;out.y=v.y/length;out.z=v.z/length;return out;}}
@@ -106,7 +106,7 @@ async function rendererHarness() {
       const model={...options,ready:false,readyEvent:event(),errorEvent:event(),destroyed:false,isDestroyed(){return this.destroyed;},destroy(){assert.equal(this.destroyed,false,'model destroyed only once');this.destroyed=true;}};
       models.push(model);if(parseGate)await parseGate;return model;
     }}};
-  const controller=()=>{const c={active:false,destroyed:false,setYear(){},setQuality(){},setActive(v){assert.equal(this.destroyed,false);this.active=v;},destroy(){assert.equal(this.destroyed,false,'controller destroyed only once');this.destroyed=true;}};controllers.push(c);return c;};
+  const controller=()=>{const c={active:false,destroyed:false,years:[],setYear(...args){assert.equal(this.destroyed,false);this.years.push(args);},setQuality(){},setActive(v){assert.equal(this.destroyed,false);this.active=v;},destroy(){assert.equal(this.destroyed,false,'controller destroyed only once');this.destroyed=true;}};controllers.push(c);return c;};
   const shader=()=>{const s={values:{},destroyed:false,setUniform(k,v){assert.equal(this.destroyed,false);this.values[k]=v;},isDestroyed(){return this.destroyed;},destroy(){assert.equal(this.destroyed,false,'shader destroyed only once');this.destroyed=true;this.values={};}};shaders.push(s);return s;};
   let lookAt=new V3();
   const viewer={canvas:{clientWidth:1000,clientHeight:700},shadowMap:{_primitiveBias:{depthBias:1,normalOffsetScale:1},maximumDistance:10000},camera:{positionCartographic:{height:500},pickEllipsoid:()=>lookAt,flyToBoundingSphere(){}},
@@ -119,16 +119,19 @@ async function rendererHarness() {
     terminate(){this.terminated=true;}
   }
   const windowEvents=new Map();
+  const frameCallbacks=new Map();let nextFrame=0;
   const context={Cesium:C,URL,Blob,AbortController,DOMException,setTimeout,clearTimeout,performance:{now:()=>clock},console:{...console,warn:(...args)=>warnings.push(args)},Worker,
     location:{search:''},URLSearchParams,window:{addEventListener(type,fn){if(!windowEvents.has(type))windowEvents.set(type,[]);windowEvents.get(type).push(fn);},dispatchEvent(event){for(const fn of windowEvents.get(event.type)||[])fn(event);}},CustomEvent:class {constructor(type,options){this.type=type;this.detail=options.detail;}},
-    document:{querySelector:element,body:{classList:{toggle(){}}}},createLandscapeShader:shader,setLandscapeEvidence,normalizeEvidenceTexture,sampleElevation:()=>0,
-    attachCampusEffects:controller,attachCityLife:controller,attachLocalAtmosphere:controller,currentQuality:()=> 'low',
+    document:{querySelector:element,body:{classList:{toggle(){}}}},createLandscapeShader:shader,setLandscapeEvidence,normalizeEvidenceTexture,clearLandscapeEvidencePrevious,createEvidenceTransition:(options)=>createEvidenceTransition({...options,now:()=>clock}),sampleElevation:()=>0,
+    attachCampusEffects:controller,attachSceneEvidence:(_viewer,site,data)=>{const c=controller();c.kind='evidence';c.site=site;c.data=data;return c;},attachCityLife:controller,attachLocalAtmosphere:controller,currentQuality:()=> 'low',
     createSceneCompiler,createSceneStreamer,streamKey,streamRadius,fadeWeights,waitForModelReady,
     fetch:async()=>({ok:true,json:async()=>({status:'ready'})})};
+  if(raf){context.window.requestAnimationFrame=(fn)=>{frameCallbacks.set(++nextFrame,fn);return nextFrame;};context.window.cancelAnimationFrame=(id)=>frameCallbacks.delete(id);}
   const source=(await readFile(new URL('../apps/web/js/neighborhood.js',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'').replaceAll('import.meta.url',JSON.stringify(import.meta.url));
   runInNewContext(source+`\nglobalThis.sceneHooks={showData,removeModel,tickPatches,enter,evaluateCamera,prepare,ensureOverview,get active(){return active;},get current(){return currentPatch;},get retiring(){return retiringPatch;},get uploading(){return uploadingPatch;},seed(v,d,options={}){viewer=v;currentSite={id:'selected',lat:0,lon:0,effects:{plume:true}};baseData=sceneData=d;active=options.active??true;enabled=options.enabled??true;streamer={reset(){},cancel(){},setAnchor(){},update(){}};},invalidate(){generation++;removeModel();},destroy(){prepareAbort?.abort();removeModel();compiler.destroy();}};`,context);
-  return {h:context.sceneHooks,viewer,models,shaders,controllers,primitives,workers,warnings,element,C,
+  return {h:context.sceneHooks,viewer,models,shaders,controllers,primitives,workers,warnings,element,C,year:(detail)=>context.applyTimelineFrame(detail),
     evidence(detail){context.window.dispatchEvent({type:'cs:evidence-texture',detail});},
+    evidenceFrame(){const callbacks=[...frameCallbacks.values()];frameCallbacks.clear();for(const fn of callbacks)fn();},
     setClock(value){clock=value;},setFocus(lat,lon){lookAt=V3.fromDegrees(lon,lat);},setParseGate(value){parseGate=value;}};
 }
 const sceneData=(n,stage)=>({buffer:new ArrayBuffer(4),overviewBuffer:stage?undefined:new ArrayBuffer(4),stage,center:{lat:n,lon:n},radius:3300,campuses:[],focus:{x:100,y:0},stats:{buildings:3,trees:5,dataCenters:1}});
@@ -153,6 +156,47 @@ test('real evidence events reach current and uploading shaders, persist for futu
   assert.equal(shaders[0].destroyed,true,'retired CustomShader releases its texture manager');
   assert.equal(shaders[0].values.u_evidence,undefined);
   h.destroy();assert.ok(shaders.every((shader)=>shader.destroyed&&shader.values.u_evidence===undefined));
+});
+
+test('paused environmental motion still crossfades evidence on wall time without reuploading either source raster every frame',async(t)=>{
+  const {h,viewer,models,shaders,evidence,setClock}=await rendererHarness(),base=sceneData(0,'detail');
+  t.after(()=>h.destroy());h.seed(viewer,base);viewer.clock={shouldAnimate:false};
+  const a=new Uint8Array([255,0,0,255]),b=new Uint8Array([0,0,255,255]),bounds=[-.02,-.02,.02,.02];
+  evidence({active:true,rgba:a,width:1,height:1,bounds,key:'site:2005'});
+  const first=h.showData(base,true);await turn();models[0].ready=true;models[0].readyEvent.raise();await first;
+  setClock(700);h.tickPatches();evidence({active:true,rgba:b,width:1,height:1,bounds,key:'site:2006'});
+  assert.equal(shaders[0].values.u_evidenceMix,0);assert.equal(shaders[0].values.u_evidencePreviousActive,1);
+  const currentTexture=shaders[0].values.u_evidence,previousTexture=shaders[0].values.u_evidencePrevious;
+  setClock(1050);h.tickPatches();assert.equal(shaders[0].values.u_evidenceMix,.5);
+  assert.equal(shaders[0].values.u_evidence,currentTexture);assert.equal(shaders[0].values.u_evidencePrevious,previousTexture);
+  evidence({active:true,rgba:b,width:1,height:1,bounds,key:'site:2006'});assert.equal(shaders[0].values.u_evidenceMix,.5,'same source key cannot restart the visual fade');
+  setClock(1400);h.tickPatches();assert.equal(shaders[0].values.u_evidenceMix,1);assert.equal(shaders[0].values.u_evidencePreviousActive,0);
+  assert.deepEqual([...shaders[0].values.u_evidencePrevious.typedArray],[0,0,0,0]);assert.equal(shaders[0].values.u_evidence,currentTexture);
+});
+
+test('cached rapid scrubs coalesce to one upload pair per animation frame and keep the last displayed raster as the previous year',async(t)=>{
+  const {h,viewer,models,shaders,evidence,evidenceFrame,setClock}=await rendererHarness({raf:true}),base=sceneData(0,'detail');
+  t.after(()=>{evidence({active:false});h.destroy();});h.seed(viewer,base);
+  const bounds=[-.02,-.02,.02,.02],image=(n)=>({active:true,rgba:new Uint8Array([n,0,0,255]),width:1,height:1,bounds,key:'date:'+n});
+  evidence(image(1));evidenceFrame();const first=h.showData(base,true);await turn();models[0].ready=true;models[0].readyEvent.raise();await first;
+  setClock(700);evidenceFrame();const shown=shaders[0].values.u_evidence;
+  for(let n=2;n<=100;n++)evidence(image(n));
+  assert.equal(shaders[0].values.u_evidence,shown,'new scrub targets cannot queue GPU uploads before a frame');
+  evidenceFrame();assert.equal(shaders[0].values.u_evidence.typedArray[0],100);
+  assert.equal(shaders[0].values.u_evidencePrevious.typedArray[0],1,'an unseen intermediate year is never used as the previous image');
+  setClock(1400);evidenceFrame();assert.equal(shaders[0].values.u_evidencePreviousActive,0);
+});
+
+test('anchored facility evidence belongs only to the selected base detail and follows its year and disposal lifecycle',async(t)=>{
+  const {h,viewer,models,controllers,year}=await rendererHarness(),base=sceneData(0,'detail');
+  t.after(()=>h.destroy());h.seed(viewer,base);
+  const first=h.showData(base,true);await turn();models[0].ready=true;models[0].readyEvent.raise();await first;
+  const label=controllers.find((c)=>c.kind==='evidence');assert.ok(label);assert.equal(label.site.id,'selected');assert.equal(label.active,true);
+  assert.equal(label.years.at(-1)[0],2025);year({siteId:'selected',year:2010,row:{},phase:'observed'});assert.equal(label.years.at(-1)[0],2010);
+  const changes=label.years.length;year({siteId:'unrelated',year:2030});assert.equal(label.years.length,changes);
+  const streamed=h.showData(sceneData(.02,'detail'),false);await turn();models[1].ready=true;models[1].readyEvent.raise();await streamed;
+  assert.equal(label.destroyed,true);assert.equal(controllers.filter((c)=>c.kind==='evidence').length,1,'a streamed campus never inherits selected-site history or water labels');
+  year({siteId:'selected',year:2030});assert.equal(label.years.length,changes,'retired labels no longer receive timeline changes');
 });
 
 test('renderer retains old geometry until GPU-ready, reactivates new controllers and destroys retired/stale resources',async()=>{
@@ -207,7 +251,7 @@ test('progressive renderer keeps preview until detail GPU readiness and attaches
     assert.equal(h.retiring.data,preview);
     assert.equal(models[0].destroyed,false,'preview remains during complementary crossfade');
     assert.equal(controllers[0].destroyed,true);
-    assert.equal(controllers.length,4,'ready detail enables atmosphere, city life and qualified campus effects');
+    assert.equal(controllers.length,5,'ready detail enables atmosphere, city life, qualified campus effects and anchored evidence');
     assert.ok(controllers.slice(1).every(controller=>controller.active));
     assert.equal(models.length,2,'overview is not requested before its late worker stage');
 

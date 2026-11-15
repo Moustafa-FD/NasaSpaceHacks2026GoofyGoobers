@@ -11,6 +11,7 @@ import { planStreetInfill } from './street-infill.js';
 import { compactSceneBuffers } from './scene-buffers.js';
 import { buildRecreationDetail } from './recreation-detail.js';
 import { packSurfaceVertices } from './surface-packing.js';
+import {mappedBuildingHistory} from './site-history.js';
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export function hash(value) {
   let h = 2166136261;
@@ -183,7 +184,7 @@ export function planNeighborhood(data, manifest, options = {}) {
     if ((illustrative?(infill>=infillLimit||legacyBuildingLimit&&mapped+infill>=maxBuildings):mapped>=maxBuildings)||inWater(b.x,b.y))return false;
     const m = choose(b.kind, b.id, b.width, b.depth, b.tags,illustrative), h = heightFor(b.tags || {}, b.kind, b.id);
     if(illustrative&&infillTriangles+(m.triangles||0)>infillTriangleLimit)return false;
-    instances.push({ id: b.id, name: b.tags?.name || '', model: m.id, kind: b.kind, x: b.x, y: b.y, angle: b.angle, width: b.width * 0.94, depth: b.depth * 0.94, height: h.height, scale: [b.width * 0.94 / m.width, h.height / m.height, b.depth * 0.94 / m.depth], palette: b.kind === 'data-center' ? 0 : hash(b.id + ':paint') % 4, source,...(illustrative?{illustrative:true,frontage:{roadId:b.roadId,stationM:b.stationM,side:b.side}}:{}) });
+    instances.push({ id: b.id, name: b.tags?.name || '', model: m.id, kind: b.kind, x: b.x, y: b.y, angle: b.angle, width: b.width * 0.94, depth: b.depth * 0.94, height: h.height, scale: [b.width * 0.94 / m.width, h.height / m.height, b.depth * 0.94 / m.depth], palette: b.kind === 'data-center' ? 0 : hash(b.id + ':paint') % 4, source,...(b.kind==='data-center'&&!illustrative?{sourceFootprintId:b.id,history:mappedBuildingHistory({id:b.id,tags:b.tags})}:{}),...(illustrative?{illustrative:true,frontage:{roadId:b.roadId,stationM:b.stationM,side:b.side}}:{}) });
     if (source === 'mapped') { mapped++; if (h.measured) mappedHeights++; } else {infill++;infillTriangles+=m.triangles||0;infillByKind[b.kind]=(infillByKind[b.kind]||0)+1;}
     return true;
   };
@@ -283,7 +284,7 @@ export function planNeighborhood(data, manifest, options = {}) {
   // Grass is a continuous, depth-tested ground material. Separate grid patches
   // left conspicuous square tufts and multiplied vertex/shadow work.
   const grass = [];
-  const campuses = instances.filter((i) => i.kind === 'data-center').map(({id,name,x,y,width,depth,height,angle}) => ({id,name,x,y,width,depth,height,angle}));
+  const campuses = instances.filter((i) => i.kind === 'data-center').map(({id,name,x,y,width,depth,height,angle,sourceFootprintId,history}) => ({id,name,x,y,width,depth,height,angle,sourceFootprintId,history}));
   const campusFocus = campuses[0] || focus;
   const all = [...instances, ...vegetation, ...crops, ...grass];
   const byId = new Map(manifest.models.map((m) => [m.id, m]));

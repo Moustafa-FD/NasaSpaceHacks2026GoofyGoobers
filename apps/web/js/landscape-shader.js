@@ -25,7 +25,37 @@ export function normalizeEvidenceTexture(value){
   if(!(rgba instanceof Uint8Array)||!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width>2048||height>2048||rgba.length!==width*height*4||!Array.isArray(bounds)||bounds.length!==4||!bounds.every(finite))return null;
   const [west,south,east,north]=bounds,span=east>west?east-west:east-west+360;
   if(west< -180||west>180||east< -180||east>180||east===west||south< -90||north>90||north<=south||span<=0||span>360)return null;
-  return {active:true,rgba:rgba.slice(),width,height,bounds:[...bounds]};
+  let key=typeof value.key==='string'?value.key:null;
+  if(!key){let n=2166136261;for(const byte of rgba)n=Math.imul(n^byte,16777619);key=width+'x'+height+':'+bounds.join(',')+':'+(n>>>0);}
+  return {active:true,rgba:rgba.slice(),width,height,bounds:[...bounds],key};
+}
+/** Bounded wall-clock display blend. Supplied source values are never changed.
+ * The renderer samples both real rasters only where the incoming year is valid. */
+export function createEvidenceTransition({durationMs=700,now=()=>performance.now(),onChange=()=>{}}={}){
+  let current=null,previous=null,mix=1,started=0;
+  const changed=(textures)=>onChange({current,previous,mix,textures});
+  return {
+    set(image){
+      if(!image){if(!current&&!previous)return false;current=previous=null;mix=1;changed('all');return true;}
+      if(current?.key===image.key)return false;
+      previous=current;current=image;mix=0;started=now();changed('all');return true;
+    },
+    tick(){
+      if(!current||mix>=1)return false;
+      const t=Math.max(0,Math.min(1,(now()-started)/Math.max(1,durationMs)));mix=t*t*(3-2*t);
+      if(t>=1){previous=null;changed('previous');return false;}
+      changed(false);return true;
+    },
+    get state(){return {current,previous,mix};},
+  };
+}
+/** CPU reference: absent incoming pixels remain absent, rather than borrowing an
+ * earlier date's data. Colors here are linear and the result is display-only. */
+export function blendEvidencePixels(previous,current,mix){
+  const t=Math.max(0,Math.min(1,mix));
+  if(!current||current[3]<=0)return [0,0,0,0];
+  if(!previous||previous[3]<=0)return [...current.slice(0,3),current[3]*t];
+  return current.map((value,i)=>previous[i]*(1-t)+value*t);
 }
 export function evidenceTextureCoordinate(center,east,north,bounds){
   const frame=evidenceCoordinateFrame(center),lon=frame[0]+east*frame[2],lat=frame[1]+north*frame[3];
@@ -40,11 +70,19 @@ function evidenceUniform(Cesium,evidence){
 }
 /** Cesium's TextureManager destroys the previous GPU texture on replacement;
  * existing CustomShader.destroy calls release both DEM and evidence textures. */
-export function setLandscapeEvidence(Cesium,shader,evidence){
+export function setLandscapeEvidence(Cesium,shader,evidence,previous=null,mix=1){
   if(shader.isDestroyed?.())return;
   shader.setUniform('u_evidenceActive',evidence?1:0);
   shader.setUniform('u_evidenceBounds',new Cesium.Cartesian4(...(evidence?.bounds||[-180,-90,180,90])));
   shader.setUniform('u_evidence',evidenceUniform(Cesium,evidence));
+  shader.setUniform('u_evidencePreviousActive',previous?1:0);
+  shader.setUniform('u_evidencePreviousBounds',new Cesium.Cartesian4(...(previous?.bounds||[-180,-90,180,90])));
+  shader.setUniform('u_evidencePrevious',evidenceUniform(Cesium,previous));
+  shader.setUniform('u_evidenceMix',mix);
+}
+export function clearLandscapeEvidencePrevious(Cesium,shader){
+  if(shader.isDestroyed?.())return;
+  shader.setUniform('u_evidencePreviousActive',0);shader.setUniform('u_evidencePrevious',evidenceUniform(Cesium,null));
 }
 const wrapGrass=(value)=>((value%GRASS_PERIOD)+GRASS_PERIOD)%GRASS_PERIOD;
 /** Source snapshots use local equirectangular metres. Recover a shared global
@@ -160,6 +198,13 @@ void vertexMain(VertexInput vsInput, inout czm_modelVertexOutput vsOutput) {
 `;
 
 export const LANDSCAPE_FRAGMENT_SHADER = `
+vec2 lpEvidenceUV(vec2 geo,vec4 bounds) {
+    float span=bounds.z-bounds.x;if(span<=0.0)span+=360.0;
+    return vec2(mod(geo.x-bounds.x+360.0,360.0)/span,(geo.y-bounds.y)/(bounds.w-bounds.y));
+}
+bool lpEvidenceInside(vec2 uv) {
+    return all(greaterThanEqual(uv,vec2(0.0))) && all(lessThanEqual(uv,vec2(1.0)));
+}
 float lpGrassHash(vec2 p) {
     vec3 q=fract(vec3(p.x,p.y,p.x)*0.1031);
     q+=dot(q,q.yzx+33.33);
@@ -279,13 +324,22 @@ void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material) {
     // and air stay unchanged; no point measurement is expanded into a field.
     if (u_evidenceActive > 0.5 && kind > 2.5 && kind < 4.5) {
         vec2 geo=u_patchGeo.xy+v_lpLocal*u_patchGeo.zw;
-        float span=u_evidenceBounds.z-u_evidenceBounds.x;
-        if(span<=0.0)span+=360.0;
-        vec2 uv=vec2(mod(geo.x-u_evidenceBounds.x+360.0,360.0)/span,
-                     (geo.y-u_evidenceBounds.y)/(u_evidenceBounds.w-u_evidenceBounds.y));
-        if(all(greaterThanEqual(uv,vec2(0.0))) && all(lessThanEqual(uv,vec2(1.0)))) {
+        vec2 uv=lpEvidenceUV(geo,u_evidenceBounds);
+        if(lpEvidenceInside(uv)) {
             vec4 evidence=texture(u_evidence,uv);
-            material.diffuse=mix(material.diffuse,pow(evidence.rgb,vec3(2.2)),evidence.a);
+            if(evidence.a>0.0) {
+                vec3 evidenceColor=pow(evidence.rgb,vec3(2.2));
+                float evidenceAlpha=evidence.a*u_evidenceMix;
+                vec2 oldUV=lpEvidenceUV(geo,u_evidencePreviousBounds);
+                if(u_evidencePreviousActive>0.5 && u_evidenceMix<1.0 && lpEvidenceInside(oldUV)) {
+                    vec4 previous=texture(u_evidencePrevious,oldUV);
+                    if(previous.a>0.0) {
+                        evidenceColor=mix(pow(previous.rgb,vec3(2.2)),evidenceColor,u_evidenceMix);
+                        evidenceAlpha=mix(previous.a,evidence.a,u_evidenceMix);
+                    }
+                }
+                material.diffuse=mix(material.diffuse,evidenceColor,evidenceAlpha);
+            }
         }
     }
 }
@@ -311,6 +365,10 @@ export function createLandscapeShader(Cesium, elevation = null, options = {}) {
       u_evidenceBounds: { type: Cesium.UniformType.VEC4, value: new Cesium.Cartesian4(-180,-90,180,90) },
       u_patchGeo: { type: Cesium.UniformType.VEC4, value: new Cesium.Cartesian4(...evidenceCoordinateFrame(options.center||elevation?.center)) },
       u_evidence: { type: Cesium.UniformType.SAMPLER_2D, value: evidenceUniform(Cesium,null) },
+      u_evidencePreviousActive: { type: Cesium.UniformType.FLOAT, value: 0 },
+      u_evidencePreviousBounds: { type: Cesium.UniformType.VEC4, value: new Cesium.Cartesian4(-180,-90,180,90) },
+      u_evidencePrevious: { type: Cesium.UniformType.SAMPLER_2D, value: evidenceUniform(Cesium,null) },
+      u_evidenceMix: { type: Cesium.UniformType.FLOAT, value: 1 },
       u_viewCircle: { type: Cesium.UniformType.VEC3, value: new Cesium.Cartesian3(0,0,1000000) },
       u_patchRadius: { type: Cesium.UniformType.FLOAT, value: 1000000 },
       u_patchOpacity: { type: Cesium.UniformType.FLOAT, value: 1 },

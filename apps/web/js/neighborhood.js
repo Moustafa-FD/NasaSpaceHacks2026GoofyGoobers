@@ -1,7 +1,8 @@
 // Zoom-driven local 3D scenery. Mapped layout, authored low-poly architecture.
-import { createLandscapeShader, normalizeEvidenceTexture, setLandscapeEvidence } from './landscape-shader.js';
+import { createLandscapeShader, normalizeEvidenceTexture, setLandscapeEvidence, clearLandscapeEvidencePrevious, createEvidenceTransition } from './landscape-shader.js';
 import { sampleElevation } from './landscape.js';
 import { attachCampusEffects } from './campus-effects.js';
+import { attachSceneEvidence } from './scene-evidence.js';
 import { attachCityLife } from './city-life.js';
 import { attachLocalAtmosphere } from './local-atmosphere.js';
 import { applySkyLighting } from './sky-lighting.js';
@@ -10,15 +11,31 @@ import { createSceneStreamer, streamKey, streamRadius, fadeWeights, waitForModel
 import { createSceneCompiler } from './scene-compiler.js';
 const ENTER_HEIGHT = 5800, EXIT_HEIGHT = 7600, WARM_HEIGHT = 12000;
 let cs, viewer, currentSite, model, sceneData, active = false, enabled = true, generation = 0;
-let pending = false, lastFrameYear = 2025, lastHealth = 1, savedScene, latestEvidence=null;
+let pending = false, lastFrameYear = 2025, lastHealth = 1, savedScene,evidenceFrame=null,pendingEvidenceImage=null;
 let failedGeneration = -1;
-let campusEffects, cityLife, localAtmosphere, overviewModel, overviewActive = false, lastQuality = 'high', lastRow = {}, lastPhase = 'observed';
+let campusEffects, cityLife, localAtmosphere, sceneEvidence, overviewModel, overviewActive = false, lastQuality = 'high', lastRow = {}, lastPhase = 'observed';
 const generated = new Map();
 const failedUploads=new WeakSet();
 const compiler=createSceneCompiler(()=>new Worker(new URL('./neighborhood-worker.js',import.meta.url),{type:'module'}));
 let baseData, currentPatch, retiringPatch, uploadingPatch, streamer, worldFocus, lastCameraCheck=-Infinity, patchSequence=0;
 let prepareAbort,prepareStarted=0;
 const q = new URLSearchParams(location.search);
+const evidenceTransition=createEvidenceTransition({onChange:(state)=>{
+  for(const patch of new Set([currentPatch,retiringPatch,uploadingPatch]))for(const asset of patch?.assets||[]){
+    if(state.textures==='all')setLandscapeEvidence(Cesium,asset.shader,state.current,state.previous,state.mix);
+    else if(!asset.shader.isDestroyed()){
+      asset.shader.setUniform('u_evidenceMix',state.mix);
+      if(state.textures==='previous')clearLandscapeEvidencePrevious(Cesium,asset.shader);
+    }
+  }
+  const note=document.querySelector('#sceneEvidenceBlend');if(note)note.hidden=!state.previous||state.mix>=1;
+  viewer?.scene.requestRender?.();
+}});
+function animateEvidence(){
+  evidenceFrame=null;
+  if(pendingEvidenceImage){evidenceTransition.set(pendingEvidenceImage);pendingEvidenceImage=null;}
+  if(evidenceTransition.tick()&&window.requestAnimationFrame)evidenceFrame=window.requestAnimationFrame(animateEvidence);
+}
 
 function mountControls() {
   const dock = document.createElement('section');
@@ -29,6 +46,7 @@ function mountControls() {
     <div id="sceneActivity" style="font-size:10px;color:#a9c9be;margin-top:5px" hidden></div>
     <div style="font-size:9px;color:#91a9ac;margin-top:6px"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:inherit">© OpenStreetMap contributors</a> · <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener" style="color:inherit">Copernicus / Open-Meteo</a></div>
     <div id="campusPlumeNote" hidden style="font-size:10px;color:#adbdc3;margin-top:6px">Illustrative combustion plume; not measured visible smoke.</div>
+    <div id="sceneEvidenceBlend" hidden style="font-size:10px;color:#adbdc3;margin-top:6px">Visual crossfade between source maps; not interpolated measurements.</div>
     <details class="scene-notes"><summary>Landscape &amp; map details</summary><button id="sceneHorizon" title="Lower the viewing angle to see the local HDRI sky">Horizon view ↗</button><p id="sceneSkyState">EXR sky · regional weather selects an illustrative backdrop.</p><p id="terrainReferenceState">Static DEM; river/terrain forecasts unavailable.</p><p id="landscapeState">Present-day mapped buildings, roads, farms, forests and water. Architecture, planting, traffic and aircraft are illustrative.</p><p>Vegetation changes illustrate the site's NDVI signal, not measured crop death or yield. Elevation is interpolated from the available reference DEM. Evidence maps retain their source coverage and resolution.</p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> · <a href="https://polyhaven.com" target="_blank" rel="noopener">HDRI: Poly Haven / CC0</a></details>`;
   document.body.appendChild(dock);
   const style = document.createElement('style');
@@ -49,7 +67,7 @@ const status = (message) => { const el = document.querySelector('#sceneStatus');
 function removeModel() {
   for(const patch of [currentPatch,retiringPatch,uploadingPatch])disposePatch(patch);
   currentPatch=retiringPatch=uploadingPatch=null;
-  campusEffects=cityLife=localAtmosphere=null;
+  campusEffects=cityLife=localAtmosphere=sceneEvidence=null;
   model = overviewModel = null; overviewActive = false;
   document.querySelector('#sceneActivity').hidden = true;
 }
@@ -179,7 +197,8 @@ function disposeAsset(asset) {
 }
 async function makeAsset(patch,buffer,kind) {
   const shader=createLandscapeShader(Cesium,patch.data.elevation,{center:patch.data.center});
-  setLandscapeEvidence(Cesium,shader,latestEvidence);
+  const evidence=evidenceTransition.state;
+  setLandscapeEvidence(Cesium,shader,evidence.current,evidence.previous,evidence.mix);
   const asset={shader,model:null,kind,ready:false};patchUniforms(patch,asset);
   shader.setUniform('u_patchOpacity',0);
   patch.assets.push(asset);
@@ -229,6 +248,8 @@ function attachPatchControllers(patch) {
   campusEffects=patch.base&&data.stage!=='preview'?attachCampusEffects(viewer,currentSite,data):null;
   if(campusEffects)patch.controllers.push(campusEffects);
   campusEffects?.setYear(lastFrameYear,lastRow,lastPhase);
+  sceneEvidence=patch.base&&data.stage!=='preview'?attachSceneEvidence(viewer,currentSite,{...data,heightOffset:()=>0}):null;
+  if(sceneEvidence){patch.controllers.push(sceneEvidence);sceneEvidence.setYear(lastFrameYear,lastRow,lastPhase);}
   lastQuality=currentQuality();
   if(data.stage!=='preview'){
   cityLife=attachCityLife(viewer,currentSite,{...data,viewCircle:()=>patch.circle,
@@ -294,7 +315,7 @@ async function showData(data,base=false,signal=null) {
       if(patch.abort.signal.aborted||patch.token!==generation)throw new DOMException('Aborted','AbortError');
       patch.ready=true;
       const old=currentPatch;
-      disposeControllers(old);campusEffects=cityLife=localAtmosphere=null;
+      disposeControllers(old);campusEffects=cityLife=localAtmosphere=sceneEvidence=null;
       retiringPatch=old;currentPatch=patch;uploadingPatch=null;sceneData=data;
       patch.started=performance.now();patch.opacity=old?0:1;
       model=patch.close.model;overviewModel=null;overviewActive=false;
@@ -326,6 +347,7 @@ function loadModel() {
   showData(sceneData,sceneData===baseData).catch(()=>{});
 }
 function tickPatches() {
+  if(evidenceFrame===null)evidenceTransition.tick();
   const at=performance.now();
   if(retiringPatch){
     const weights=fadeWeights(at-currentPatch.started);
@@ -357,6 +379,7 @@ function setActive(value,force=false) {
   campusEffects?.setActive(active);
   cityLife?.setActive(active);
   localAtmosphere?.setActive(active);
+  sceneEvidence?.setActive(active);
   document.body.classList.toggle('lowpoly-active', active);
   document.querySelector('#sceneMode').textContent = active ? 'Low-poly neighborhood' : 'Globe view';
   document.querySelector('#sceneGlobe').hidden = !active;
@@ -432,6 +455,16 @@ function exit() {
   streamer?.cancel();
   if (currentSite) cs.flyTo(currentSite.lat, currentSite.lon, 21, -40, 20, 1.7);
 }
+function applyTimelineFrame(detail){
+  if(detail.siteId&&detail.siteId!==currentSite?.id)return;
+  lastFrameYear=detail.year;lastHealth=detail.health??1;
+  lastRow=detail.row||{};lastPhase=detail.phase||'observed';
+  campusEffects?.setYear(lastFrameYear,lastRow,lastPhase);
+  localAtmosphere?.setYear(lastFrameYear,lastRow,lastPhase);
+  sceneEvidence?.setYear(lastFrameYear,lastRow,lastPhase);
+  if(baseData)updateCampusMarker(baseData,currentSite.id);
+  for(const patch of [currentPatch,retiringPatch,uploadingPatch])for(const asset of patch?.assets||[])patchUniforms(patch,asset);
+}
 function init(context) {
   cs = context; viewer = cs.viewer; mountControls();
   streamer=createSceneStreamer({
@@ -450,16 +483,7 @@ function init(context) {
   viewer.camera.percentageChanged = 0.035;
   viewer.camera.changed.addEventListener(evaluateCamera);
   window.addEventListener('cs:site', (event) => { if (event.detail?.site) prepare(event.detail.site); });
-  window.addEventListener('cs:year', (event) => {
-    if (event.detail.siteId && event.detail.siteId !== currentSite?.id) return;
-    lastFrameYear = event.detail.year;
-    lastHealth = event.detail.health ?? 1;
-    lastRow = event.detail.row || {}; lastPhase = event.detail.phase || 'observed';
-    campusEffects?.setYear(lastFrameYear, lastRow, lastPhase);
-    localAtmosphere?.setYear(lastFrameYear, lastRow, lastPhase);
-    if(baseData)updateCampusMarker(baseData,currentSite.id);
-    for(const patch of [currentPatch,retiringPatch,uploadingPatch])for(const asset of patch?.assets||[])patchUniforms(patch,asset);
-  });
+  window.addEventListener('cs:year', (event) => applyTimelineFrame(event.detail));
   window.addEventListener('cs:quality', (event) => {
     lastQuality = event.detail.quality;
     cityLife?.setQuality(lastQuality); localAtmosphere?.setQuality(lastQuality);
@@ -472,10 +496,15 @@ function init(context) {
 // Register before viewer readiness too: an already-selected raster must survive
 // the first patch upload. No map choice changes the camera or exits 3D mode.
 window.addEventListener('cs:evidence-texture', (event) => {
-  latestEvidence=normalizeEvidenceTexture(event.detail);
-  for(const patch of new Set([currentPatch,retiringPatch,uploadingPatch]))for(const asset of patch?.assets||[])setLandscapeEvidence(Cesium,asset.shader,latestEvidence);
-  const dock=document.querySelector('#sceneDock');if(dock)dock.dataset.evidenceTexture=latestEvidence?'active':'none';
-  viewer?.scene.requestRender?.();
+  const image=normalizeEvidenceTexture(event.detail);
+  // Coalesce rapid cached scrub replies before Cesium queues texture uploads.
+  // Only the most recent source reaches the next frame; the previous sampler
+  // stays the last actually displayed image rather than an unseen scrub target.
+  if(image&&window.requestAnimationFrame)pendingEvidenceImage=image;
+  else{pendingEvidenceImage=null;evidenceTransition.set(image);}
+  if(!image&&evidenceFrame!==null){window.cancelAnimationFrame?.(evidenceFrame);evidenceFrame=null;}
+  if(image&&evidenceFrame===null&&window.requestAnimationFrame)evidenceFrame=window.requestAnimationFrame(animateEvidence);
+  const dock=document.querySelector('#sceneDock');if(dock)dock.dataset.evidenceTexture=image?'active':'none';
 });
 if (window.CloudShadow) init(window.CloudShadow);
 else window.addEventListener('cs:ready', (event) => init(event.detail), { once: true });

@@ -17,7 +17,7 @@ test("emission traces require explicit documented combustion and its onset year"
   assert.equal(emissionPolicy(documented, 2025, { WS10M: 4 }).windSpeedMs, 0, "missing direction must not invent a north wind");
 });
 
-test("local sources are bounded, lazy, pause via the existing clock, and clean up", () => {
+test("local sources are bounded, lazy, pause via the existing clock, and clean up", async (t) => {
   const savedCesium = globalThis.Cesium, savedDocument = globalThis.document;
   class Cartesian3 {
     constructor(x = 0, y = 0, z = 0) { Object.assign(this, { x, y, z }); }
@@ -42,6 +42,21 @@ test("local sources are bounded, lazy, pause via the existing clock, and clean u
     assert.equal(live.length,0,'before onset must not allocate or emit particles');
     effects.setYear(2025,{WS10M:4,PlumeTowardDeg:90});
     assert.equal(live.length,3); assert.ok(live.every((source)=>source.show&&source.emissionRate===4));
+    await t.test('native particle catch-up stays bounded after year-sized jumps and long hidden intervals',()=>{
+      const year=365*86400;
+      assert.equal(Math.floor((year%Number.MAX_VALUE)*4),126144000,'the previous infinite emitter period attempted126million allocations');
+      for(const source of live){
+        assert.equal(source.loop,true);assert.ok(Number.isFinite(source.lifetime)&&source.lifetime>0&&source.lifetime<=8);
+        for(const seconds of [.25,year,year+.25,366*86400+7.999,10*year+7.999]){
+          // Pinned Cesium1.121 ParticleSystem.calculateNumberToEmit uses this
+          // modulus, plus at most one carry-over particle. Compute the count
+          // without ever executing the potentially enormous allocation loop.
+          const dt=((seconds%source.lifetime)+source.lifetime)%source.lifetime;
+          const maximum=Math.floor(dt*source.emissionRate)+1;
+          assert.ok(maximum<=32,`${seconds}s cannot emit more than32particles in one source update`);
+        }
+      }
+    });
     assert.ok(live.reduce((sum,source)=>sum+source.emissionRate*source.maximumParticleLife,0)<=225);
     assert.ok(live.every((source)=>source.modelMatrix.z>109&&source.modelMatrix.z<111),'terrain elevation plus six-meter stack must not use building height');
     const particle={velocity:new Cartesian3(),age:4,life:12,startColor:{alpha:.38},endColor:{alpha:0}};

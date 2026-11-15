@@ -56,7 +56,7 @@ Environmental changes observed near a data center do not necessarily establish t
 ### What works today
 | Part | What it does | Where |
 |---|---|---|
-| **Web explorer (the product)** | CesiumJS 3D globe with 5 case studies (xAI Colossus 1 & 2 in Memphis, Data Center Alley in Ashburn VA, Stargate Abilene TX, Google The Dalles OR). **Timeline slider 2003 → 2035**: yearly NASA 30 m ground imagery, 3D ring of yearly local signals, heat dome + embers, GPU fluid weather field driven by NASA wind, turbine plume, clouds/rain, golden-hour/night lighting with NASA city lights; projected years shown as "if the trend continues" with 95% CIs. Plus click-anywhere live analysis, guided tour, trend statistics and a sourced ledger. | `apps/web/` → `npm run web` · guide: [apps/web/README.md](apps/web/README.md) |
+| **Web explorer (the product)** | CesiumJS globe and detailed low-poly neighborhoods at 5 study areas. **Timeline 2003 → 2100**: observed site records, separately labelled trend extensions through 2035, then regional climate-period scenarios. Dated NASA maps blend smoothly; linked environmental cards and a year chart explain site versus nearby change, source coverage and uncertainty. Sourced history and reported-water labels add context in 3D. Includes mapped roads/campuses, city life, NASA GEOS-FP wind, lighting and adaptive graphics. | `apps/web/` → `npm run web` · guide: [apps/web/README.md](apps/web/README.md) |
 | **NASA data pipeline** | NASA GIBS tiles decoded with official colormaps: MODIS land-surface temperature (day/night), NDVI and aerosols; Sentinel-5P TROPOMI and Aura OMI NO₂; MERRA-2 air temperature; NASA POWER weather; yearly cloud-free HLS 30 m imagery | `scripts/` → `data/cloudshadow/` |
 | **Trend statistics** | Site vs. surrounding ring, seasons removed, **Mann-Kendall + Sen's slope (95% CI)**, before/after **Welch t-test** with autocorrelation-adjusted n (checked against SciPy) | `apps/web/js/stats.js` |
 | **Unreal project** | UE 5.8.3 + Cesium for Unreal, level with 70 yearly NASA imagery overlays and NASA data layers, built by script | `clients/unreal/CloudShadow/` |
@@ -87,6 +87,8 @@ Environmental changes observed near a data center do not necessarily establish t
 | `npm start`, `npm run check` | Environmental Node API on :3000 / backend checks after `npm run data:setup` (CI) |
 
 The web explorer's **Environmental evidence** panel connects the five study areas to the Node job API: load weather, air quality, soil/rain and station water-quality evidence, analyze a returned series, browse source inventories and inspect climate/plume scenarios. `npm run web` starts the current environmental API and proxies it at `/api/environment`; an occupied port 3000 uses a private loopback fallback. Static hosting still provides prepared climate/wind/plume products without live jobs. River reshaping, groundwater balance, calibrated crop response and facility attribution remain unavailable.
+
+The **Environment** readout provides large site/nearby values, annual or trailing three-year comparisons, an expandable year chart and a matching numeric table. Four simple category controls replace repeated status cards; unavailable future years have one explanation and a direct return to observed data. Map snapshots retain their actual dates and fixed scales. Water reports, resident noise complaints and construction/conversion milestones preserve source scope and precision. See [the environmental story method and limitations](docs/environment-story.md).
 
 ### 1. Data and backend
 

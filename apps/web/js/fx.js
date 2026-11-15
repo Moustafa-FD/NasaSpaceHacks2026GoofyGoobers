@@ -11,6 +11,7 @@
 import { getMotionSpeed } from "./motion.js";
 import { AdaptiveQuality } from "./adaptive-quality.js";
 import { analysisDeltaSeconds } from './flowfield.js';
+import { referenceSunDirection } from './reference-light.js';
 
 let viewer, scene, Q = "high";
 let automaticQuality = true, qualityController, sampledFps = null;
@@ -42,7 +43,7 @@ export function init(v) {
   automaticQuality = !["low", "high"].includes(mode); Q = mode === "low" ? "low" : "high";
   scene.globe.enableLighting = true;
   scene.globe.dynamicAtmosphereLighting = true;
-  scene.globe.dynamicAtmosphereLightingFromSun = true;
+  scene.globe.dynamicAtmosphereLightingFromSun = false;
   scene.globe.atmosphereLightIntensity = 12;
   scene.skyAtmosphere.show = true;
   scene.fog.enabled = true; scene.fog.density = 1.6e-4;
@@ -93,7 +94,7 @@ function applySceneVisibility() {
 window.addEventListener("cs:scene-mode", (event) => {
   S.localScene = !!event.detail?.active;
   applySceneVisibility();
-  if (viewer) applyQuality();
+  if (viewer) {applyQuality();setLight(S.light);}
   qualityController?.reset(performance.now());
   // Preserve the camera's close-up target when a playing timeline changes scene mode.
   if (S.orbit && viewer) orbit(true);
@@ -123,14 +124,15 @@ function applyQuality() {
   window.dispatchEvent(new CustomEvent("cs:quality", { detail: { quality: Q, automatic: automaticQuality, fps: sampledFps } }));
 }
 
-// Sun position: golden hour (low sun, long shadows) or night, on July 1 of `year`, local solar time
-export function setLight(mode, year = 2025) {
+// Consistent reference lighting; selecting a data year never jumps the native
+// particle clock by millions of seconds (or moves the light between leap years).
+export function setLight(mode) {
   S.light = mode;
   if (!S.site) return;
-  const localHour = mode === "night" ? 23.5 : 18.6;
-  const utc = localHour - S.site.lon / 15;
-  const d = new Date(Date.UTC(year, 6, 1, 0, 0, 0) + utc * 3600e3);
-  viewer.clock.currentTime = Cesium.JulianDate.fromDate(d);
+  if(S.localScene){
+    // The neighborhood supplies its own readable ENU shadow direction.
+    if(scene.light)scene.light.intensity=mode==='night'?.35:1.3;
+  }else scene.light = new Cesium.DirectionalLight({direction:new Cesium.Cartesian3(...referenceSunDirection(S.site,mode)),intensity:2});
   scene.globe.atmosphereLightIntensity = mode === "night" ? 6 : 12;
   S.nightLights.alpha = 1;
 }
@@ -221,8 +223,7 @@ export function applyYear(year, row, phase) {
     b._st.target = year >= b._startYear ? 28 + Math.min(3, year - b._startYear) * 8 : 1;
     b.box.material = projected ? Cesium.Color.fromCssColorString("#9fe8ff").withAlpha(0.35) : Cesium.Color.fromCssColorString("#dfe7f2").withAlpha(0.92);
   }
-  // sun follows the year (same date & hour each year → consistent look)
-  setLight(S.light, Math.min(year, 2026));
+  setLight(S.light);
   pulse();
   applySceneVisibility();
 }

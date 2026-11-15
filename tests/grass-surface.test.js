@@ -114,9 +114,10 @@ test('grass keeps one shader while the DEM and initially transparent evidence us
   const frame = grassCoordinateFrame(center);
   assert.deepEqual(shader.uniforms.u_grassOrigin.value.values, frame.origin);
   assert.deepEqual(shader.uniforms.u_grassScale.value.values, frame.scale);
-  assert.equal(Object.values(shader.uniforms).filter(uniform => uniform.type === 'sampler').length, 2);
+  assert.equal(Object.values(shader.uniforms).filter(uniform => uniform.type === 'sampler').length, 3);
   assert.equal(shader.uniforms.u_evidenceActive.value,0);
   assert.deepEqual([...shader.uniforms.u_evidence.value.typedArray],[0,0,0,0]);
+  assert.deepEqual([...shader.uniforms.u_evidencePrevious.value.typedArray],[0,0,0,0]);
   assert.equal(shader.vertexShaderText, LANDSCAPE_VERTEX_SHADER);
   assert.equal(shader.fragmentShaderText, LANDSCAPE_FRAGMENT_SHADER);
   assert.doesNotMatch(LANDSCAPE_VERTEX_SHADER, /lpGrass/);
