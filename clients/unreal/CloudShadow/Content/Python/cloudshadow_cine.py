@@ -285,6 +285,8 @@ def build():
     build_scan_beam()
     build_dust_ring()
     build_flows()
+    build_bolts()
+    build_volumes()
     _drop_probe()
     log("Footprint Atlas: look + camera + FX built. Next: Cinematic 2 (sequence), then 3 (render).")
     return cam
@@ -302,7 +304,7 @@ def _build_look():
     fog = _spawn(unreal.ExponentialHeightFog, "FA_HeightFog", "CloudShadow/Cine/Look")
     cs._anchor(fog, C1[0], C1[1], 0.0)
     fc = fog.get_component_by_class(unreal.ExponentialHeightFogComponent)
-    cs._set(fc, fog_density=0.0009, fog_height_falloff=0.02, enable_volumetric_fog=True,
+    cs._set(fc, fog_density=0.0009, fog_height_falloff=0.02, enable_volumetric_fog=False,   # volumetric fog ends at a hard 'wall' in renders
             volumetric_fog_scattering_distribution=0.6, volumetric_fog_extinction_scale=1.5)
 
     ppv = _spawn(unreal.PostProcessVolume, "FA_PostProcess", "CloudShadow/Cine/Look")
@@ -764,6 +766,200 @@ def _key_plume(seq):
                         (780, unreal.Vector(at.x, at.y, at.z + 2500.0), rot0, unreal.Vector(1.08, 1.08, 1.08))])
 
 
+# ------------------------------------------------------------------ POWER: lightning arcs
+BOLT_VARIANTS = 6                  # pre-built bolt shapes per line; Sequencer flickers between them
+BOLT_STEP = 2                      # frames each bolt stays lit
+
+
+def _fractal_bolt(a, b, rnd, depth=6, rough=0.10, branch_p=0.18):
+    """Midpoint-displacement lightning between Unreal points a and b. Returns segments [(p, q)]
+    including a few short side forks (the classic look of film lightning)."""
+    def split(p, q, d, amp):
+        if d == 0:
+            return [(p, q)]
+        m = (p + q) * 0.5
+        L = (q - p).length()
+        off = unreal.Vector(rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1)) * (L * amp)
+        m = m + off
+        segs = split(p, m, d - 1, amp * 0.62) + split(m, q, d - 1, amp * 0.62)
+        if d <= 3 and rnd.random() < branch_p:                      # side fork
+            dirv = (q - p) * 0.5 + unreal.Vector(rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 0.5)) * (L * 0.5)
+            segs += split(m, m + dirv, max(1, d - 2), amp * 0.8)
+        return segs
+    return split(a, b, depth, rough)
+
+
+def build_bolts(seed=21):
+    """Several jagged bolt variants along each power line (thin additive-bright segments + a soft
+    glow sleeve), plus a flash light per line. Flickered in _key_bolts()."""
+    rnd = random.Random(seed)
+    core = cs._emissive_material("/Game/CloudShadow/Materials/M_BoltCore", (0.75, 0.85, 1.0), 220.0)
+    glow = cs._emissive_material("/Game/CloudShadow/Materials/M_BoltGlow", (0.35, 0.5, 1.0), 25.0)
+    cube = unreal.load_asset("/Engine/BasicShapes/Cube")
+    made = 0
+    for li, line in enumerate(POWER_LINES):
+        pts = [_geo_to_unreal(*_c2(*p)) for p in line]
+        for v in range(BOLT_VARIANTS):
+            a = _spawn(unreal.StaticMeshActor, "FA_PowerFX_Bolt_%d_%d" % (li, v), "CloudShadow/Cine/Flows")
+            a.static_mesh_component.set_mobility(unreal.ComponentMobility.MOVABLE)
+            a.set_actor_location(pts[0], False, False)
+            segs = []
+            for i in range(len(pts) - 1):
+                segs += _fractal_bolt(pts[i], pts[i + 1], rnd)
+            for name, mat, thick in (("Core", core, 0.35), ("Glow", glow, 1.6)):
+                h = cs._add_component(a, unreal.HierarchicalInstancedStaticMeshComponent, name)
+                h.set_static_mesh(cube)
+                h.set_material(0, mat)
+                cs._set(h, cast_shadow=False)
+                xs = []
+                for p, q in segs:
+                    d = q - p
+                    L = d.length()
+                    if L < 1.0:
+                        continue
+                    rot = unreal.MathLibrary.find_look_at_rotation(p, q)
+                    xs.append(unreal.Transform(location=(p + q) * 0.5 - pts[0], rotation=rot,
+                                               scale=unreal.Vector(L / 100.0, thick, thick)))
+                h.add_instances(xs, False, False)
+            a.set_actor_hidden_in_game(True)
+            a.set_is_temporarily_hidden_in_editor(True)
+            made += 1
+        # flash light at the middle of the line (lights the ground under the strike)
+        lt = _spawn(unreal.PointLight, "FA_PowerFX_Flash_%d" % li, "CloudShadow/Cine/Flows")
+        lt.set_actor_location((pts[0] + pts[-1]) * 0.5, False, False)
+        lc = lt.get_component_by_class(unreal.PointLightComponent)
+        cs._set(lc, intensity=4.0e6, attenuation_radius=90000.0, light_color=unreal.Color(200, 215, 255, 255),
+                source_radius=2000.0, cast_shadows=False)
+        lt.set_actor_hidden_in_game(True)
+        lt.set_is_temporarily_hidden_in_editor(True)
+    log("Footprint Atlas: %d lightning bolt variants built" % made)
+
+
+def _key_bolts(seq, seed=33):
+    """Re-strike every BOLT_STEP frames: one random variant per line is lit, sometimes none (flicker)."""
+    rnd = random.Random(seed)
+    f0, f1, _ = FLOW_SLICES["FA_PowerFX"]
+    for li in range(len(POWER_LINES)):
+        on_frames = {v: [] for v in range(BOLT_VARIANTS)}
+        lit = []
+        for f in range(f0, f1, BOLT_STEP):
+            if rnd.random() < 0.82:
+                v = rnd.randrange(BOLT_VARIANTS)
+                on_frames[v].append(f)
+                lit.append(f)
+        for v, frames in on_frames.items():
+            a = _find("FA_PowerFX_Bolt_%d_%d" % (li, v))
+            if not a:
+                continue
+            keys = [(0, False)]
+            for f in frames:
+                keys += [(f, True), (f + BOLT_STEP, False)]
+            _key_bool(seq, a, keys)
+        lt = _find("FA_PowerFX_Flash_%d" % li)
+        if lt:
+            keys = [(0, False)]
+            for f in lit:
+                keys += [(f, True), (f + 1, False)]                      # the flash is a single frame
+            _key_bool(seq, lt, keys)
+
+
+# ------------------------------------------------------------------ simulated volumes (OpenVDB -> Heterogeneous Volumes)
+# CC0 EmberGen simulations by JangaFX (jangafx.com/software/embergen/download/free-vdb-animations), imported as
+# AnimatedSparseVolumeTextures and ray-marched as Heterogeneous Volumes (offline-quality, self-shadowed).
+VDB_DIR = "/Game/CloudShadow/VDB"
+SVT_MASTER = "/Engine/EngineMaterials/SparseVolumeMaterial"
+VOLUMES = {   # svt, albedo, density scale
+    "Dust": ("ground_explosion", (0.80, 0.67, 0.50), 4.0),
+    "Smoke": ("industrial_chimney_smoke", (0.24, 0.21, 0.18), 6.0),
+    "Steam": ("steam_plume", (0.95, 0.96, 0.98), 2.5),
+}
+HV_CVARS = {"r.HeterogeneousVolumes.MaxTraceDistance": 300000, "r.HeterogeneousVolumes.MaxShadowTraceDistance": 300000}
+
+
+def _vdb_material(kind):
+    svt, albedo, dens = VOLUMES[kind]
+    path = "%s/MI_VDB_%s" % (VDB_DIR, kind)
+    M = unreal.MaterialEditingLibrary
+    mi = unreal.load_asset(path) if unreal.EditorAssetLibrary.does_asset_exist(path) else \
+        unreal.AssetToolsHelpers.get_asset_tools().create_asset("MI_VDB_%s" % kind, VDB_DIR, unreal.MaterialInstanceConstant,
+                                                                unreal.MaterialInstanceConstantFactoryNew())
+    M.set_material_instance_parent(mi, unreal.load_asset(SVT_MASTER))
+    M.set_material_instance_sparse_volume_texture_parameter_value(mi, "SparseVolumeTexture", unreal.load_asset("%s/%s" % (VDB_DIR, svt)))
+    M.set_material_instance_static_switch_parameter_value(mi, "Use Blackbody Temperature", False)
+    M.set_material_instance_scalar_parameter_value(mi, "Temperature Scale", 0.0)
+    M.set_material_instance_scalar_parameter_value(mi, "Blackbody Scale", 0.0)
+    M.set_material_instance_scalar_parameter_value(mi, "Density Scale", dens)
+    M.set_material_instance_vector_parameter_value(mi, "Albedo Color", unreal.LinearColor(*albedo, 1.0))
+    M.update_material_instance(mi)
+    unreal.EditorAssetLibrary.save_loaded_asset(mi)
+    return mi
+
+
+def _volume(label, kind, lon, lat, ground_h, scale, yaw=0.0):
+    """A Heterogeneous Volume whose simulation floor sits on the ground (SVT frame offset x scale)."""
+    svt = unreal.load_asset("%s/%s" % (VDB_DIR, VOLUMES[kind][0]))
+    base = -svt.get_frame_transform().translation.z * scale / 100.0        # m from volume centre to sim floor
+    a = _spawn(unreal.HeterogeneousVolume, label, "CloudShadow/Cine/Volumes")
+    cs._anchor(a, lon, lat, ground_h + base)
+    a.set_actor_rotation(unreal.Rotator(0.0, 0.0, yaw), False)
+    a.set_actor_scale3d(unreal.Vector(scale, scale, scale))
+    hv = a.get_component_by_class(unreal.HeterogeneousVolumeComponent)
+    hv.set_material(0, _vdb_material(kind))
+    hv.set_playing(False)
+    hv.set_looping(False)
+    hv.set_frame(0.0)
+    a.set_actor_hidden_in_game(True)
+    a.set_is_temporarily_hidden_in_editor(True)
+    return a
+
+
+def build_volumes():
+    """Dust burst at the hall (S4), steam from the real hall roof (S7 WATER), turbine exhaust at
+    Colossus 1 drifting on the NASA POWER prevailing wind (S8 AIR)."""
+    w = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+    for k, v in HV_CVARS.items():
+        unreal.SystemLibrary.execute_console_command(w, "%s %d" % (k, v))
+    hx, hy = HALL_C
+    _volume("FA_VDB_Dust", "Dust", *env._offset(hx, hy), env.GROUND_H, 300.0)
+    for i, (e, n) in enumerate(((-70, -160), (10, 20), (80, 190))):            # rooftop cooling plant
+        _volume("FA_VDB_Steam_%d" % i, "Steam", *env._offset(hx + e, hy + n), env.GROUND_H + env.HALL_H, 40.0,
+                yaw=180.0 + _data()["colossus2"]["wind"]["plumeTowardDeg"])
+    wind = _data()["colossus1"]["wind"]["plumeTowardDeg"]
+    for i, (e, n) in enumerate(((-40, -20), (30, 25))):                       # turbine stacks
+        lon, lat = _offset(PLUME_AT[0], PLUME_AT[1], e, n)
+        _volume("FA_VDB_Smoke_%d" % i, "Smoke", lon, lat, C1_GROUND + 10.0, 90.0, yaw=180.0 + wind)
+    log("Footprint Atlas: simulated volumes built (dust, steam x3, turbine smoke x2)")
+
+
+def _key_frame(seq, actor, keys):
+    """Drive a Heterogeneous Volume's simulation frame from Sequencer: keys [(seq frame, sim frame)]."""
+    hv = actor.get_component_by_class(unreal.HeterogeneousVolumeComponent)
+    b = seq.add_possessable(hv)
+    tr = b.add_track(unreal.MovieSceneFloatTrack)
+    tr.set_property_name_and_path("Frame", "Frame")
+    sec = tr.add_section()
+    sec.set_range(0, TOTAL)
+    ch = sec.get_all_channels()[0]
+    for f, v in keys:
+        ch.add_key(unreal.FrameNumber(f), float(v), interpolation=unreal.MovieSceneKeyInterpolation.LINEAR)
+
+
+def _key_volumes(seq):
+    impact = DROP[1]
+    d = _find("FA_VDB_Dust")
+    if d:   # the explosion runs ~1.7x speed from the impact: a fast, violent burst that keeps rolling
+        _key_bool(seq, d, [(0, False), (impact, True), (390, False)])
+        _key_frame(seq, d, [(0, 0.0), (impact, 0.0), (390, 72.0)])
+    for i in range(3):
+        s = _find("FA_VDB_Steam_%d" % i)
+        if s:
+            _key_frame(seq, s, [(0, 40.0 + 20 * i), (570, 40.0 + 20 * i), (660, 100.0 + 20 * i)])
+    for i in range(2):
+        s = _find("FA_VDB_Smoke_%d" % i)
+        if s:
+            _key_frame(seq, s, [(0, 120.0 + 40 * i), (660, 120.0 + 40 * i), (780, 200.0 + 40 * i)])
+
+
 # ------------------------------------------------------------------ per-beat state
 def apply(state):
     """Put the level in a slice's state: before/after (Google clip), sun, FX, grade, focus."""
@@ -791,7 +987,8 @@ def apply(state):
                 (a.niagara_component.activate if on else a.niagara_component.deactivate)()
     for a in cs._actors().get_all_level_actors():          # flows: every actor with the prefix
         lab = a.get_actor_label()
-        for prefix, on in (("FA_PowerFX", state["power"]), ("FA_WaterFX", state["water"])):
+        for prefix, on in (("FA_PowerFX", state["power"]), ("FA_WaterFX", state["water"]),
+                           ("FA_VDB_Steam", state["water"]), ("FA_VDB_Smoke", state.get("haze") == "smog")):
             if lab.startswith(prefix):
                 a.set_actor_hidden_in_game(not on)
                 a.set_is_temporarily_hidden_in_editor(not on)
@@ -800,9 +997,9 @@ def apply(state):
     if fog:   # (density, height falloff, inscattering colour): clear air / impact dust / smog
         dens, fall, col = {None: (0.0009, 0.02, (0.45, 0.55, 0.70)),
                            "space": (0.0, 0.02, (0.45, 0.55, 0.70)),      # from orbit the haze integrates to white
-                           "dust": (0.028, 0.006, (0.78, 0.62, 0.42)),
-                           "settle": (0.010, 0.008, (0.74, 0.60, 0.44)),
-                           "smog": (0.012, 0.06, (0.40, 0.27, 0.15))}[state.get("haze")]   # dense, ground-hugging
+                           "dust": (0.006, 0.008, (0.78, 0.62, 0.42)),
+                           "settle": (0.003, 0.01, (0.74, 0.60, 0.44)),
+                           "smog": (0.004, 0.06, (0.40, 0.27, 0.15))}[state.get("haze")]   # light; the plume volumes carry it
         fc = fog.get_component_by_class(unreal.ExponentialHeightFogComponent)
         cs._set(fc, fog_density=dens, fog_height_falloff=fall, fog_inscattering_luminance=unreal.LinearColor(*col, 1.0),
                 volumetric_fog_albedo=unreal.Color(int(col[0] * 255), int(col[1] * 255), int(col[2] * 255), 255))
@@ -954,6 +1151,8 @@ def build_sequence():
         _key_bool(seq, dust, [(0, False), (impact, True), (390, False)])
         _niagara_track(seq, dust, impact)
     _key_flows(seq)
+    _key_bolts(seq)
+    _key_volumes(seq)
     _key_dust(seq, impact)
     _key_plume(seq)
     _drop_probe()
@@ -982,6 +1181,8 @@ RENDER_CVARS = {
     "r.BloomQuality": 5,
     "r.Tonemapper.Quality": 5,
 }
+
+RENDER_CVARS.update(HV_CVARS)
 
 
 def _cesium_quality(sse):

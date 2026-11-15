@@ -419,6 +419,36 @@ def build_hall(h):
     hall.set_is_temporarily_hidden_in_editor(True)
 
 
+BG_TREES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fa_background_trees.json")
+
+
+def build_background_trees(seed=8):
+    """Our Nanite Megaplants trees planted over the low-poly photogrammetry woods around the site.
+    Positions: tree-canopy pixels of NASA HLS 2025 (fa_background_trees.json). Present before and
+    after (the woods outside the change zone are real), grouped into 8 sector actors."""
+    if not os.path.exists(BG_TREES):
+        warn("Footprint Atlas env: %s missing" % BG_TREES)
+        return
+    for a in _es().get_all_level_actors():
+        if a.get_actor_label().startswith("FA_BgTrees_"):
+            _es().destroy_actor(a)
+    rnd = random.Random(seed)
+    trees = json.load(open(BG_TREES, encoding="utf-8"))["trees"]
+    sectors = {}
+    for e, n, kind in trees:
+        sectors.setdefault(int((math.degrees(math.atan2(e + 200, n)) + 180) // 45) % 8, []).append((e, n, kind))
+    for k, group in sectors.items():
+        ce = sum(t[0] for t in group) / len(group)
+        cn = sum(t[1] for t in group) / len(group)
+        c = _container("FA_BgTrees_%d" % k, ce, cn, GROUND_H - 1.0)          # a metre down: never floats
+        for i, (e, n, kind) in enumerate(group):
+            t = cs._add_component(c, unreal.SkeletalMeshComponent, "T%d" % i)
+            t.set_skeletal_mesh_asset(unreal.load_asset(TREES[kind][rnd.randrange(3)]))
+            t.set_relative_transform(_xf(e - ce, n - cn, rnd.uniform(0, 360), rnd.uniform(1.15, 1.55)), False, False)
+            cs._set(t, cast_shadow=True)
+    log("Footprint Atlas env: %d background trees over the real woods (%d sectors)" % (len(trees), len(sectors)))
+
+
 # ------------------------------------------------------------------ states
 def _show(a, on):
     a.set_actor_hidden_in_game(not on)
