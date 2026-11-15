@@ -67,7 +67,8 @@ Two rules hold in every era:
 1. For each year 2003–2026 (NO₂ from 2005): the median of the decoded mid-June to mid-August composites, the same season the map shows.
 2. For each pixel: Sen's slope, plus a Mann-Kendall test with the Hamed-Rao autocorrelation correction (`services/models/trends/stats.py`, validated against SciPy). It needs at least 12 valid years, 3 of them recent.
 3. Across all pixels of the map: Benjamini-Hochberg false-discovery control at q < 0.10, the level Wilks (2016, *BAMS*) recommends for spatially correlated maps. Only those pixels keep a slope; every other pixel is stored as "no change".
-4. In the browser, a projected year shows the latest real same-season map plus slope × (year − base year), kept on the same colour scale. The same rule tints the low-poly 3D ground.
+4. With **Show change** on (the default), a projected year shows the **projected change since the latest real map**: exactly each pixel's slope × years ahead, on a colour range sized to the trends (±1.5 °C for heat, ±0.15 NDVI, ±0.06 AOD, ±0.6×10¹⁵ NO₂). Red means an increase, blue a decrease; for greenness, orange means less green. Pixels without a significant trend stay neutral. With Show change off, it shows the projected values themselves. Previously the change was measured against 2005, so 0.9 °C of projected warming disappeared on a ±6 °C scale.
+5. Under the hood, a projected year shows the latest real same-season map plus slope × (year − base year), kept on the same colour scale. The same rule tints the low-poly 3D ground.
 
 This is the same "if the trend continues" extension as the panel numbers, applied per pixel. It is **not a forecast**. Pixel trends include regional change: night-time warming covers most of the Memphis area, for example. So a projected map shows *where* the record is changing, not what the facility causes. Haze (AOD) has no significant pixels at Colossus 1, so its projected map correctly stays the same.
 
