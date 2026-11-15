@@ -18,14 +18,37 @@ export function coarseMesh(template, addAccessor, gltf, palette = 0) {
   }
   const w=template.width,d=template.depth,h=template.height;
   if (['tree','shrub'].includes(template.kind)) {
-    const count=template.style==='grove'?9:1;
-    for(let k=0;k<count;k++){
-      const x=count===1?0:(k%3-1)*w*.32,z=count===1?0:(Math.floor(k/3)-1)*d*.32,r=Math.min(w,d)/(count===1?2:6),top=h*(.83+(k%3)*.08);
-      box(x,0,z,.5,h*.5,.5,bark);
-      const bottom=top*.35;
-      for(let i=0;i<5;i++){
-        const a=i*Math.PI*2/5,b=(i+1)*Math.PI*2/5;
-        tri([x+Math.cos(a)*r,bottom,z+Math.sin(a)*r],[x,top,z],[x+Math.cos(b)*r,bottom,z+Math.sin(b)*r],leaf);
+    // Crown metadata shares the authored irregular layout with the distance
+    // substitute, including its mixed species silhouettes and leaf colors.
+    const grove=template.style==='grove';
+    const fallback=[[-.32,-.19],[-.10,-.33],[.22,-.27],[.33,.01],[.20,.30],[-.12,.33],[-.30,.10],[-.02,-.02],[.06,.16]];
+    const crowns=grove ? template.canopies ?? fallback.map(([x,z],k)=>({x:x*w,z:z*d,height:h*(.83+(k%3)*.08),rx:Math.min(w,d)/7,rz:Math.min(w,d)/7,shape:k%3===1?'conifer':'broadleaf'})) : [{x:0,z:0,height:h*.83,rx:Math.min(w,d)/2,rz:Math.min(w,d)/2,shape:'conifer'}];
+    // Authored bounds/centers are rounded to 0.01 mm. Keep that rounding
+    // from letting a reconstructed crown exceed its declared footprint.
+    const crownPoint=(x,y,z)=>[Math.max(-w/2,Math.min(w/2,x)),y,Math.max(-d/2,Math.min(d/2,z))];
+    for(const crown of crowns){
+      const {x,z,rx,rz,shape}=crown,top=crown.height;
+      const color=crown.color ? linear(crown.color) : leaf;
+      box(x,0,z,grove ? .35 : .5,grove ? top*.43 : h*.5,grove ? .35 : .5,bark);
+      const sides=grove && shape==='conifer'?6:5;
+      if(grove && shape==='broadleaf'){
+        const lower=[],upper=[];
+        for(let i=0;i<sides;i++){
+          const a=i*Math.PI*2/sides;
+          lower.push(crownPoint(x+Math.cos(a+.11)*rx,top*.6675,z+Math.sin(a+.11)*rz));
+          upper.push(crownPoint(x+Math.cos(a)*rx*.63,top*.8775,z+Math.sin(a)*rz*.63));
+        }
+        for(let i=0;i<sides;i++){
+          const j=(i+1)%sides;
+          tri(lower[i],upper[i],lower[j],color);
+          tri(lower[j],upper[i],upper[j],color);
+          tri(upper[i],[x,top,z],upper[j],color);
+        }
+      }else{
+        for(let i=0;i<sides;i++){
+          const a=i*Math.PI*2/sides,b=(i+1)*Math.PI*2/sides;
+          tri(crownPoint(x+Math.cos(a)*rx,top*.35,z+Math.sin(a)*rz),[x,top,z],crownPoint(x+Math.cos(b)*rx,top*.35,z+Math.sin(b)*rz),color);
+        }
       }
     }
   } else {

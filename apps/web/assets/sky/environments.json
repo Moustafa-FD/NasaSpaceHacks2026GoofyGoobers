@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "note": "Artistic EXR-derived backgrounds selected using regional context; not observed cloud imagery. Isotropic HDR sky ambient color; no specular cubemap.",
+  "environments": [
+    {
+      "id": "clear",
+      "image": "assets/sky/clear.jpg",
+      "width": 1024,
+      "height": 512,
+      "diffuseSH": [
+        [
+          0.492897,
+          0.665486,
+          0.959204
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "source": {
+        "url": "https://polyhaven.com/a/kloofendal_43d_clear",
+        "download": "https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/1k/kloofendal_43d_clear_1k.exr",
+        "author": "Greg Zaal",
+        "license": "CC0-1.0",
+        "originalFormat": "OpenEXR",
+        "md5": "8db356e39680dedcf9a7e109fdc1f89d"
+      },
+      "bytes": 10688
+    },
+    {
+      "id": "cloudy",
+      "image": "assets/sky/cloudy.jpg",
+      "width": 1024,
+      "height": 512,
+      "diffuseSH": [
+        [
+          0.555232,
+          0.64868,
+          0.942131
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "source": {
+        "url": "https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky",
+        "download": "https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/1k/kloofendal_48d_partly_cloudy_puresky_1k.exr",
+        "author": "Greg Zaal",
+        "license": "CC0-1.0",
+        "originalFormat": "OpenEXR",
+        "md5": "ca0c1317a4b22bb25e826cb3640ee833"
+      },
+      "bytes": 32727
+    },
+    {
+      "id": "overcast",
+      "image": "assets/sky/overcast.jpg",
+      "width": 1024,
+      "height": 512,
+      "diffuseSH": [
+        [
+          0.597827,
+          0.653004,
+          0.773876
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "source": {
+        "url": "https://polyhaven.com/a/kloofendal_overcast",
+        "download": "https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/1k/kloofendal_overcast_1k.exr",
+        "author": "Greg Zaal",
+        "license": "CC0-1.0",
+        "originalFormat": "OpenEXR",
+        "md5": "03c84daba2ce0d3d328a4ad20a3196ea"
+      },
+      "bytes": 13979
+    }
+  ]
+}

@@ -87,3 +87,66 @@ test('zebra paint requires a nearby mapped crossing and respects explicitly unma
   assert.ok(marked.groups.some((g)=>g.name==='road-edge-markings'));
   assert.equal(buildRoadSurface(data,()=>0,{urban,detail:'overview'}).stats.paintedCrossings,0);
 });
+
+test('service subtypes use labelled display widths and carry traffic source metadata through clipped way ids',()=>{
+  const base={id:'way/100/1',kind:'service',width:4,widthSource:'illustrative road-class default',points:[[0,0],[30,0]]},urban={roadTags:[{id:'way/100',tags:{service:'driveway',oneway:'-1'}}]},result=buildRoadSurface({roads:[base]},()=>0,{urban});
+  assert.equal(result.paths[0].width,3);assert.equal(result.paths[0].oneway,'-1');assert.equal(result.paths[0].tags.service,'driveway');assert.match(result.paths[0].widthSource,/illustrative service-type/);
+  assert.equal(resolveRoadWidth({...base,width:3.4,widthSource:'osm:width'},{service:'driveway'}).width,3.4);
+  assert.equal(resolveRoadWidth(base,{service:'parking_aisle'}).width,5.5);
+});
+
+test('preview retains every mapped road/path, source bend, width and terrain-top coordinate without styling layers',()=>{
+  const kinds=['primary','secondary','residential','service','footway','path','steps','cycleway','track','bridleway'];
+  const roads=kinds.map((kind,i)=>road('way/'+(i+1),kind,[[10,i*30],[160,i*30],[180,i*30+12],[230,i*30+80]],i<4?9:1.4));
+  const data={roads},urban={roadTags:[{id:'way/1',tags:{oneway:'yes',lanes:'3'}}],crossings:[{id:'node/1',x:80,y:0,tags:{crossing:'marked'}}]};
+  const heightAt=(x,y)=>20+x*.03+Math.abs(y-25)*.07;
+  const result=buildRoadSurface(data,heightAt,{detail:'preview',spacingM:50,urban});
+  assert.deepEqual(result.paths.map((p)=>p.id),roads.map((r)=>r.id));
+  assert.deepEqual(result.paths.map((p)=>p.width),roads.map((r)=>r.width));
+  assert.equal(result.paths[0].oneway,'yes');assert.equal(result.paths[0].tags.lanes,'3');
+  assert.equal(result.stats.renderedRoads,roads.length);assert.equal(result.stats.minorPaths,6);
+  assert.equal(result.stats.mappedCrossings,1);assert.equal(result.stats.paintedCrossings,0);assert.equal(result.stats.spacingM,50);
+  assert.deepEqual(new Set(result.groups.map((g)=>g.name)),new Set(['road-asphalt','road-path']));
+  for(let i=0;i<roads.length;i++){
+    const path=result.paths[i],mesh=result.groups.find((g)=>g.name===(i<4?'road-asphalt':'road-path'));
+    assert.equal(path.widthSource,'osm:width');
+    for(const [x,y] of roads[i].points)assert.ok(path.points.some((p)=>p[0]===x&&p[1]===y),'source bend remains intact');
+    for(const [x,y,z] of path.points){
+      assert.equal(z,heightAt(x,y)+.28);
+      assert.ok(mesh.positions.some((v,k)=>k%3===0&&Math.abs(v-x)<1e-8&&Math.abs(mesh.positions[k+1]-z)<1e-8&&Math.abs(mesh.positions[k+2]+y)<1e-8));
+    }
+  }
+  for(const mesh of result.groups){
+    assert.equal(mesh.positions.length,mesh.normals.length);assert.ok(mesh.positions.every(Number.isFinite));
+    assert.ok(mesh.indices.every((i)=>i>=0&&i<mesh.positions.length/3));
+    for(let i=0;i<mesh.positions.length;i+=3)assert.ok(Math.abs(mesh.positions[i+1]-heightAt(mesh.positions[i],-mesh.positions[i+2])-.28)<1e-8);
+  }
+});
+
+test('preview asphalt keeps exact width and center vertices with six-triangle end caps',()=>{
+  const source=road('way/1','primary',[[10,15],[90,15]],10),height=(x,y)=>30+x*.02+y*.03;
+  const result=buildRoadSurface({roads:[source]},height,{detail:'preview'}),mesh=result.groups[0];
+  assert.equal(result.paths[0].points.length,3);assert.equal(result.stats.triangles,2*4+2*6);
+  assert.equal(mesh.positions.length/3,3*3+2*7,'three strip vertices per station plus six-sided caps');
+  for(let station=0;station<3;station++){
+    const p=mesh.positions.slice(station*9,station*9+9),[x,y,z]=result.paths[0].points[station];
+    assert.equal(Math.hypot(p[0]-p[3],p[2]-p[5]),10);
+    assert.deepEqual(p.slice(6),[x,z,-y]);assert.ok(covers(mesh,[x,y]));
+  }
+  assert.equal(covers(mesh,[50,20.1]),false,'the simplified preview cannot widen a straight mapped road');
+});
+
+test('preview substantially reduces surface uploads while close/overview styling and metadata remain available',()=>{
+  const data={roads:[road('way/1','primary',[[-600,0],[0,0],[250,120],[600,180]],12),road('way/2','residential',[[0,-500],[0,0],[0,500]],7)]};
+  const urban={crossings:[{id:'node/1',x:0,y:0,tags:{crossing:'marked'}}]};
+  const close=buildRoadSurface(data,()=>25,{detail:'close',urban}),overview=buildRoadSurface(data,()=>25,{detail:'overview',urban}),preview=buildRoadSurface(data,()=>25,{detail:'preview',urban});
+  const bytes=(surface)=>surface.groups.reduce((n,g)=>n+4*(g.positions.length+g.normals.length+g.indices.length),0);
+  assert.ok(bytes(preview)<bytes(overview)*.45);assert.ok(bytes(preview)<bytes(close)*.25);
+  assert.deepEqual(preview.paths.map((p)=>[p.id,p.width,p.widthSource]),close.paths.map((p)=>[p.id,p.width,p.widthSource]));
+  assert.ok(Math.abs(preview.stats.lengthM-close.stats.lengthM)<1e-7);
+  assert.ok(close.groups.some((g)=>g.name==='road-sidewalk'));assert.ok(close.groups.some((g)=>g.name==='road-curb'));
+  assert.ok(overview.groups.some((g)=>g.name==='road-sidewalk'));assert.ok(overview.groups.some((g)=>g.name==='road-center-markings'));
+  assert.equal(close.stats.paintedCrossings,1);assert.equal(overview.stats.paintedCrossings,0);
+  assert.deepEqual(buildRoadSurface(data,()=>25,{urban}),close,'the default remains the complete close surface');
+  assert.deepEqual(buildRoadSurface(data,()=>null,{detail:'preview'}).groups,[],'unknown ground cannot become a flat preview road');
+});

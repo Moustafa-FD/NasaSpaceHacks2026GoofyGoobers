@@ -65,3 +65,27 @@ test('default 6.6km ground stays within a useful mesh budget and has irregular i
   assert.ok(ground.positions.every(Number.isFinite));
   assert.ok(ground.colors.every(Number.isFinite));
 });
+
+test('natural boundary feathering varies organically along a straight source edge without control-grid slope seams',()=>{
+  const snapshot={radiusM:600,center:{lat:39,lon:-77}},mapped={groundKindAt:(x)=>x<0?'forest':'farmland'},sample=createTerrainColorSampler(snapshot,mapped,{colorSpacingM:100,blendM:65}),again=createTerrainColorSampler(snapshot,mapped,{colorSpacingM:100,blendM:65}),reds=[];
+  for(let y=-500;y<=500;y+=20){const color=sample(0,y);reds.push(color[0]);assert.deepEqual(color,again(0,y));assert.ok(color.every(Number.isFinite));}
+  assert.ok(Math.max(...reds)-Math.min(...reds)>.025,'a source boundary should feather into irregular patches rather than one straight color stripe');
+  const smooth=createTerrainColorSampler(snapshot,mapped,{colorSpacingM:100,blendM:65,colorWarpM:0});
+  for(const x of [-200,-100,0,100,200]){const h=.01,left=(smooth(x,0)[0]-smooth(x-h,0)[0])/h,right=(smooth(x+h,0)[0]-smooth(x,0)[0])/h;assert.ok(Math.abs(left-right)<1e-6,'control-grid boundaries must have continuous color slopes');}
+});
+
+test('homogeneous natural ground keeps its original palette anchor and never gains random square color tiles',()=>{
+  const sample=createTerrainColorSampler({radiusM:400,center:{lat:45,lon:-121}},{groundKindAt:()=> 'forest'}),expected=[.29,.41,.25].map((v)=>v**2.2).concat(1);
+  for(let y=-400;y<=400;y+=37)for(let x=-400;x<=400;x+=43){const color=sample(x,y);assert.ok(color.every((v,k)=>Math.abs(v-expected[k])<1e-7));}
+});
+
+test('appearance feathering changes only ground colors while mapped shorelines, holes and hard bank surfaces stay exact',()=>{
+  const before=JSON.stringify(data),plain=buildTerrainSurface(data,landscape,heightAt,{spacingM:55,colorWarpM:0,banks:true}),organic=buildTerrainSurface(data,landscape,heightAt,{spacingM:55,colorWarpM:45,banks:true});
+  assert.deepEqual(plain.stats,organic.stats);
+  for(let i=0;i<plain.groups.length;i++){
+    const a=plain.groups[i],b=organic.groups[i];assert.deepEqual(a.positions,b.positions);assert.deepEqual(a.normals,b.normals);assert.deepEqual(a.indices,b.indices);assert.equal(a.category,b.category);
+    if(a.category!==3)assert.deepEqual(a.colors,b.colors,'water and hard bank surfaces must not inherit natural-ground tint noise');
+  }
+  assert.ok(plain.groups[0].colors.some((v,i)=>Math.abs(v-organic.groups[0].colors[i])>.001));assert.equal(JSON.stringify(data),before);
+  assert.equal(landscape.groundKindAt(-1,0),'forest');assert.equal(landscape.groundKindAt(1,0),'farmland');
+});

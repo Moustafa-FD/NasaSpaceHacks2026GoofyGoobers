@@ -45,6 +45,8 @@
   scene.skyAtmosphere.show = true;
   scene.fog.enabled = true;
   viewer.cesiumWidget.creditContainer.style.display = "block";
+  import('./city-labels.js').then(({ createCityLabels }) => createCityLabels(viewer))
+    .catch((error) => console.warn('City labels unavailable:', error.message));
 
   // Optional: Cesium ion token unlocks 3D terrain + OSM buildings (paste once in console: setIonToken("..."))
   window.setIonToken = (t) => { localStorage.setItem("cesiumIonToken", t); location.reload(); };
@@ -475,6 +477,7 @@
   // ------------------------------------------------------------ click anywhere = live mode
   new Cesium.ScreenSpaceEventHandler(viewer.canvas).setInputAction((ev) => {
     const picked = scene.pick(ev.position);
+    if (picked?.id?.city) return;
     if (picked?.id?.lowPoly || picked?.id === "low-poly-neighborhood" || picked?.id?.id === "low-poly-neighborhood" || picked?.primitive?.id?.lowPoly) return;
     if (picked?.id?.id?.startsWith?.("site-")) return selectSite(SITES.find((s) => "site-" + s.id === picked.id.id));
     const cart = viewer.camera.pickEllipsoid(ev.position, scene.globe.ellipsoid); if (!cart) return;

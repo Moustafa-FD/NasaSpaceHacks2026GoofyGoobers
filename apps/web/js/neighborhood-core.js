@@ -7,6 +7,10 @@ import { coarseMesh } from './lod-mesh.js';
 import { createSurfaceHeightSampler } from './surface-height.js';
 import { buildRoadSurface, resolveRoadWidth } from './road-mesh.js';
 import { buildUrbanDetail } from './urban-detail.js';
+import { planStreetInfill } from './street-infill.js';
+import { compactSceneBuffers } from './scene-buffers.js';
+import { buildRecreationDetail } from './recreation-detail.js';
+import { packSurfaceVertices } from './surface-packing.js';
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export function hash(value) {
   let h = 2166136261;
@@ -108,11 +112,12 @@ export function planNeighborhood(data, manifest, options = {}) {
   const radius = Math.min(data.radiusM || 3300, 3600), maxBuildings = options.maxBuildings ?? 4200, maxTrees = options.maxTrees ?? 3200;
   const areaGrid = areaIndex(data.areas || []), occupancy = new SpatialIndex(60), roadGrid = new SpatialIndex(60);
   const pavedGrid = areaIndex(options.urban?.surfaces || []), airGrid = new SpatialIndex(160);
+  const recreationSurfaceGrid=areaIndex((options.recreation?.features||[]).filter((f)=>['pitch','playground'].includes(f.kind)&&f.polygon?.length>=3));
   for (const airway of options.urban?.airways || []) for (let i=1;i<airway.points.length;i++) {
     const a=airway.points[i-1],b=airway.points[i],width=airway.width||18;
     airGrid.insert({a,b,width},[Math.min(a[0],b[0])-width,Math.min(a[1],b[1])-width,Math.max(a[0],b[0])+width,Math.max(a[1],b[1])+width]);
   }
-  const isPaved = (x,y) => pavedGrid.at(x,y).some(a=>contains([x,y],a.polygon,a.holes)) || airGrid.at(x,y).some(s=>segmentDistance([x,y],s.a,s.b)<s.width/2+4);
+  const isPaved = (x,y) => pavedGrid.at(x,y).some(a=>contains([x,y],a.polygon,a.holes)) || airGrid.at(x,y).some(s=>segmentDistance([x,y],s.a,s.b)<s.width/2+4)||recreationSurfaceGrid.at(x,y).some(a=>contains([x,y],a.polygon,a.holes));
   const extraRoadTags = new Map((options.urban?.roadTags || []).map(r=>[r.id,r.tags]));
   const modelKinds = new Map();
   for (const m of manifest.models) {
@@ -120,7 +125,7 @@ export function planNeighborhood(data, manifest, options = {}) {
     if (!modelKinds.has(m.kind)) modelKinds.set(m.kind, []);
     modelKinds.get(m.kind).push(m);
   }
-  const choose = (kind, id, width, depth, tags = {}) => {
+  const choose = (kind, id, width, depth, tags = {}, illustrative = false) => {
     let models = modelKinds.get(kind) || modelKinds.get('house');
     // Source building use selects a relevant architectural family. The facade
     // details are illustrative; commercial parcels do not become extra buildings.
@@ -131,19 +136,22 @@ export function planNeighborhood(data, manifest, options = {}) {
       const generic=models.filter((m)=>!['aircraft-hangar','fuel','clinic','fire_station','library','bus_station'].includes(m.style));
       if(generic.length)models=generic;
     }
-    const candidates = [...models].sort((a, b) => {
-      const score = (m) => Math.abs(Math.log((width / depth) / (m.width / m.depth))) + random(id + ':' + m.id) * 0.75;
-      return score(a) - score(b);
-    });
-    return candidates[0];
+    if(illustrative){
+      const cap=kind==='house'?260:kind==='shop'?460:kind==='office'?600:700;
+      const compact=models.filter((m)=>m.width<=width*1.8&&m.depth<=depth*1.8&&(m.triangles||0)<=cap);
+      if(compact.length)models=compact;
+    }
+    let best=models[0],bestScore=Infinity;
+    for(const m of models){const score=Math.abs(Math.log((width/depth)/(m.width/m.depth)))+random(id+':'+m.id)*.75;if(score<bestScore){best=m;bestScore=score;}}
+    return best;
   };
   const segments = [];
   for (const r of data.roads || []) {
     if (/^(construction|proposed)$/.test(r.kind)) continue;
+    const width = resolveRoadWidth(r,extraRoadTags.get(r.id.match(/^(way\/\d+)/)?.[1]||r.id)).width;
     for (let i = 1; i < r.points.length; i++) {
       const a = r.points[i - 1], b = r.points[i], length = Math.hypot(b[0] - a[0], b[1] - a[1]);
       if (length < 0.5) continue;
-      const width = resolveRoadWidth(r,extraRoadTags.get(r.id.match(/^(way\/\d+)/)?.[1]||r.id)).width;
       const seg = { a, b, length, width: clamp(width, 1, 80), kind: r.kind, id: r.id + ':' + i };
       roadGrid.insert(seg, [Math.min(a[0], b[0]) - 22, Math.min(a[1], b[1]) - 22, Math.max(a[0], b[0]) + 22, Math.max(a[1], b[1]) + 22]);
       segments.push(seg);
@@ -167,65 +175,69 @@ export function planNeighborhood(data, manifest, options = {}) {
     sourceBuildings.push(entry);
   }
   sourceBuildings.sort((a, b) => Number(b.kind === 'data-center') - Number(a.kind === 'data-center') || Math.hypot(a.x, a.y) - Math.hypot(b.x, b.y) || a.id.localeCompare(b.id));
-  let mapped = 0, infill = 0, mappedHeights = 0;
+  let mapped = 0, infill = 0, mappedHeights = 0, infillTriangles = 0;
+  const infillLimit=clamp(options.maxInfillBuildings??1600,0,2400),infillTriangleLimit=clamp(options.maxInfillTriangles??320000,0,450000),legacyBuildingLimit=options.maxBuildings!=null&&options.maxInfillBuildings==null;
+  const infillByKind={house:0,shop:0,apartment:0,office:0};
   const addBuilding = (b, source = 'mapped') => {
-    if (mapped + infill >= maxBuildings || inWater(b.x, b.y)) return;
-    const m = choose(b.kind, b.id, b.width, b.depth, b.tags), h = heightFor(b.tags || {}, b.kind, b.id);
-    instances.push({ id: b.id, name: b.tags?.name || '', model: m.id, kind: b.kind, x: b.x, y: b.y, angle: b.angle, width: b.width * 0.94, depth: b.depth * 0.94, height: h.height, scale: [b.width * 0.94 / m.width, h.height / m.height, b.depth * 0.94 / m.depth], palette: b.kind === 'data-center' ? 0 : hash(b.id + ':paint') % 4, source });
-    if (source === 'mapped') { mapped++; if (h.measured) mappedHeights++; } else infill++;
+    const illustrative=source!=='mapped';
+    if ((illustrative?(infill>=infillLimit||legacyBuildingLimit&&mapped+infill>=maxBuildings):mapped>=maxBuildings)||inWater(b.x,b.y))return false;
+    const m = choose(b.kind, b.id, b.width, b.depth, b.tags,illustrative), h = heightFor(b.tags || {}, b.kind, b.id);
+    if(illustrative&&infillTriangles+(m.triangles||0)>infillTriangleLimit)return false;
+    instances.push({ id: b.id, name: b.tags?.name || '', model: m.id, kind: b.kind, x: b.x, y: b.y, angle: b.angle, width: b.width * 0.94, depth: b.depth * 0.94, height: h.height, scale: [b.width * 0.94 / m.width, h.height / m.height, b.depth * 0.94 / m.depth], palette: b.kind === 'data-center' ? 0 : hash(b.id + ':paint') % 4, source,...(illustrative?{illustrative:true,frontage:{roadId:b.roadId,stationM:b.stationM,side:b.side}}:{}) });
+    if (source === 'mapped') { mapped++; if (h.measured) mappedHeights++; } else {infill++;infillTriangles+=m.triangles||0;infillByKind[b.kind]=(infillByKind[b.kind]||0)+1;}
+    return true;
   };
   sourceBuildings.slice(0, maxBuildings).forEach((b) => addBuilding(b));
-  // Fill only unmapped residential parcels beside mapped streets; never invent a town
-  // in forest, water, fields or industrial land. Stable IDs keep it fixed across visits.
-  for (const s of segments) {
-    if (mapped + infill >= maxBuildings || !/residential|living_street|unclassified/.test(s.kind)) continue;
-    const dx = (s.b[0] - s.a[0]) / s.length, dy = (s.b[1] - s.a[1]) / s.length;
-    for (let d = 18; d < s.length - 12; d += 28) for (const side of [-1, 1]) {
-      const off = s.width / 2 + 16, x = s.a[0] + dx * d - dy * off * side, y = s.a[1] + dy * d + dx * off * side;
-      if (Math.abs(x) > radius - 30 || Math.abs(y) > radius - 30 || areaAt(areaGrid, x, y)?.kind !== 'residential' || occupied(x, y, 16) || onRoad(x, y, 8) || isPaved(x,y)) continue;
-      const id = s.id + ':' + Math.round(d) + ':' + side;
-      const b = { id, x, y, width: 10 + random(id) * 3, depth: 12 + random(id + 'd') * 4, angle: Math.atan2(dy, dx), kind: 'house' };
-      // Check the whole parcel footprint, including edge samples. A safe center
-      // alone does not prevent a roof from crossing a road, pond or polygon hole.
-      const c = Math.cos(b.angle), sn = Math.sin(b.angle), perimeter = [];
-      const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
-      for (let k = 0; k < 4; k++) for (let t = 0; t <= 4; t++) {
-        const a = corners[k], next = corners[(k + 1) % 4], u = t / 4;
-        const dx = (a[0] * (1 - u) + next[0] * u) * b.width / 2, dy = (a[1] * (1 - u) + next[1] * u) * b.depth / 2;
-        perimeter.push([x + dx * c - dy * sn, y + dx * sn + dy * c]);
-      }
-      if (perimeter.some(([px, py]) => areaAt(areaGrid, px, py)?.kind !== 'residential' || onRoad(px, py, 1) || occupied(px, py, 2) || isPaved(px,py))) continue;
-      addBuilding(b, 'illustrative-infill');
-      occupancy.insert(b, [x - 30, y - 30, x + 30, y + 30]);
-    }
+  // Cumulative source-way stations fill both frontages, even when every source
+  // segment is short. The separate allowance never displaces a mapped building.
+  const infillPlan=planStreetInfill(data,{urban:options.urban,recreation:options.recreation,sourceBuildings,maxInfillBuildings:legacyBuildingLimit?Math.min(infillLimit,Math.max(0,maxBuildings-mapped)):infillLimit,radius});
+  for(const b of infillPlan.buildings){
+    if(!addBuilding(b,'illustrative-infill'))continue;
+    const br=Math.hypot(b.width,b.depth)/2+5;occupancy.insert(b,[b.x-br,b.y-br,b.x+br,b.y+br]);
   }
-  const vegetation = [], treeKinds = modelKinds.get('tree') || [];
-  const plant = (x, y, id, kind, size = 1) => {
-    if (vegetation.length >= maxTrees || Math.abs(x) > radius - 10 || Math.abs(y) > radius - 10 || occupied(x, y, 4) || onRoad(x, y, 3) || inWater(x, y) || isPaved(x,y)) return;
-    const options = kind === 'forest' ? treeKinds.filter((m) => m.style === 'grove') : kind === 'orchard' ? treeKinds.filter((m) => m.style === 'orchard') : treeKinds.filter((m) => !['orchard', 'grove'].includes(m.style));
-    if (!options.length) return;
-    const m = options[hash(id) % options.length], sc = size * (0.7 + random(id + 'scale') * 0.65);
-    if (m.style === 'grove') {
-      const r = Math.hypot(m.width, m.depth) * sc / 2;
-      for (let k = 0; k < 12; k++) {
-        const px = x + Math.cos(k * Math.PI / 6) * r, py = y + Math.sin(k * Math.PI / 6) * r;
-        if (areaAt(areaGrid, px, py)?.kind !== 'forest' || occupied(px, py, 2) || onRoad(px, py, 2) || isPaved(px,py)) return;
+  const vegetation = [], treeKinds = modelKinds.get('tree') || [],treePositions=new SpatialIndex(24),edgeTrees=new Map();
+  // Avalanche only tree randomness; architecture/crops keep their existing seeds.
+  // Nearby FNV string hashes otherwise correlate across complete planting rows.
+  const treeRandom=(key)=>{let h=hash(key);h=Math.imul(h^(h>>>16),0x7feb352d);h=Math.imul(h^(h>>>15),0x846ca68b);return ((h^(h>>>16))>>>0)/4294967296;};
+  const groveModels=treeKinds.filter((m)=>m.style==='grove'),orchardModels=treeKinds.filter((m)=>m.style==='orchard'),singleModels=treeKinds.filter((m)=>!['orchard','grove'].includes(m.style));
+  const plant = (x, y, id, kind, size = 1, mappedPosition=false) => {
+    if (vegetation.length >= maxTrees || Math.abs(x) > radius - 10 || Math.abs(y) > radius - 10 || occupied(x, y, 4) || onRoad(x, y, 3) || inWater(x, y) || isPaved(x,y)) return false;
+    const pool=kind==='forest'?groveModels:kind==='orchard'?orchardModels:singleModels;
+    if(!pool.length)return false;
+    const m=pool[Math.floor(treeRandom(id+':model')*pool.length)],sc=size*(.72+treeRandom(id+':scale')*.7),scale=[sc*(.94+treeRandom(id+':width')*.14),sc*(.93+treeRandom(id+':height')*.14),sc*(.94+treeRandom(id+':depth')*.14)],angle=treeRandom(id+':angle')*Math.PI*2;
+    if(m.style==='grove'||kind==='forest-edge'){
+      const r=Math.hypot(m.width*scale[0],m.depth*scale[2])/2;
+      for(let k=0;k<24;k++){
+        const px=x+Math.cos(k*Math.PI/12)*r,py=y+Math.sin(k*Math.PI/12)*r;
+        if(areaAt(areaGrid,px,py)?.kind!=='forest'||occupied(px,py,2)||onRoad(px,py,2)||isPaved(px,py)){
+          if(m.style==='grove'&&!edgeTrees.has(id))edgeTrees.set(id,{x,y,id});return false;
+        }
       }
     }
-    vegetation.push({ id, model: m.id, kind: 'tree', x, y, angle: random(id + 'angle') * Math.PI * 2, scale: [sc, sc, sc], palette: 0, source: 'illustrative-planting' });
+    const spacing=m.style==='grove'?12:3.5;
+    if(!mappedPosition&&treePositions.at(x,y).some((t)=>(t.x-x)**2+(t.y-y)**2<Math.max(spacing,t.spacing)**2))return false;
+    vegetation.push({ id, model: m.id, kind: 'tree', x, y, angle, scale, palette: 0, source: 'illustrative-planting',...(mappedPosition?{mappedPosition:true}:{}) });
+    treePositions.insert({x,y,spacing},[x-14,y-14,x+14,y+14]);edgeTrees.delete(id);return true;
   };
-  for (const t of data.trees || []) plant(t.x, t.y, t.id, 'tree');
+  for (const t of data.trees || []) plant(t.x, t.y, t.id, 'tree',1,true);
   // Plant nearest the camera target first so the instance budget keeps a useful foreground.
   const cells = [];
-  for (let x = -radius + 20; x < radius; x += 24) for (let y = -radius + 20; y < radius; y += 24) cells.push([x, y]);
+  // The first visible pass needs mapped buildings and streets only. Avoid
+  // allocating/sorting the 75k planting candidates until the detail pass.
+  if (!options.preview) for (let x = -radius + 20; x < radius; x += 24) for (let y = -radius + 20; y < radius; y += 24) cells.push([x, y]);
   cells.sort((a, b) => Math.hypot(...a) - Math.hypot(...b));
   for (const [cx, cy] of cells) {
     if (vegetation.length >= maxTrees) break;
     const id = data.siteId + ':plant:' + cx + ':' + cy;
-    const x = cx + (random(id) - 0.5) * 12, y = cy + (random(id + 'y') - 0.5) * 12, kind = areaAt(areaGrid, x, y)?.kind;
-    const chance = { forest: 0.95, park: 0.65, orchard: 0.85, grass: 0.2, residential: 0.22, scrub: 0.15 }[kind] || 0;
-    if (random(id + 'chance') < chance) plant(x, y, id, kind, kind === 'forest' ? 1.15 : 0.9);
+    for(let attempt=0;attempt<2;attempt++){
+      const x=cx+(treeRandom(id+':x:'+attempt)-.5)*28,y=cy+(treeRandom(id+':y:'+attempt)-.5)*28,kind=areaAt(areaGrid,x,y)?.kind;
+      const chance={forest:.95,park:.65,orchard:.85,grass:.2,residential:.22,scrub:.15}[kind]||0;
+      if(treeRandom(id+':chance')<chance&&plant(x,y,id,kind,kind==='forest'?1.15:.9))break;
+    }
   }
+  // Dense interior groves keep priority. Remaining edge gaps can hold an
+  // individual crown where the wider multi-crown footprint cannot fit safely.
+  for(const t of edgeTrees.values()){if(vegetation.length>=maxTrees)break;plant(t.x,t.y,t.id,'forest-edge',.9);}
   // A few garden trees at known homes make residential streets feel lived in.
   for (const b of sourceBuildings.filter((b) => b.kind === 'house').slice(0, 1800)) {
     const d = Math.hypot(b.width, b.depth) / 2 + 7, a = b.angle + 1.1;
@@ -236,9 +248,10 @@ export function planNeighborhood(data, manifest, options = {}) {
   if (homes.length) {
     // Prefer a real residential cluster, not an isolated small industrial outbuilding.
     const candidates = homes.filter((i) => Math.hypot(i.x, i.y) < radius - 350).slice(0, 300);
+    const homeGrid=new SpatialIndex(300);for(const h of homes)homeGrid.insert(h,[h.x-300,h.y-300,h.x+300,h.y+300]);
     let bestScore = -Infinity;
     for (const h of candidates) {
-      const count = homes.filter((b) => Math.hypot(b.x - h.x, b.y - h.y) < 300).length;
+      const count = homeGrid.at(h.x,h.y).filter((b) => (b.x-h.x)**2+(b.y-h.y)**2<90000).length;
       const score = count - Math.hypot(h.x, h.y) / 800;
       if (score > bestScore) { bestScore = score; focus = { x: h.x, y: h.y }; }
     }
@@ -267,23 +280,14 @@ export function planNeighborhood(data, manifest, options = {}) {
   const fieldCells = cells.filter(([x, y]) => ['farmland', 'forest', 'orchard'].includes(areaAt(areaGrid, x, y)?.kind));
   const cropFocus = crops[Math.min(200, Math.max(0, crops.length - 1))];
   const fieldFocus = cropFocus ? { x: cropFocus.x, y: cropFocus.y } : fieldCells.length ? { x: fieldCells[Math.min(50, fieldCells.length - 1)][0], y: fieldCells[Math.min(50, fieldCells.length - 1)][1] } : focus;
-  const grass = [], grassModels = modelKinds.get('grass') || [];
-  for (const [cx, cy] of cells) {
-    if (!grassModels.length || grass.length >= (options.maxGrass ?? 3000)) break;
-    if (!['grass', 'park', 'residential', 'scrub'].includes(areaAt(areaGrid, cx, cy)?.kind)) continue;
-    const id = data.siteId + ':grass:' + cx + ':' + cy, m = grassModels[hash(id) % grassModels.length];
-    const sc = 2.4 + random(id) * 1.6, r = Math.hypot(m.width, m.depth) * sc / 2;
-    if ([[-r,-r], [r,-r], [r,r], [-r,r], [0,0]].some(([dx,dy]) => {
-      const x = cx + dx, y = cy + dy;
-      return !['grass', 'park', 'residential', 'scrub'].includes(areaAt(areaGrid, x, y)?.kind) || occupied(x, y, 2) || onRoad(x, y, 2) || isPaved(x,y);
-    })) continue;
-    grass.push({ id, model: m.id, kind: 'grass', x: cx, y: cy, angle: random(id + 'angle') * Math.PI * 2, scale: [sc, 0.8 + random(id), sc], palette: 0, source: 'illustrative-ground-cover' });
-  }
+  // Grass is a continuous, depth-tested ground material. Separate grid patches
+  // left conspicuous square tufts and multiplied vertex/shadow work.
+  const grass = [];
   const campuses = instances.filter((i) => i.kind === 'data-center').map(({id,name,x,y,width,depth,height,angle}) => ({id,name,x,y,width,depth,height,angle}));
   const campusFocus = campuses[0] || focus;
   const all = [...instances, ...vegetation, ...crops, ...grass];
   const byId = new Map(manifest.models.map((m) => [m.id, m]));
-  return { instances: all, roads: segments, areaGrid, radius, focus, campusFocus, campuses, fieldFocus, stats: { buildings: mapped + infill, mappedBuildings: mapped, infillBuildings: infill, dataCenters: campuses.length, sourceBuildings: data.buildings.length, mappedHeights, trees: vegetation.length, canopyCrowns: vegetation.reduce((n, i) => n + (byId.get(i.model).canopyCount || 1), 0), crops: crops.length, cropStems: crops.reduce((n,i) => n + (byId.get(i.model).stemCount || 1), 0), grass: grass.length, modelVariants: new Set(all.map((i) => i.model)).size } };
+  return { instances: all, roads: segments, areaGrid, radius, focus, campusFocus, campuses, fieldFocus, stats: { buildings: mapped + infill, mappedBuildings: mapped, infillBuildings: infill,infillByKind,infillTriangles,infillPlacement:infillPlan.stats,infillBuildingLimit:infillLimit,infillTriangleLimit, dataCenters: campuses.length, sourceBuildings: data.buildings.length, mappedHeights, trees: vegetation.length, canopyCrowns: vegetation.reduce((n, i) => n + (byId.get(i.model).canopyCount || 1), 0), crops: crops.length, cropStems: crops.reduce((n,i) => n + (byId.get(i.model).stemCount || 1), 0), grass: grass.length, grassSurface: true, modelVariants: new Set(all.map((i) => i.model)).size } };
 }
 
 const hex = (s) => s.replace('#', '').match(/../g).map((x) => parseInt(x, 16) / 255);
@@ -316,7 +320,7 @@ export function readGlb(buffer) {
   return { json, bin };
 }
 export function buildNeighborhoodGlb(data, manifest, kitBuffer, options = {}) {
-  const plan = planNeighborhood(data, manifest, options), { json: gltf, bin } = readGlb(kitBuffer);
+  const plan = options.preparedPlan || planNeighborhood(data, manifest, options), { json: gltf, bin } = readGlb(kitBuffer);
   const landscape = createLandscape(data, options.elevation);
   const groundHeight = (x, y) => 4 + (landscape.heightAt(x, y) ?? 0) - (x * x + y * y) / (2 * 6371000);
   gltf.nodes = []; gltf.scenes = [{ nodes: [] }]; gltf.scene = 0;
@@ -325,7 +329,7 @@ export function buildNeighborhoodGlb(data, manifest, kitBuffer, options = {}) {
   let offset = align(bin.length);
   if (offset > bin.length) chunks.push(new Uint8Array(offset - bin.length));
   const addAccessor = (values, size, componentType = 5126) => {
-    const arr = componentType === 5125 ? new Uint32Array(values) : new Float32Array(values), bytes = new Uint8Array(arr.buffer);
+    const arr = componentType === 5125 ? (values instanceof Uint32Array?values:new Uint32Array(values)) : (values instanceof Float32Array?values:new Float32Array(values)), bytes = new Uint8Array(arr.buffer,arr.byteOffset,arr.byteLength);
     const bi = gltf.bufferViews.length;
     gltf.bufferViews.push({ buffer: 0, byteOffset: offset, byteLength: bytes.length });
     chunks.push(bytes); offset += bytes.length;
@@ -336,9 +340,21 @@ export function buildNeighborhoodGlb(data, manifest, kitBuffer, options = {}) {
     }
     gltf.accessors.push(acc); return ai;
   };
+  const r = plan.radius;
+  const terrain = buildTerrainSurface(data, landscape, groundHeight, { radius: r, spacingM: options.terrainSpacingM ?? (options.detail === 'overview' ? 110 : 55) });
+  const surfaceHeight = createSurfaceHeightSampler(terrain.groups, groundHeight);
+  const roadSurface = buildRoadSurface(data, surfaceHeight, {detail:options.preview?'preview':options.detail || 'close',spacingM:options.preview?50:undefined,urban:options.urban});
+  // Upload a small, navigable mapped scene before expensive yards, parking,
+  // recreation and dense planting. The full pass retains all of those details.
+  const urbanDetail = options.preview ? {groups:[],stats:{}} : buildUrbanDetail(data,surfaceHeight,{detail:options.detail || 'close',buildings:plan.instances,urban:options.urban,residentialFocus:plan.focus,recreation:options.recreation});
+  const recreationDetail=options.preview ? {groups:[],stats:{}} : buildRecreationDetail(data,surfaceHeight,{detail:options.detail||'close',buildings:plan.instances,urban:options.urban,recreation:options.recreation});
+  const replacementBuildings=new Set(recreationDetail.replacementBuildingIds||[]);
   const palettes = [[0.88, 0.92, 0.83], [0.93, 0.83, 0.69], [0.77, 0.86, 0.9], [0.9, 0.73, 0.62]];
   const groups = new Map();
+  let overviewTrees=0;
   for (const i of plan.instances) {
+    if(replacementBuildings.has(i.id))continue;
+    if(options.detail==='overview'&&(i.kind==='crop'||i.kind==='grass'||i.kind==='tree'&&overviewTrees++>=(options.maxTrees??1800)))continue;
     const key = i.model + ':' + i.palette;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(i);
@@ -379,11 +395,6 @@ export function buildNeighborhoodGlb(data, manifest, kitBuffer, options = {}) {
       TRANSLATION: addAccessor(translations, 3), ROTATION: addAccessor(rotations, 4), SCALE: addAccessor(scales, 3),
     } } } });
   }
-  const r = plan.radius;
-  const terrain = buildTerrainSurface(data, landscape, groundHeight, { radius: r, spacingM: options.terrainSpacingM ?? (options.detail === 'overview' ? 110 : 55) });
-  const surfaceHeight = createSurfaceHeightSampler(terrain.groups, groundHeight);
-  const roadSurface = buildRoadSurface(data, surfaceHeight, {detail:options.detail || 'close',urban:options.urban});
-  const urbanDetail = buildUrbanDetail(data,surfaceHeight,{detail:options.detail || 'close',buildings:plan.instances,urban:options.urban});
   const primitives = [];
   const waterGrid = new SpatialIndex(180);
   for (const area of data.areas || []) if (area.kind === 'water') for (let k = 1; k < area.polygon.length; k++) {
@@ -395,7 +406,10 @@ export function buildNeighborhoodGlb(data, manifest, kitBuffer, options = {}) {
     for (const [a, b] of waterGrid.at(x, y)) d = Math.min(d, segmentDistance([x, y], a, b));
     return areaAt(plan.areaGrid, x, y)?.kind === 'water' ? -d : d;
   };
-  for (const group of [...terrain.groups, ...urbanDetail.groups, ...roadSurface.groups]) {
+  let sourceSurfaceVertices=0,packedSurfaceVertices=0;
+  for (const sourceGroup of [...terrain.groups, ...urbanDetail.groups, ...roadSurface.groups,...recreationDetail.groups]) {
+    const group=sourceGroup.category===0?packSurfaceVertices(sourceGroup):sourceGroup;
+    sourceSurfaceVertices+=sourceGroup.positions.length/3;packedSurfaceVertices+=group.positions.length/3;
     const color = group.color;
     const material = gltf.materials.length;
     gltf.materials.push({ name: 'ground-' + color, pbrMetallicRoughness: { baseColorFactor: [...hex(color), 1], metallicFactor: 0, roughnessFactor: 1 }, doubleSided: false });
@@ -415,7 +429,7 @@ export function buildNeighborhoodGlb(data, manifest, kitBuffer, options = {}) {
     const color = material.pbrMetallicRoughness?.baseColorFactor;
     if (color) for (let c = 0; c < 3; c++) color[c] = Math.pow(clamp(color[c], 0, 1), 2.2);
   }
-  gltf.buffers = [{ byteLength: offset }];
+  const packed=compactSceneBuffers(gltf,chunks);offset=packed.byteLength;
   const js = new TextEncoder().encode(JSON.stringify(gltf)), jsonLength = align(js.length), total = 12 + 8 + jsonLength + 8 + offset;
   const result = new Uint8Array(total), header = new DataView(result.buffer);
   header.setUint32(0, 0x46546c67, true); header.setUint32(4, 2, true); header.setUint32(8, total, true);
@@ -423,6 +437,6 @@ export function buildNeighborhoodGlb(data, manifest, kitBuffer, options = {}) {
   result.fill(32, 20, 20 + jsonLength); result.set(js, 20);
   const binStart = 20 + jsonLength;
   header.setUint32(binStart, offset, true); header.setUint32(binStart + 4, 0x004e4942, true);
-  let p = binStart + 8; for (const chunk of chunks) { result.set(chunk, p); p += chunk.length; }
-  return { buffer: result.buffer, stats: { ...plan.stats, terrainAvailable: !!options.elevation?.heights?.every((h) => Number.isFinite(h)) }, focus: plan.focus, campusFocus: plan.campusFocus, campuses: plan.campuses, roads: plan.roads, roadPaths: roadSurface.paths, roadStats:roadSurface.stats, urbanStats:urbanDetail.stats, airportFocus:urbanDetail.airportFocus, commercialFocus:plan.instances.find(i=>['shop','office'].includes(i.kind)) || null, fieldFocus: plan.fieldFocus, focusHeight: groundHeight(plan.focus.x, plan.focus.y), radius: r, center: data.center, source: data.source, elevation: options.elevation };
+  let p = binStart + 8; for (const chunk of packed.chunks) { result.set(chunk, p); p += chunk.length; }
+  return { buffer: result.buffer, assetStats:{unusedAssetBytesRemoved:packed.savedBytes,sourceSurfaceVertices,packedSurfaceVertices}, stats: { ...plan.stats, terrainAvailable: !!options.elevation?.heights?.every((h) => Number.isFinite(h)) }, focus: plan.focus, campusFocus: plan.campusFocus, campuses: plan.campuses, roads: plan.roads, roadPaths: roadSurface.paths, roadStats:roadSurface.stats, urbanStats:urbanDetail.stats, recreationStats:recreationDetail.stats,recreationFocus:recreationDetail.focus, airportFocus:urbanDetail.airportFocus, commercialFocus:plan.instances.find(i=>['shop','office'].includes(i.kind)) || null, fieldFocus: plan.fieldFocus, focusHeight: groundHeight(plan.focus.x, plan.focus.y), radius: r, center: data.center, source: data.source, elevation: options.elevation };
 }

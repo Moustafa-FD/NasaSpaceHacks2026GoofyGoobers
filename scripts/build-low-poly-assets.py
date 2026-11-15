@@ -151,6 +151,9 @@ class Mesh:
         center=[(lo[0]+hi[0])/2,lo[1],(lo[2]+hi[2])/2]
         for g in self.groups.values():
             g["positions"]=[round(v-center[i%3],5) for i,v in enumerate(g["positions"])]
+        for canopy in getattr(self,"canopies",[]):
+            canopy["x"]=round(canopy["x"]-center[0],5)
+            canopy["z"]=round(canopy["z"]-center[2],5)
         self.size=[round(hi[i]-lo[i],5) for i in range(3)]
         self.bounds=[[-self.size[0]/2,0,-self.size[2]/2],[self.size[0]/2,self.size[1],self.size[2]/2]]
         return self
@@ -695,14 +698,41 @@ def data_center(ident,style):
     return m.normalize()
 
 
-def forest_grove():
-    m=Mesh("forest-grove","tree","grove")
-    for i in range(9):
-        x=(i%3-1)*5.5+math.sin(i*3.7)*.25
-        z=(i//3-1)*5.5+math.cos(i*2.9)*.25
-        h=8.8+(i%3)*.8
-        m.cylinder(x,0,z,.19,h*.45,"bark",3,r2=.12)
-        m.foliage(x,h*.64,z,3.8,h*.36,3.8,["leaf","leaflight","leafdark"][i%3],5)
+def forest_grove(ident="forest-grove", variant=0):
+    # Authored irregular stands, rather than a jittered planting grid. Each has
+    # nine real stems, an uneven edge and small interior gaps; different mixes
+    # keep repeated instances from reading as identical rectangular tiles.
+    layouts=[
+        [(-7,-3.8),(-2.2,-7.4),(4.5,-6),(7.2,.1),(4.4,6.5),(-2.5,7.1),(-6.4,2.1),(-.5,-.5),(1.3,3.6)],
+        [(-6.8,-5.8),(-.9,-6.9),(5.9,-3.9),(7.4,2.4),(2.8,7.2),(-3.6,6.1),(-7.2,.8),(-1.8,.2),(2.2,2.5)],
+        [(-7.4,-1.8),(-4.1,-7.1),(2.4,-6.5),(7.2,-2.1),(5.6,4.3),(-.3,7.5),(-6.4,4.4),(-1.3,-1.4),(.8,3.2)],
+        [(-7.1,-5),(-1.2,-7.2),(5.7,-5.2),(7.3,1.6),(2.6,6.7),(-4.2,7.3),(-7.4,1.3),(-2,-1.6),(1.7,1.8)],
+    ]
+    conifers=[{1,4,6},{0,3,5,8},{2,4,7},{1,3,6,8}][variant]
+    m=Mesh(ident,"tree","grove")
+    m.canopies=[]
+    for i,(x,z) in enumerate(layouts[variant]):
+        x*=1.10; z*=1.10
+        h=8.5+((i*7+variant*3)%11)*.29
+        m.cylinder(x,0,z,.17+(i%3)*.025,h*.43,"bark",3,r2=.11)
+        if i in conifers:
+            # Two intersecting tapered tiers retain a readable pine/spruce
+            # silhouette at 28 triangles including the trunk.
+            radius=2.35+((i+variant)%3)*.15
+            m.cylinder(x,h*.19,z,radius,h*.55,"leafdark",6,r2=0)
+            m.cylinder(x,h*.46,z,radius*.76,h*.54,"leaf" if i%2 else "leafdark",6,r2=0)
+            m.canopies.append({"x":x,"z":z,"height":h,"rx":radius,"rz":radius,
+                               "shape":"conifer","color":rgb("leafdark")})
+        else:
+            leaf=["leaf","leaflight","leafdark"][(i+variant*2)%3]
+            radius=3.35+((i*3+variant)%5)*.11
+            # Birch-like slender crowns and broad oak crowns intermix with
+            # the conifers, with deliberately unequal horizontal radii.
+            slender=(i+variant)%4==0
+            m.foliage(x,h*.65,z,radius*(.74 if slender else 1),h*.35,
+                      radius*(.83 if slender else .94),leaf,5)
+            m.canopies.append({"x":x,"z":z,"height":h,"rx":radius*(.74 if slender else 1),
+                               "rz":radius*(.83 if slender else .94),"shape":"broadleaf","color":rgb(leaf)})
     m.stemCount=9; m.canopyCount=9
     return m.normalize()
 
@@ -821,6 +851,12 @@ def make_models():
         commercial("shop-fresh-market","market",29,25,5.5,"brick"),
         commercial("office-retail-court","stepped",38,28,12.5,"sage"),
         industrial("warehouse-workshop",24,32,"ochre","loading"),
+    ])
+    # Append only: all previously published mesh/node indices remain stable.
+    models.extend([
+        forest_grove("forest-grove-oak-pine",1),
+        forest_grove("forest-grove-birch-spruce",2),
+        forest_grove("forest-grove-open-mixed",3),
     ])
     return models
 
@@ -1006,7 +1042,7 @@ def main():
     for i,m in enumerate(models):
         triangles=sum(len(g["indices"])//3 for g in m.groups.values())
         meta={"id":m.ident,"kind":m.kind,"style":m.style,"role":getattr(m,"role","primary"),"width":m.size[0],"depth":m.size[2],"height":m.size[1],"bounds":m.bounds,"meshIndex":i,"nodeIndex":i,"triangles":triangles,"url":f"assets/low-poly/{m.ident}.glb"}
-        for key in ("stemCount","canopyCount"):
+        for key in ("stemCount","canopyCount","canopies"):
             if hasattr(m,key): meta[key]=getattr(m,key)
         manifest["models"].append(meta)
         templates["models"][m.ident]={**meta,"groups":dict(m.groups)}

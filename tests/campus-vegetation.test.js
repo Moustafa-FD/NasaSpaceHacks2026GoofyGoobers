@@ -115,7 +115,7 @@ test('wheat field patches contain many stems, obey small budgets and stay on map
   }
 });
 
-test('grass patches stay in mapped grassland and cannot populate forest or water',()=>{
+test('continuous grass does not generate square meadow meshes or consume a patch instance budget',()=>{
   const data=fixture([
     {id:'grass',kind:'grass',polygon:rect(-450,-450,450,450)},
     {id:'forest',kind:'forest',polygon:rect(-450,160,-100,450)},
@@ -123,13 +123,9 @@ test('grass patches stay in mapped grassland and cannot populate forest or water
   ],{roads:[{id:'road',kind:'residential',width:12,points:[[-480,0],[480,0]]}]});
   const plan=planNeighborhood(data,manifest,{maxBuildings:0,maxTrees:0,maxCrops:0,maxGrass:120});
   const patches=plan.instances.filter((i)=>i.kind==='grass');
-  assert.ok(patches.length>0&&patches.length<=120);
-  assert.equal(plan.stats.grass,patches.length);
-  for(const patch of patches){
-    assert.equal(patch.source,'illustrative-ground-cover');
-    assertClearOfWaterAndRoads(plan,patch);
-    for(const point of footprint(patch))assert.equal(areaAt(plan.areaGrid,...point)?.kind,'grass');
-  }
+  assert.equal(patches.length,0);assert.equal(plan.stats.grass,0);assert.equal(plan.stats.grassSurface,true);
+  const noPatchBudget=planNeighborhood(data,manifest,{maxBuildings:0,maxTrees:0,maxCrops:0,maxGrass:0});
+  assert.deepEqual(plan.instances,noPatchBudget.instances,'ground coverage must not depend on a finite meadow-instance budget');
   for(const kind of ['water','forest','farmland']){
     const excluded=planNeighborhood(fixture([{id:kind,kind,polygon:rect(-450,-450,450,450)}]),manifest,{maxBuildings:0,maxTrees:0,maxCrops:0,maxGrass:120});
     assert.equal(excluded.stats.grass,0,'No meadow patches should be inserted into '+kind);

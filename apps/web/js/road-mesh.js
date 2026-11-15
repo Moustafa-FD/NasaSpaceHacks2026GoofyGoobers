@@ -23,6 +23,8 @@ export function resolveRoadWidth(road,tags={}) {
     else for(const side of ['left','right'])if(tags['parking:lane:'+side]==='parallel')width+=2.3;
     return {width,widthSource:'illustrative estimate from OSM lanes'};
   }
+  if(road.kind==='service'&&/^(driveway|parking_aisle)$/.test(tags.service||'')&&(!road.widthSource||road.widthSource.includes('illustrative')))
+    return {width:tags.service==='driveway'?3:5.5,widthSource:'illustrative service-type default'};
   return {width:Number(road.width)>0?Number(road.width):(WIDTHS[road.kind]||4),widthSource:road.widthSource||(Number(road.width)>0?'cached source width':'illustrative road-class default')};
 }
 
@@ -57,11 +59,13 @@ function offsets(points) {
  * Build batched road meshes. `heightAt(east,north)` must return the actual rendered
  * ground height (including any scene offset). It is not offset by 4 m here.
  * `paths` retains source identities and includes the asphalt-top centre height for
- * traffic: [east,north,height]. Spacing is <=12 m close / <=28 m overview.
+ * traffic: [east,north,height]. Default spacing is 12 m close / 28 m overview.
+ * Preview uses 50 m spacing and only road/path surfaces with six-sided caps.
  */
 export function buildRoadSurface(data,heightAt,{detail='close',spacingM,asphaltLiftM=0.28,...options}={}) {
   if(typeof heightAt!=='function')throw new TypeError('buildRoadSurface requires a ground height sampler');
-  const spacing=clamp(spacingM??(detail==='overview'?28:12),2,50),surfaceAt=options.surfaceHeightAt||heightAt;
+  const preview=detail==='preview',capSegments=preview?6:10;
+  const spacing=clamp(spacingM??(preview?50:detail==='overview'?28:12),2,50),surfaceAt=options.surfaceHeightAt||heightAt;
   const groups=new Map(),paths=[],junctions=new Map(),metadata=new Map((options.urban?.roadTags||[]).map((r)=>[r.id,r.tags||{}]));
   const stats={sourceRoads:(data.roads||[]).length,renderedRoads:0,minorPaths:0,skippedPlannedRoads:0,invalidRoads:0,widthFallbacks:0,laneEstimatedWidths:0,mappedCrossings:(options.urban?.crossings||[]).length,paintedCrossings:0,resampledPoints:0,segmentCount:0,lengthM:0,triangles:0,spacingM:spacing};
   const group=(name,color)=>{if(!groups.has(name))groups.set(name,{name,positions:[],normals:[],indices:[],color,category:0});return groups.get(name);};
@@ -128,7 +132,7 @@ export function buildRoadSurface(data,heightAt,{detail='close',spacingM,asphaltL
   for(const {source,points,width,widthSource,tags} of sources) {
     const sampled=resample(points,spacing),top=sampled.map((p)=>{const h=surfaceAt(p[0],p[1]);return [p[0],p[1],Number.isFinite(h)?h+asphaltLiftM:NaN];});
     if(top.some((p)=>!Number.isFinite(p[2]))){stats.invalidRoads++;continue;}
-    const minor=MINOR.test(source.kind),sides=offsets(sampled),sidewalk=!minor&&SIDEWALK.test(source.kind)&&width>=3&&!/^(no|none|separate)$/.test(tags.sidewalk||'');
+    const minor=MINOR.test(source.kind),sides=offsets(sampled),sidewalk=!preview&&!minor&&SIDEWALK.test(source.kind)&&width>=3&&!/^(no|none|separate)$/.test(tags.sidewalk||'');
     const roadMaterial=minor?materials.path:materials.asphalt;
     if(sidewalk){strip(materials.sidewalk,sampled,width+3.2,asphaltLiftM-0.14,0,sides);strip(materials.curb,sampled,width+0.5,asphaltLiftM-0.06,0,sides);}
     // An explicit centre vertex follows the ground even where a terrain facet
@@ -141,16 +145,16 @@ export function buildRoadSurface(data,heightAt,{detail='close',spacingM,asphaltL
       const a=points[i-1],p=points[i],b=points[i+1],u=length(a,p),v=length(p,b);
       if(((p[0]-a[0])*(b[0]-p[0])+(p[1]-a[1])*(b[1]-p[1]))/(u*v)<0.8||junctions.get(key(p))?.count>1)joins.push(p);
     }
-    for(const p of joins){if(sidewalk){disk(materials.sidewalk,p,(width+3.2)/2,asphaltLiftM-0.14);disk(materials.curb,p,(width+0.5)/2,asphaltLiftM-0.06);}disk(roadMaterial,p,width/2,asphaltLiftM);}
-    if(!minor&&MARKED.test(source.kind)&&width>=6){
+    for(const p of joins){if(sidewalk){disk(materials.sidewalk,p,(width+3.2)/2,asphaltLiftM-0.14);disk(materials.curb,p,(width+0.5)/2,asphaltLiftM-0.06);}disk(roadMaterial,p,width/2,asphaltLiftM,capSegments);}
+    if(!preview&&!minor&&MARKED.test(source.kind)&&width>=6){
       dashes(sampled,width,asphaltLiftM+0.025);
       if(width>=9&&detail!=='overview')for(const offset of [-width/2+0.32,width/2-0.32])strip(materials.edge,sampled,0.12,asphaltLiftM+0.022,offset,sides);
     }
-    paths.push({id:source.id,kind:source.kind,width,widthSource,points:top});
+    paths.push({id:source.id,kind:source.kind,width,widthSource,tags:{...tags},...(tags.oneway?{oneway:tags.oneway}:{}),points:top});
     stats.renderedRoads++;if(minor)stats.minorPaths++;stats.resampledPoints+=sampled.length;stats.segmentCount+=sampled.length-1;
     for(let i=1;i<sampled.length;i++)stats.lengthM+=length(sampled[i-1],sampled[i]);
   }
-  if(detail!=='overview'&&options.urban?.crossings?.length){
+  if(!preview&&detail!=='overview'&&options.urban?.crossings?.length){
     const cells=new Map(),size=80;
     for(const s of sources)if(!MINOR.test(s.source.kind)&&!/^motorway/.test(s.source.kind))for(let i=1;i<s.points.length;i++){
       const a=s.points[i-1],b=s.points[i],item={a,b,width:s.width};
