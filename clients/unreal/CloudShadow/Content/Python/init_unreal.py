@@ -26,6 +26,18 @@ def _add_menu():
         for yr in (2015, 2020, 2025):
             entry("Year_%s_%d" % (site, yr), "Timeline: %s %d" % (label, yr), "Show that year's NASA 30 m imagery (editor preview)",
                   reload + "cloudshadow_setup.set_year('%s', %d)" % (site, yr))
+    cine = reload + "import cloudshadow_cine; importlib.reload(cloudshadow_cine); "
+    entry("CineBuild", "Cinematic: 1. Build look + camera + FX", "Clouds, fog, grade, cine camera, fluid plume, particles, scan beam.",
+          cine + "cloudshadow_cine.build()")
+    entry("CineSeq", "Cinematic: 2. Build 25 s sequence", "Create /Game/CloudShadow/Cine/SEQ_FootprintAtlas (camera path + scan sweep).",
+          cine + "cloudshadow_cine.build_sequence()")
+    for i, label in ((2, "BEFORE 2021"), (7, "AFTER 2025"), (9, "Turbine plume + NO2")):
+        entry("CinePreview%d" % i, "Cinematic: Preview beat %d (%s)" % (i, label), "Set the level to that beat to tune it by eye.",
+              cine + "cloudshadow_cine.preview(%d)" % i)
+    entry("CineRender", "Cinematic: 3. Render film (MRQ + ffmpeg)", "Render all shots to Saved/Cine and stitch footprint_atlas.mp4.",
+          cine + "cloudshadow_cine.render_film()")
+    entry("CineStitch", "Cinematic: Re-stitch mp4 from frames", "Rebuild footprint_atlas.mp4 + .srt from Saved/Cine/fa.*.png.",
+          cine + "cloudshadow_cine.stitch()")
     entry("Check", "Check setup", "Print what's installed and what's missing to the Output Log.",
           reload + "cloudshadow_setup.check()")
     menus.refresh_all_widgets()

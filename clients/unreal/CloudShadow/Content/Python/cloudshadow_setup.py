@@ -145,9 +145,16 @@ def _open_level():
 def _build_globe():
     geo = _spawn(unreal.CesiumGeoreference, "CesiumGeoreference", "CloudShadow")
     geo.set_origin_longitude_latitude_height(unreal.Vector(ORIGIN["lon"], ORIGIN["lat"], ORIGIN["height"]))
+    # Cesium only auto-resolves to a georeference tagged DEFAULT_GEOREFERENCE; without it, it spawns its own
+    # at Denver and silently places the whole scene relative to that one.
+    geo.tags = list(geo.tags) + ["DEFAULT_GEOREFERENCE"]
+    world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+    _set(world.get_world_settings(), enable_world_bounds_checks=False)   # space shots are far outside default bounds
+    _build_exposure()
 
     terrain = _spawn(unreal.Cesium3DTileset, "Cesium World Terrain", "CloudShadow/Globe")
-    _set(terrain, tileset_source=unreal.TilesetSource.FROM_CESIUM_ION, ion_asset_id=ION_WORLD_TERRAIN)
+    _set(terrain, tileset_source=unreal.TilesetSource.FROM_CESIUM_ION, ion_asset_id=ION_WORLD_TERRAIN,
+         georeference=geo)
 
     bing = _add_component(terrain, unreal.CesiumIonRasterOverlay, "BingAerial")
     _set(bing, ion_asset_id=ION_BING_AERIAL, material_layer_key="Overlay0")
@@ -169,7 +176,7 @@ def _build_globe():
     _build_timeline_imagery(terrain)
 
     google = _spawn(unreal.Cesium3DTileset, "Google Photorealistic 3D Tiles (toggle for close-ups)", "CloudShadow/Globe")
-    _set(google, tileset_source=unreal.TilesetSource.FROM_CESIUM_ION, ion_asset_id=ION_GOOGLE_3D)
+    _set(google, tileset_source=unreal.TilesetSource.FROM_CESIUM_ION, ion_asset_id=ION_GOOGLE_3D, georeference=geo)
     google.set_actor_hidden_in_game(True)
     google.set_is_temporarily_hidden_in_editor(True)
 
@@ -183,6 +190,23 @@ def _build_globe():
         pawn.set_actor_rotation(unreal.Rotator(0, -50, 35), False)  # roll, pitch, yaw
     except Exception as e:
         warn("Cloud Shadow: DynamicPawn not added (%s). Use Cesium panel > Quick Add > Dynamic Pawn." % e)
+
+
+EXPOSURE_COMPENSATION = -14.0   # manual exposure for the 111,000 lux CesiumSunSky (measured in UE 5.8.4)
+
+
+def _build_exposure():
+    """Fixed manual exposure. The project has auto exposure off (DefaultEngine.ini), and with Cesium's
+    physical sun the default exposure renders pure white. Manual (not auto) so renders don't drift."""
+    ppv = _spawn(unreal.PostProcessVolume, "FA_Exposure", "CloudShadow")
+    _set(ppv, unbound=True)
+    s = ppv.settings
+    for k, v in (("auto_exposure_method", unreal.AutoExposureMethod.AEM_MANUAL),
+                 ("auto_exposure_apply_physical_camera_exposure", False),
+                 ("auto_exposure_bias", EXPOSURE_COMPENSATION)):
+        s.set_editor_property("override_" + k, True)
+        s.set_editor_property(k, v)
+    ppv.settings = s
 
 
 def _build_timeline_imagery(terrain):
