@@ -4,7 +4,7 @@
   const { MAP_SCALES, createEvidenceProvider, evidenceTexture } = await import('./evidence-map.js');
   const { createMapTransition, mapCrossfadeAlphas } = await import('./map-transition.js');
   const { trackImageryProvider } = await import('./imagery-readiness.js');
-  const { sourceDateForYear, mapRequestKey } = await import('./map-source-window.js');
+  const { sourceDateForYear, seasonalFallbackDate, mapRequestKey } = await import('./map-source-window.js');
   const $ = (s) => document.querySelector(s);
   const fmt = (v, d = 2) => (v == null || !isFinite(v) ? "–" : (v > 0 ? "+" : "") + v.toFixed(d));
   const fmtP = (p) => (p == null || !isFinite(p) ? "–" : p < 0.001 ? "p < 0.001" : "p = " + p.toFixed(3));
@@ -320,9 +320,10 @@
       // Years beyond (or before) the satellite record: show the nearest real map and say so,
       // instead of clearing the layer. Satellites never provide future maps.
       if(!date){
-        const earlier=dates.filter(d=>d<=desired),fallback=earlier.length?earlier.at(-1):dates[0];
+        // Same season as the requested date, so a July view never borrows an autumn map.
+        const earlier=dates.filter(d=>d<=desired),fallback=seasonalFallbackDate(dates,desired)||(earlier.length?earlier.at(-1):dates[0]);
         if(!fallback){clearScientificMap(`No ${VARS[kind].short} imagery for ${desired.slice(0,4)}.`);return;}
-        date=fallback;a={...a,fallbackNote:`No ${VARS[kind].short} map exists for ${desired.slice(0,4)}; showing the ${earlier.length?'latest':'earliest'} available (${fallback}).`};
+        date=fallback;a={...a,fallbackNote:`No ${VARS[kind].short} map exists for ${desired.slice(0,4)}; showing the nearest same-season map (${fallback}), not a projection.`};
       }
       a={...a,date};
     }
