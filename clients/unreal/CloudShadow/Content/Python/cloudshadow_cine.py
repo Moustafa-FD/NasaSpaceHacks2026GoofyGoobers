@@ -147,20 +147,20 @@ def story():
         return (f0, f1, st)
 
     return [
-        beat(0, 165, grade="space", haze="space", caption="Every AI answer is computed in a real building, somewhere."),
-        beat(165, 300, stamp="WHITEHAVEN, MEMPHIS · 2021", footer=FOOTER),
-        beat(300, 348, stamp="2025", caption="Then, almost overnight…", focus=HALL_C, footer=FOOTER),
-        beat(348, 370, stamp="2025", caption="Then, almost overnight…", focus=HALL_C, footer=FOOTER, haze="dust"),
-        beat(370, 390, stamp="2025", caption="Then, almost overnight…", focus=HALL_C, footer=FOOTER, haze="settle"),
-        beat(390, 480, env="after", sun=18.9, grade="dusk", focus=(-40, 0),
+        beat(0, 165, t3d="intro", grade="space", haze="space", caption="Every AI answer is computed in a real building, somewhere."),
+        beat(165, 300, t3d="2021", stamp="WHITEHAVEN, MEMPHIS · 2021", footer=FOOTER),
+        beat(300, 348, t3d="2025", stamp="2025", caption="Then, almost overnight…", focus=HALL_C, footer=FOOTER),
+        beat(348, 370, t3d="2025", stamp="2025", caption="Then, almost overnight…", focus=HALL_C, footer=FOOTER, haze="dust"),
+        beat(370, 390, t3d="2025", stamp="2025", caption="Then, almost overnight…", focus=HALL_C, footer=FOOTER, haze="settle"),
+        beat(390, 480, t3d="c2", env="after", sun=18.9, grade="dusk", focus=(-40, 0),
              stamp="xAI COLOSSUS 2", caption="An AI supercomputer", footer=FOOTER),
-        beat(480, 570, env="after", sun=18.8, grade="dusk", power=True, focus=(-260, -200),
+        beat(480, 570, t3d="power", env="after", sun=18.8, grade="dusk", power=True, focus=(-260, -200),
              stamp="POWER", caption="Hundreds of megawatts, around the clock", footer=POWER_FOOT),
-        beat(570, 660, env="after", sun=15.8, grade="dusk", water=True, focus=(-200, -40, 1.0),
-             stamp="WATER", caption="Millions of gallons a day to keep it cool", footer=WATER_FOOT),
-        beat(660, 780, env="after", sun=19.7, grade="dusk", haze="smog", focus=None,
+        beat(570, 660, t3d="water", env="after", sun=15.8, grade="dusk", water=True, focus=(-200, -40, 1.0),
+             stamp="WATER", caption="Up to 1.3 million gallons a day to cool it", footer=WATER_FOOT),
+        beat(660, 780, t3d="air", env="after", sun=19.7, grade="dusk", haze="smog", focus=None,
              stamp="AIR", caption="Gas turbines, next to homes", footer=AIR_FOOT),
-        beat(780, 900, env="after", grade="space", haze="space"),
+        beat(780, 900, t3d="title", env="after", grade="space", haze="space"),
     ]
 
 
@@ -287,6 +287,7 @@ def build():
     build_flows()
     build_bolts()
     build_volumes()
+    build_text3d()
     build_water()
     _drop_probe()
     log("Footprint Atlas: look + camera + FX built. Next: Cinematic 2 (sequence), then 3 (render).")
@@ -1033,6 +1034,61 @@ def build_water():
     log("Footprint Atlas: FLIP water basin built at E%+.0f N%+.0f" % BASIN)
 
 
+# ------------------------------------------------------------------ 3D TEXT: the story, told in the scene
+# (main line, second line, layout). Facts only from data/cloudshadow/sites.json ledgers + our NASA analysis.
+T3D = {
+    "intro": ("EVERY CLICK RUNS SOMEWHERE", "inside a data center you can see from space", "low"),
+    "2021":  ("MEMPHIS  2021", "open land, rebuilt from NASA satellite images", "low"),
+    "2025":  ("2025", "then, almost overnight...", "low"),
+    "c2":    ("xAI COLOSSUS 2", "an AI data center", "low"),
+    "power": ("POWER", "hundreds of megawatts, around the clock", "low"),
+    "water": ("WATER", "up to 1.3 million gallons a day to cool it", "low"),
+    "air":   ("AIR", "NO2 up near the site  (NASA TROPOMI, borderline)", "low"),
+    "title": ("FOOTPRINT ATLAS", "the hidden footprint of data centers  |  NASA data", "mid"),
+}
+T3D_DIST = 600.0            # cm in front of the lens: sharp (18 mm f/2.8 hyperfocal ~5.8 m), no motion blur
+T3D_GLOW = 6.0
+
+
+def build_text3d():
+    """Text3D actors parented to the film camera; apply() shows the slice's pair."""
+    for a in cs._actors().get_all_level_actors():
+        if a.get_actor_label().startswith("FA_T3D_"):
+            cs._actors().destroy_actor(a)
+    cam = _find("CineCam_FootprintAtlas")
+    white = cs._emissive_material("/Game/CloudShadow/Materials/M_T3D_White", (1.0, 1.0, 1.0), T3D_GLOW)
+    amber = cs._emissive_material("/Game/CloudShadow/Materials/M_T3D_Amber", (1.0, 0.62, 0.18), T3D_GLOW * 0.8)
+    side = cs._emissive_material("/Game/CloudShadow/Materials/M_T3D_Side", (0.25, 0.30, 0.38), 0.6)
+    for key, (main, sub, lay) in T3D.items():
+        z0 = -112.0 if lay == "low" else 18.0
+        big = 48.0 if key == "title" else 34.0
+        for part, txt, z, size, mat in (("A", main, z0, big, white), ("B", sub, z0 - big * 0.95, big * 0.42, amber)):
+            a = _spawn(unreal.Text3DActor, "FA_T3D_%s_%s" % (key, part), "CloudShadow/Cine/Text")
+            t = a.get_component_by_class(unreal.Text3DComponent)
+            t.set_editor_property("text", unreal.Text(txt))
+            t.set_font_size(size)
+            t.set_extrude(size * 0.12 if part == "A" else 0.5)
+            t.set_bevel(size * 0.02 if part == "A" else 0.0)
+            t.set_horizontal_alignment(unreal.Text3DHorizontalTextAlignment.CENTER)
+            t.set_vertical_alignment(unreal.Text3DVerticalTextAlignment.CENTER)
+            t.set_front_material(mat)
+            t.set_extrude_material(side)
+            t.set_bevel_material(mat)
+            t.set_back_material(side)
+            if cam:
+                a.attach_to_actor(cam, "", unreal.AttachmentRule.KEEP_RELATIVE, unreal.AttachmentRule.KEEP_RELATIVE,
+                                  unreal.AttachmentRule.KEEP_RELATIVE, False)
+            a.root_component.set_relative_location(unreal.Vector(T3D_DIST, 0.0, z), False, None, False)
+            a.root_component.set_relative_rotation(unreal.Rotator(0.0, 0.0, T3D_YAW), False, None, False)
+            a.set_actor_hidden_in_game(True)
+            for c in a.get_components_by_class(unreal.PrimitiveComponent):
+                c.set_cast_shadow(False)
+    log("Footprint Atlas: 3D text built (%d cards)" % len(T3D))
+
+
+T3D_YAW = 180.0             # Text3D faces -X: turn it to face the lens
+
+
 # ------------------------------------------------------------------ per-beat state
 def apply(state):
     """Put the level in a slice's state: before/after (Google clip), sun, FX, grade, focus."""
@@ -1067,6 +1123,10 @@ def apply(state):
                 (a.niagara_component.activate if on else a.niagara_component.deactivate)()
     for a in cs._actors().get_all_level_actors():          # flows: every actor with the prefix
         lab = a.get_actor_label()
+        for a in cs._actors().get_all_level_actors():
+            lab = a.get_actor_label()
+            if lab.startswith("FA_T3D_"):
+                a.set_actor_hidden_in_game(lab[7:].rsplit("_", 1)[0] != state.get("t3d"))
         for prefix, on in (("FA_PowerFX", state["power"]), ("FA_WaterFX", state["water"]),
                            ("FA_VDB_Steam", state["water"]), ("FA_VDB_Smoke", state.get("haze") == "smog")):
             if lab.startswith(prefix):
