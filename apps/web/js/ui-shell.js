@@ -14,6 +14,8 @@ const ALIASES = {
 };
 // Future side: the measured trend extended to 2035 (timeline rows, Phase = projected), shown with
 // that theme's NASA map projected pixel by pixel. Reported themes (water, power) have no projection.
+// Every measured theme has its NASA map (water: rainfall mm/year); power is reported only.
+const MAP_LAYER = { heat: "LST_Night", green: "NDVI", air: "NO2_OMI", water: "Water" };
 const FUTURE_YEAR = 2035, FUTURE_LAYER = { heat: "LST_Night", green: "NDVI", air: "NO2_OMI" }, FUTURE_VAR = { heat: "LST_Night", green: "NDVI", air: "NO2_OMI" };
 const S = { sites: [], context: {}, wayback: null, cs: null, site: null, theme: "air", rows: new Map(), facts: {}, side: "after", flip: null, heatMap: true, min: false };
 
@@ -196,10 +198,10 @@ function setSide(side) {
   const year = side === "future" ? FUTURE_YEAR : f.years[side];
   // The projected side shows the theme's own NASA map (projected per pixel); the measured sides keep
   // the team default (heat map only, when switched on).
-  const layer = S.theme === "water" ? "Water" : side === "future" ? FUTURE_LAYER[S.theme] : S.theme === "heat" && S.heatMap ? "LST_Night" : "none";
+  const layer = !S.heatMap ? "none" : (side === "future" && FUTURE_LAYER[S.theme]) || MAP_LAYER[S.theme] || "none";
   try { if (S.cs && S.cs.getMapLayer?.() !== layer) S.cs.setMapLayer(layer); } catch { /* scene not ready yet */ }
   window.CloudShadowTimeline?.setYear(year); // drives the team's scene, smoke and landscape via "cs:year"
-  window.dispatchEvent(new CustomEvent("cs:theme", { detail: { theme: S.theme, site: S.site, facts: S.facts[S.theme], side, year, mapOn: S.theme === "heat" && S.heatMap } }));
+  window.dispatchEvent(new CustomEvent("cs:theme", { detail: { theme: S.theme, site: S.site, facts: S.facts[S.theme], side, year, mapOn: !!MAP_LAYER[S.theme] && S.heatMap } }));
   render();
 }
 function startFlip() { S.flip = setInterval(() => setSide(S.side === "before" ? "after" : "before"), 1800); $("#v3Flip").setAttribute("aria-pressed", "true"); $("#v3Flip").textContent = "❚❚ Stop"; }
@@ -209,8 +211,8 @@ function selectTheme(key) {
   S.theme = key;
   // setSide (below) picks the map layer for this theme and side.
   // Map at near-full strength so the regional pattern reads clearly over the low-poly scene (team default is 0.65).
-  const op = $("#opacity"); if (op && key === "heat" && S.heatMap && +op.value < 0.9) { op.value = "0.9"; op.dispatchEvent(new Event("input")); }
-  const hm = $("#v3HeatMap"); hm.hidden = key !== "heat"; hm.textContent = S.heatMap ? "Hide heat map" : "Show heat map";
+  const op = $("#opacity"); if (op && MAP_LAYER[key] && S.heatMap && +op.value < 0.9) { op.value = "0.9"; op.dispatchEvent(new Event("input")); }
+  const hm = $("#v3HeatMap"); hm.hidden = !MAP_LAYER[key]; hm.textContent = S.heatMap ? "Hide map" : "Show map";
   setSide(S.side);
 }
 

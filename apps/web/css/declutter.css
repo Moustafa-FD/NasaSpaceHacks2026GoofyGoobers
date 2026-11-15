@@ -74,3 +74,4 @@ body.globe-lifted #globe { bottom: 150px !important; }
 
 /* Water (rainfall) ramp: dry brown → wet teal (stops match water-map.js). */
 #mapColorScale .evidence-ramp.water { background: linear-gradient(90deg, #8c510a 0%, #d8b365 19%, #f6e8c3 39%, #c7eae5 56%, #5ab4ac 72%, #01665e 100%); }
+#mapColorScale .evidence-ramp.water-change { background: linear-gradient(90deg, #8c510a, #f6f6ee, #01665e); }
