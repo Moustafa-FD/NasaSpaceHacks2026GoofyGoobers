@@ -46,7 +46,8 @@ Python (data and statistics) → static JSON in Git → Node.js server and job A
 ## Tricky questions
 - **"Is the heat from the data center or climate change?"** We subtract the surrounding ring. Ashburn's night heat is +0.25 °C/decade **beyond** its surroundings, and the regional warming is reported separately.
 - **"Why NO₂ from OMI and not TROPOMI?"** TROPOMI is sharper but only starts in Sep 2023; OMI goes back to 2004, which a trend needs.
-- **"Why is the plume purple only at Colossus 1?"** It is the only site with documented on-site gas turbines.
+- **"Why is the plume purple only at Colossus 1?"** It is the only site with documented gas turbines **on its own campus** (SELC counted up to 35 from thermal imagery; Shelby County permitted 15 in July 2025). It also draws 150 MW from the grid, so say "grid power plus on-site gas turbines", not "fully emission-powered".
+- **"Doesn't Colossus 2 burn gas too?"** Yes, but off-site: Mississippi permitted 41 turbines across the state line in Southaven (March 2026) to power it. They are not on the Colossus 2 campus, so we don't draw a plume there; the new interface's Air view cites the 2026 study of the NO₂ rise.
 - **"Why don't day-heat maps change much after 2026?"** Daytime surface heat has no significant trend at most pixels (0–6%). Night heat does (53–97%), so the Heat button shows night heat.
 - **"Why does a projected map change only in some places?"** Only pixels with a statistically significant trend move; the rest stay at their latest value. Night heat (most pixels) and greenness at the campus move clearly; soil water has no significant trend at any site, so it stays put.
 - **"How do you show water?"** Worldwide rainfall per year from NASA MERRA-2 (2003–2025), coloured wetter or drier than each place's normal. 2027–2035 continue each cell's measured trend where it is significant; there is no water map after 2035.

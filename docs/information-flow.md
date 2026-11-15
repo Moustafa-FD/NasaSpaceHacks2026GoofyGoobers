@@ -110,7 +110,7 @@ The change from 2026 to 2027 is small. An earlier version showed the October 202
 
 ### Worked example: Colossus 1 air dispersion
 
-Only Colossus 1 has documented on-site combustion (methane gas turbines), so only it gets the purple fluid and a dispersion footprint (`site.effects.plume`). For each year from 2018 to 2026, a Gaussian plume runs on that year's analysed GEOS-FP winds (about 12 snapshots a year), so the footprint changes as you scrub: for example, in 2018 it drifts south and Boxtown gets 0% of the peak, while in 2025 it drifts north and Boxtown gets 2.2%. Future years show no footprint, because no analysed winds exist for them.
+Only Colossus 1 has documented combustion **on its own campus** (methane gas turbines: up to 35 per SELC thermal imagery, 15 permitted by Shelby County in July 2025, alongside 150 MW of grid power), so only it gets the purple fluid and a dispersion footprint (`site.effects.plume`). Colossus 2 is also turbine-powered, but its 41 permitted turbines are off-site in Southaven, Mississippi (March 2026), so no plume is drawn at the Colossus 2 campus. For each year from 2018 to 2026, a Gaussian plume runs on that year's analysed GEOS-FP winds (about 12 snapshots a year), so the footprint changes as you scrub: for example, in 2018 it drifts south and Boxtown gets 0% of the peak, while in 2025 it drifts north and Boxtown gets 2.2%. Future years show no footprint, because no analysed winds exist for them.
 
 ## Where this is implemented
 
