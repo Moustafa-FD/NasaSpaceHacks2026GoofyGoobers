@@ -122,3 +122,15 @@ test('future model requests use selected bounded source periods and never silent
   assert.throws(() => buildEnvironmentRequest('agriculture', site, 2090, { now }), /through 2049/);
   assert.equal(buildEnvironmentRequest('agriculture', site, 2040, { now }).future.end, '2040-12-31');
 });
+
+test('a one-year screening recalculation is added to the earlier multi-year result', async () => {
+  const { attachFutureData } = await import('../apps/web/js/future-data.js');
+  const site = { id: 'colossus1', lat: 35.0601, lon: -90.1564 }, events = new EventTarget();
+  const data = attachFutureData({ site, year: 2030, eventTarget: events, fetchImpl: null });
+  const point = { siteId: site.id, point: { latitude: site.lat, longitude: site.lon } };
+  const row = (year) => ({ year, metrics: [{ label: 'x', value: year, unit: 'W' }] });
+  data.ingest({ siteId: site.id, kind: 'environment-screening', result: { ...point, years: [2029, 2030, 2031].map(row) } });
+  data.ingest({ siteId: site.id, kind: 'environment-screening', result: { ...point, years: [row(2050)] } });
+  assert.deepEqual(data.state.products['environment-screening'].years.map((r) => r.year), [2029, 2030, 2031, 2050]);
+  data.destroy();
+});

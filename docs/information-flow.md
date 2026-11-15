@@ -71,6 +71,14 @@ Two rules hold in every era:
 
 This is the same "if the trend continues" extension as the panel numbers, applied per pixel. It is **not a forecast**. Pixel trends include regional change: night-time warming covers most of the Memphis area, for example. So a projected map shows *where* the record is changing, not what the facility causes. Haze (AOD) has no significant pixels at Colossus 1, so its projected map correctly stays the same.
 
+### Why site trend extensions stop at 2035
+
+The 2027–2035 values (panel numbers, trend band and projected maps) extend a straight Sen's-slope trend fitted to about 23 years of satellite data (2003–2026). They stop at 2035 on purpose:
+
+- **Extrapolation range.** Nine years ahead is under 40% of the record length. Much further, a straight line fitted to two decades says little: the 95% band keeps widening, and real quantities saturate. Greenness can't fall below bare ground, for example, and heat responds to new buildings or cooling.
+- **No physics.** A trend line doesn't know about emissions pathways, land-use plans or climate feedbacks. That is what climate models are for.
+- **What happens after 2035.** The timeline switches to NASA NEX-GDDP-CMIP6 climate model scenarios (5 models, SSP2-4.5 and SSP5-8.5) through 2100. These are physics-based but regional (a ~25 km cell, as period summaries), so they are shown as regional climate context, not as a projected facility map.
+
 ## 3. Each category, end to end
 
 | Category | Observed evidence | Future view | What it is **not** |

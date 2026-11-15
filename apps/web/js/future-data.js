@@ -132,7 +132,14 @@ export function attachFutureData({ site, year = 2025, eventTarget = globalThis.w
   function ingest({ siteId, kind, result } = {}) {
     if (destroyed || !siteId || !result || (!supported.has(kind) && !supplemental.has(kind)&&kind !== 'trend')) return false;
     if (!futureProductMatchesSite(result, locations.get(siteId))) return false;
-    const values = cache.get(siteId) || {}; if (values[kind] === result) return true; values[kind] = result; cache.delete(siteId); cache.set(siteId, values);
+    const values = cache.get(siteId) || {}; if (values[kind] === result) return true;
+    // A one-year "same inputs" screening recalculation adds that year to the earlier result.
+    const previous = values[kind];
+    if (kind === 'environment-screening' && previous?.years?.length && result.years?.length === 1) {
+      const year = result.years[0].year;
+      result = { ...result, years: [...previous.years.filter((r) => r.year !== year), ...result.years].sort((x, y) => x.year - y.year), requiredInputs: [...(previous.requiredInputs || []).filter((r) => r.year !== year), ...(result.requiredInputs || [])] };
+    }
+    values[kind] = result; cache.delete(siteId); cache.set(siteId, values);
     while (cache.size > 12) cache.delete(cache.keys().next().value);
     if (siteId === current.siteId) { current = { ...current, error: '' }; rebuild(); }
     return true;
