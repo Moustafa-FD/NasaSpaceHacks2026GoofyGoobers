@@ -202,6 +202,45 @@ def bolt_frames(seed=33, lines=3, variants=6, f0=480, f1=570, step=2):
     return sorted(lit)
 
 
+# ------------------------------------------------------------------ synthesized score (used when no --music file)
+def _note(f, sec, bright=0.3):
+    t = t_(sec)
+    x = sum(np.sin(2 * np.pi * f * h * t * (1 + 0.0015 * np.sin(2 * np.pi * 0.2 * t + h))) / h ** (1.6 - bright)
+            for h in (1, 2, 3, 4))
+    return x
+
+
+def score():
+    """30 s cinematic bed: A-minor pad (Am F C G), pulse that builds into the drop at 11.6 s,
+    a lighter arpeggio over the impact acts, a swell into the title. Mostly < 2 kHz so SFX stay clear."""
+    out = np.zeros(N)
+    prog = [(220.0, 261.63, 329.63), (174.61, 220.0, 261.63), (130.81, 196.0, 261.63), (196.0, 246.94, 293.66)]
+    bar = 2.4
+    for i in range(int(DUR / bar) + 1):                      # pad
+        ch = prog[i % 4]
+        seg = sum(_note(f, bar + 0.6, 0.1) for f in ch) + 0.6 * _note(ch[0] / 2, bar + 0.6, 0.0)
+        seg = fade(band(seg, hi=1800), 0.5, 0.6)
+        a = int(i * bar * SR)
+        out[a:a + len(seg)] += seg[: max(0, N - a)] * 0.16
+    pulse_t = np.arange(N) / SR                                # low pulse, 8ths, rising 5.5 -> 11.6 s, again 13 -> 26 s
+    env = np.clip((pulse_t - 5.5) / 6.0, 0, 1) * (pulse_t < 11.6) + np.clip((pulse_t - 13.0) / 3.0, 0, 1) * 0.8 * (pulse_t < 26.0)
+    gate = (np.sin(2 * np.pi * 4.0 * pulse_t) > 0.2) * np.exp(-((pulse_t * 4.0) % 1.0) * 4)
+    out += np.sin(2 * np.pi * 55 * pulse_t) * gate * env * 0.35
+    arp = [440.0, 523.25, 659.25, 880.0, 659.25, 523.25]       # arpeggio over POWER/WATER/AIR
+    for k, at in enumerate(np.arange(13.0, 26.0, 0.25)):
+        f = arp[k % len(arp)] * (0.8909 if (int(at / bar) % 4) == 1 else 1.0)
+        n = _note(f, 0.3, 0.5) * np.exp(-t_(0.3) / 0.09)
+        a = int(at * SR)
+        out[a:a + len(n)] += n * 0.05
+    sw = pulse_t - 24.5                                        # swell into the title, then the final chord rings
+    out += band(rng.standard_normal(N), lo=300, hi=3000) * np.clip(sw / 1.5, 0, 1) * (sw < 1.5) * 0.08
+    fin = sum(_note(f, 4.0, 0.2) for f in (110.0, 220.0, 261.63, 329.63, 440.0)) * np.exp(-t_(4.0) / 2.2)
+    out[int(26 * SR):int(26 * SR) + len(fin)] += fin[: N - int(26 * SR)] * 0.14
+    out[int(11.4 * SR):int(11.6 * SR)] *= np.linspace(1, 0, int(0.2 * SR))   # silence beat before the impact
+    out[int(11.6 * SR):int(12.0 * SR)] *= 0.0
+    return reverb(fade(out, 1.5, 2.0), 3.0, 0.35, 2600)
+
+
 # ------------------------------------------------------------------ the mix
 def build_sfx():
     fx = Track()
@@ -237,6 +276,18 @@ def main():
     sfx_path = os.path.join(a.out, "footprint_atlas_sfx.wav")
     wavfile.write(sfx_path, SR, (st * 32767).astype(np.int16))
     print("effects ->", sfx_path)
+    m = score()                                                # synthesized score under the effects
+    duck = np.convolve(np.abs(fx.L + fx.R), np.ones(4800) / 4800, "same")
+    m = m / (np.max(np.abs(m)) or 1) * 0.5 / (1 + 3.0 * duck / (np.max(duck) or 1))
+    mix = np.stack([fx.L + m, fx.R + m], 1)
+    mix = mix / (np.max(np.abs(mix)) or 1) * 0.89
+    wavfile.write(os.path.join(a.out, "footprint_atlas_mix.wav"), SR, (mix * 32767).astype(np.int16))
+    raw = os.path.join(a.out, "footprint_atlas_mix.wav")
+    tmp = os.path.join(a.out, "_mix_raw.wav")
+    os.replace(raw, tmp)                                       # loudness: -14 LUFS, -1 dBTP (web/video standard)
+    os.system('ffmpeg -y -loglevel error -i "%s" -af loudnorm=I=-14:TP=-1.0:LRA=11 -ar 48000 "%s"' % (tmp, raw))
+    os.remove(tmp)
+    print("mix (synth score) ->", raw)
     if a.music:
         mix = os.path.join(a.out, "footprint_atlas_mix.wav")
         # music bed: 30 s, fades, ducked by the effects (sidechain), then the two summed and loudness-normalized

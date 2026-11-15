@@ -1047,7 +1047,7 @@ T3D = {
     "title": ("FOOTPRINT ATLAS", "the hidden footprint of data centers  |  NASA data", "mid"),
 }
 T3D_DIST = 600.0            # cm in front of the lens: sharp (18 mm f/2.8 hyperfocal ~5.8 m), no motion blur
-T3D_GLOW = 6.0
+T3D_GLOW = 120.0
 
 
 def build_text3d():
@@ -1057,7 +1057,7 @@ def build_text3d():
             cs._actors().destroy_actor(a)
     cam = _find("CineCam_FootprintAtlas")
     white = cs._emissive_material("/Game/CloudShadow/Materials/M_T3D_White", (1.0, 1.0, 1.0), T3D_GLOW)
-    amber = cs._emissive_material("/Game/CloudShadow/Materials/M_T3D_Amber", (1.0, 0.62, 0.18), T3D_GLOW * 0.8)
+    amber = cs._emissive_material("/Game/CloudShadow/Materials/M_T3D_Amber", (1.0, 0.42, 0.04), T3D_GLOW * 0.7)
     side = cs._emissive_material("/Game/CloudShadow/Materials/M_T3D_Side", (0.25, 0.30, 0.38), 0.6)
     for key, (main, sub, lay) in T3D.items():
         z0 = -112.0 if lay == "low" else 18.0
@@ -1078,15 +1078,20 @@ def build_text3d():
             if cam:
                 a.attach_to_actor(cam, "", unreal.AttachmentRule.KEEP_RELATIVE, unreal.AttachmentRule.KEEP_RELATIVE,
                                   unreal.AttachmentRule.KEEP_RELATIVE, False)
-            a.root_component.set_relative_location(unreal.Vector(T3D_DIST, 0.0, z), False, None, False)
-            a.root_component.set_relative_rotation(unreal.Rotator(0.0, 0.0, T3D_YAW), False, None, False)
+            a.root_component.set_relative_location(unreal.Vector(T3D_DIST, 0.0, z), False, False)
+            a.root_component.set_relative_rotation(unreal.Rotator(0.0, 0.0, T3D_YAW), False, False)
             a.set_actor_hidden_in_game(True)
+            try:
+                r = t.get_rendering_extension(unreal.Text3DDefaultRenderingExtension)
+                r.set_cast_shadow(False)
+            except Exception:
+                pass
             for c in a.get_components_by_class(unreal.PrimitiveComponent):
                 c.set_cast_shadow(False)
     log("Footprint Atlas: 3D text built (%d cards)" % len(T3D))
 
 
-T3D_YAW = 180.0             # Text3D faces -X: turn it to face the lens
+T3D_YAW = 0.0               # Text3D reads correctly from the lens at yaw 0 (180 = mirrored, checked in render)
 
 
 # ------------------------------------------------------------------ per-beat state
@@ -1282,7 +1287,8 @@ def build_sequence():
         hb = seq.add_possessable(hall)
         hs = hb.add_track(unreal.MovieScene3DTransformTrack).add_section()
         hs.set_range(0, TOTAL)
-        keys = [(0, up(900), one, const), (f0, up(900), one, auto), (f0 + 12, up(420), one, lin),
+        keys = [(0, up(20000), one, const), (f0 - 1, up(20000), one, const),   # out of view: visibility keys don't hide it
+                (f0, up(900), one, auto), (f0 + 12, up(420), one, lin),
                 (f1, up(0), one, lin), (f1 + 3, up(0), unreal.Vector(1.03, 1.03, 0.72), auto),
                 (f1 + 9, up(0), unreal.Vector(0.99, 0.99, 1.06), auto), (f1 + 15, up(0), one, auto)]
         for frame, loc, scl, ip in keys:
@@ -1488,14 +1494,15 @@ Style: Note,Arial,34,&H00CCCCCC,&H00FFFFFF,&H00000000,&H00000000,0,1,0,0,100,100
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
     ev = []
-    for a, b, t in _cues("stamp"):
+    for a, b, t in ([] if T3D else _cues("stamp")):         # the story is told by in-scene 3D text now
         ev.append("Dialogue: 1,%s,%s,Stamp,,0,0,0,,{\\fad(200,200)}%s" % (_ts(a / FPS), _ts(b / FPS), t))
-    for a, b, t in _cues("caption"):
+    for a, b, t in ([] if T3D else _cues("caption")):
         ev.append("Dialogue: 0,%s,%s,Caption,,0,0,0,,{\\fad(250,250)}%s" % (_ts(a / FPS), _ts(b / FPS), t))
     title, sub, a, b = TITLE
-    ev.append("Dialogue: 2,%s,%s,Title,,0,0,0,,{\\fad(600,0)\\pos(960,470)}%s" % (_ts(a / FPS + 0.3), _ts(b / FPS), title))
-    ev.append("Dialogue: 2,%s,%s,Sub,,0,0,0,,{\\fad(600,0)\\pos(960,580)}%s" % (_ts(a / FPS + 0.8), _ts(b / FPS), sub))
-    ev.append("Dialogue: 2,%s,%s,Note,,0,0,0,,{\\fad(600,0)\\pos(960,660)}%s" % (_ts(a / FPS + 1.0), _ts(b / FPS), TITLE_NOTE))
+    if not T3D:
+      ev.append("Dialogue: 2,%s,%s,Title,,0,0,0,,{\\fad(600,0)\\pos(960,470)}%s" % (_ts(a / FPS + 0.3), _ts(b / FPS), title))
+      ev.append("Dialogue: 2,%s,%s,Sub,,0,0,0,,{\\fad(600,0)\\pos(960,580)}%s" % (_ts(a / FPS + 0.8), _ts(b / FPS), sub))
+    ev.append("Dialogue: 2,%s,%s,Note,,0,0,0,,{\\fad(600,0)\\pos(960,1000)}%s" % (_ts(a / FPS + 1.0), _ts(b / FPS), TITLE_NOTE))
     for a, b, t in _cues("footer"):
         ev.append("Dialogue: 0,%s,%s,Footer,,0,0,0,,{\\fad(250,250)}%s" % (_ts(a / FPS), _ts(b / FPS), t))
     with open(ass, "w", encoding="utf-8") as f:
