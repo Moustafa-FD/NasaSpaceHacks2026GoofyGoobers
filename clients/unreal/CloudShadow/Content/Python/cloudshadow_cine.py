@@ -120,8 +120,8 @@ def camera_path():
     p += [
         _key(480, _c2(-760, -560, 110), _c2(-260, -200, 10)),           # S6 POWER: grid into the halls
         _key(569, _c2(-640, -470, 140), _c2(-150, -120, 10), cut=True),
-        _key(570, _c2(-330, -90, 45), _c2(hx, hy, 8)),                  # S7 WATER: drawn into cooling
-        _key(659, _c2(-260, -40, 70), _c2(hx, hy, 8), cut=True),
+        _key(570, _c2(-207, -49, 10.0), _c2(-200, -40, 0.0)),             # S7 WATER: close dolly over the basin
+        _key(659, _c2(-203, -44, 6.5), _c2(-200, -40, 0.0), cut=True),
         _key(660, _c1(900, -700, 120), (*PLUME_AT, C1_GROUND + 150)),   # S8 AIR: turbine plume over homes
         _key(779, _c1(620, -400, 180), (*PLUME_AT, C1_GROUND + 210)),
         _key(900, (-91.5, 32.5, 2.8e6), (-90.1, 35.3, 0.0)),            # S9 back to the planet: title
@@ -156,7 +156,7 @@ def story():
              stamp="xAI COLOSSUS 2", caption="An AI supercomputer", footer=FOOTER),
         beat(480, 570, env="after", sun=18.8, grade="dusk", power=True, focus=(-260, -200),
              stamp="POWER", caption="Hundreds of megawatts, around the clock", footer=POWER_FOOT),
-        beat(570, 660, env="after", sun=18.8, grade="dusk", water=True, focus=HALL_C,
+        beat(570, 660, env="after", sun=15.8, grade="dusk", water=True, focus=(-200, -40, 1.0),
              stamp="WATER", caption="Millions of gallons a day to keep it cool", footer=WATER_FOOT),
         beat(660, 780, env="after", sun=19.7, grade="dusk", haze="smog", focus=None,
              stamp="AIR", caption="Gas turbines, next to homes", footer=AIR_FOOT),
@@ -287,6 +287,7 @@ def build():
     build_flows()
     build_bolts()
     build_volumes()
+    build_water()
     _drop_probe()
     log("Footprint Atlas: look + camera + FX built. Next: Cinematic 2 (sequence), then 3 (render).")
     return cam
@@ -874,7 +875,8 @@ VOLUMES = {   # svt, albedo colour, density scale, albedo scale (the master defa
     "Steam": ("steam_plume", (1.0, 1.0, 1.0), 0.35, 1.0),
 }
 HV_CVARS = {"r.HeterogeneousVolumes.MaxTraceDistance": 300000, "r.HeterogeneousVolumes.MaxShadowTraceDistance": 300000,
-            "r.HeterogeneousVolumes.IndirectLighting": 1}                 # sky light into the volumes, or cores go black
+            "r.HeterogeneousVolumes.IndirectLighting": 0,                 # experimental: crashed the D3D12 driver (2026-11-15)
+            "sg.EffectsQuality": 3, "fx.Niagara.QualityLevel": 3}   # 4 = FLIP water asks 100M+ GPU particles -> crash
 
 
 def _vdb_material(kind):
@@ -962,10 +964,86 @@ def _key_volumes(seq):
             _key_frame(seq, s, [(0, 120.0 + 40 * i), (660, 120.0 + 40 * i), (780, 200.0 + 40 * i)])
 
 
+# ------------------------------------------------------------------ WATER: a FLIP liquid simulation (S7)
+FLIP_HOSE = "/NiagaraFluids/Templates/Liquid/3D/Systems/Grid3D_Flip_Hose"
+BASIN = (-200.0, -40.0)          # E/N of Colossus 2: ground level, west of the hall (cooling-water basin)
+FLIP_SIZE = (4.9, 4.9, 2.6)      # m: the template's simulation domain (calibrated top-down: square, centred)
+FLIP_SHIFT = (0.0, 0.0)          # m E/N from the tank centre to the actor (calibrated from a top-down render)
+
+
+def build_water():
+    """A cooling-water basin at the foot of the hall: Niagara Fluids FLIP liquid (real simulated
+    water) churned by an inflow jet, contained by concrete walls that sit on the sim domain, with
+    an intake pipe, a pump house and evaporation steam. Labels start FA_WaterFX so the WATER slice
+    shows them."""
+    for a in cs._actors().get_all_level_actors():
+        if a.get_actor_label().startswith(("FA_WaterFX", "FA_FlipTest")):
+            cs._actors().destroy_actor(a)
+    conc = unreal.load_asset(env.MAT_RUBBLE + "_C")
+    steel = cs._emissive_material("/Game/CloudShadow/Materials/M_Steel", (0.45, 0.47, 0.50), 0.0)
+    cube = unreal.load_asset("/Engine/BasicShapes/Cube")
+    cyl = unreal.load_asset("/Engine/BasicShapes/Cylinder")
+    e0, n0 = BASIN
+    h = env.GROUND_H
+
+    def box(label, mesh, mat, e, n, z, sx, sy, sz, rot=unreal.Rotator(0, 0, 0)):
+        a = _spawn(unreal.StaticMeshActor, label, "CloudShadow/Cine/Water")
+        smc = a.static_mesh_component
+        smc.set_mobility(unreal.ComponentMobility.MOVABLE)
+        smc.set_static_mesh(mesh)
+        smc.set_material(0, mat)
+        cs._anchor(a, *env._offset(e, n), h + z)
+        a.set_actor_rotation(rot, False)
+        a.set_actor_scale3d(unreal.Vector(sx, sy, sz))
+        return a
+
+    made = [box("FA_WaterFX_Pad", cube, conc, e0 - 5, n0 - 18, -0.05, 74.0, 90.0, 0.2)]          # covers Google's mud
+    L, W, H = FLIP_SIZE
+    wall_h, t = H + 0.1, 0.35                                       # walls contain the whole sim domain
+    for i, (de, dn, sx, sy) in enumerate(((0, W / 2 + t / 2, L + 2 * t, t), (0, -W / 2 - t / 2, L + 2 * t, t),
+                                          (L / 2 + t / 2, 0, t, W), (-L / 2 - t / 2, 0, t, W))):
+        made.append(box("FA_WaterFX_Wall_%d" % i, cube, conc, e0 + de, n0 + dn, wall_h / 2, sx, sy, wall_h))
+    # a row of identical basins behind it: the plant is bigger than one tank
+    for k in ():                                     # (solid stand-ins read as plain blocks: off)
+        made.append(box("FA_WaterFX_Basin_%d" % k, cube, conc, e0 + k * (L + 2.2), n0, wall_h / 2, L + 0.7, W + 0.7, wall_h))
+    # intake pipe from the pump house to the jet nozzle, pump house behind
+    made.append(box("FA_WaterFX_Pipe", cyl, steel, e0 - L / 2 - 3.5, n0, 2.4, 0.45, 0.45, 7.0, unreal.Rotator(0, 90, 0)))
+    made.append(box("FA_WaterFX_Riser", cyl, steel, e0 - L / 2 - 7.0, n0, 1.2, 0.45, 0.45, 2.4))
+    made.append(box("FA_WaterFX_PumpHouse", cube, conc, e0 - L / 2 - 10.5, n0, 2.2, 5.0, 4.0, 4.4))
+    flip = c_niagara = _niagara(unreal.load_asset(FLIP_HOSE), "FA_WaterFX_Flip", *env._offset(e0, n0),
+ h + 0.05,
+                                folder="CloudShadow/Cine/Water")
+    flip.set_actor_rotation(unreal.Rotator(0, 0, 0), False)
+    de_, dn_ = FLIP_SHIFT                           # calibrated: the template's grid is not centred on the actor
+    if de_ or dn_:
+        cs._anchor(flip, *env._offset(e0 + de_, n0 + dn_), h + 0.05)
+    made.append(flip)
+    # evaporation steam off the basin (the steam VDB, small)
+    if False:                                        # steam read as smoke over the small basin
+      _volume("FA_VDB_Steam_B", "Steam", *env._offset(e0 + 1.0, n0), h + 0.6, 2.5,
+            yaw=180.0 + _data()["colossus2"]["wind"]["plumeTowardDeg"])
+    for a in made:
+        a.set_actor_hidden_in_game(True)
+        a.set_is_temporarily_hidden_in_editor(True)
+    # cut Google's photogrammetry out around the basin during the WATER shot (close range = mud)
+    poly = _spawn(unreal.CesiumCartographicPolygon, "FA_ClipWater", "CloudShadow/Cine/Water")
+    poly.set_polygon_points(unreal.CesiumCoordinateReferenceSystem.LONGITUDE_LATITUDE_HEIGHT,
+                            [unreal.Vector(*env._offset(e0 + de, n0 + dn), 0.0)
+                             for de, dn in ((-40, 25), (30, 25), (30, -60), (-40, -60))])
+    log("Footprint Atlas: FLIP water basin built at E%+.0f N%+.0f" % BASIN)
+
+
 # ------------------------------------------------------------------ per-beat state
 def apply(state):
     """Put the level in a slice's state: before/after (Google clip), sun, FX, grade, focus."""
     env.state(state["env"])
+    if state.get("water"):
+        g, wp = env._google(), _find("FA_ClipWater")
+        for comp in g.get_components_by_class(unreal.CesiumPolygonRasterOverlay):
+            if comp.get_name() == "FA_Clip" and wp:
+                comp.set_editor_property("polygons", [wp])
+                comp.set_editor_property("exclude_selected_tiles", False)
+                comp.refresh()
     sun, _ = _sun_light()
     if sun:
         cs._set(sun, solar_time=float(state["sun"]))
@@ -994,6 +1072,8 @@ def apply(state):
             if lab.startswith(prefix):
                 a.set_actor_hidden_in_game(not on)
                 a.set_is_temporarily_hidden_in_editor(not on)
+                if hasattr(a, "niagara_component"):
+                    (a.niagara_component.activate if on else a.niagara_component.deactivate)()
     _grade(state["grade"])
     fog = _find("FA_HeightFog")
     if fog:   # (density, height falloff, inscattering colour): clear air / impact dust / smog
@@ -1015,7 +1095,8 @@ def apply(state):
         if state["focus"] is None:
             cs._anchor(focus, PLUME_AT[0], PLUME_AT[1], C1_GROUND + 120.0)
         else:
-            cs._anchor(focus, *env._offset(*state["focus"]), env.GROUND_H + 10.0)
+            fz = state["focus"][2] if len(state["focus"]) > 2 else 10.0
+            cs._anchor(focus, *env._offset(*state["focus"][:2]), env.GROUND_H + fz)
 
 
 def preview(beat_index, frame=None):
@@ -1198,7 +1279,7 @@ def _cesium_quality(sse):
 # "final" profile: cinematic scalability everywhere, finer Nanite, sharper shadows, full texture streaming.
 # (Never r.ViewDistanceScale / HighQualityAerialPerspective: those blacked out the sky in renders.)
 FINAL_CVARS = {
-    "sg.ShadowQuality": 4, "sg.FoliageQuality": 4, "sg.EffectsQuality": 4, "sg.PostProcessQuality": 4,
+    "sg.ShadowQuality": 4, "sg.FoliageQuality": 4, "sg.EffectsQuality": 3, "sg.PostProcessQuality": 4,   # effects 4 = FLIP water asks 100M+ particles -> GPU crash
     "sg.TextureQuality": 4, "sg.GlobalIlluminationQuality": 4, "sg.ReflectionQuality": 4, "sg.ShadingQuality": 4,
     "r.Nanite.MaxPixelsPerEdge": 0.5,                    # finer Nanite triangles
     "r.Shadow.Virtual.ResolutionLodBiasDirectional": -1.5,
@@ -1367,7 +1448,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return ass, srt
 
 
-def stitch(burn=True):
+def stitch(burn=False):
     """Saved/Cine/fa.####.png -> footprint_atlas.mp4 with titles burned in (libass); falls back to a
     clean video if burning fails. footprint_atlas.srt is always written next to it."""
     mp4 = os.path.join(OUT, "footprint_atlas.mp4")
@@ -1378,7 +1459,12 @@ def stitch(burn=True):
         return
     base = ["ffmpeg", "-y", "-framerate", str(FPS), "-start_number", pngs[0].split(".")[1],
             "-i", os.path.join(OUT, "fa.%04d.png")]
-    tail = ["-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-movflags", "+faststart", mp4]
+    # sound: the mix (effects + music) if scripts/film_audio.py made one, else the effects alone
+    audio = next((os.path.join(OUT, f) for f in ("footprint_atlas_mix.wav", "footprint_atlas_sfx.wav")
+                  if os.path.exists(os.path.join(OUT, f))), None)
+    if audio:
+        base = base + ["-i", audio]
+    tail = (["-map", "0:v", "-map", "1:a", "-c:a", "aac", "-b:a", "256k", "-shortest"] if audio else []) +         ["-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-movflags", "+faststart", mp4]
     esc = ass.replace("\\", "/").replace(":", "\\:")        # ffmpeg filter syntax: drive colon escaped
     attempts = ([base + ["-vf", "ass='%s'" % esc] + tail] if burn else []) + [base + tail]
     for cmd in attempts:
