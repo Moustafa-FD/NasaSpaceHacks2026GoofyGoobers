@@ -56,7 +56,10 @@ Moving the slider sends one `cs:year` event, so the map, the panel and the 3D sc
 | **Trend extension** | 2027–2035 | **Projected map, pixel by pixel**: the latest real same-season map plus each pixel's own significant NASA trend × years ahead (heat day/night, greenness, NO₂, haze). Dashed purple legend "PROJECTED <year>". Outside the site box: latest real map | Sen's-slope trend line and 95% CI band, which widens each year | Ground follows the trend value; the projection look is stylized | PROJECTED · IF THE TREND CONTINUES |
 | **Climate scenarios** | 2036–2100 | No annual map | Regional NEX-GDDP-CMIP6 period summaries (SSP2-4.5 / SSP5-8.5, 5-model spread) | Climate context only; no facility effect | Regional scenario, not a facility forecast |
 
-**Water on the map:** the Water button (and the Water tab) shows NASA **GLDAS root-zone soil moisture** (monthly, ~25 km, 2000–2026); blue is wetter, orange drier. Its per-pixel trend uses all months of each year. No site currently has a significant soil-moisture trend (e.g. Colossus 1: p = 0.78), so its projected map stays unchanged; that is the data, not a fault. GRACE groundwater storage ends in 2022 in GIBS, so it is not used for projections.
+**Water on the map:** the Water button (and the Water tab in both interfaces) shows **rainfall in mm/year on one fixed scale (0–1800 mm, brown = dry, teal = wet)**, so sites compare directly (normals: Colossus 1 ≈ 1,280, Ashburn ≈ 1,120, Abilene ≈ 690, The Dalles ≈ 520 mm/year).
+- 2003–2025: NASA MERRA-2 bias-corrected monthly precipitation, summed per calendar year on its native ~50 km grid (`scripts/water_maps.py`).
+- 2027–2100: delta-change scenario. The 2005–2024 observed map is multiplied by the NASA POWER NEX-GDDP-CMIP6 ensemble's annual precipitation at the site relative to its 2015–2024 mean (10-year running mean), following the selected pathway (SSP1-2.6 / 2-4.5 / 3-7.0). It is a conditional climate scenario, not a forecast; by 2050 under SSP2-4.5 the change is +0.5% at Memphis and +6.6% at The Dalles.
+- GLDAS root-zone soil moisture remains in the layer list.
 
 **Wind trails in future years** (2027–2100) show the NASA GEOS-FP winds of the latest complete analysed year (2025) as a labelled reference pattern ("GEOS-FP 2025 pattern"). No wind forecast exists, so the pattern does not change between future years.
 

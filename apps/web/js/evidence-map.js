@@ -14,7 +14,7 @@ export const MAP_SCALES = Object.freeze({
 export const INVERTED_SCALE=new Set(['NDVI','SoilMoisture']);
 /** Colour range for 'projected change since the latest real map' (2027-2035): sized to
  * nine years of the observed per-pixel trends, so a real but small trend is visible. */
-export const PROJECTED_DELTAS=Object.freeze({LST_Day:1.5,LST_Night:1.5,NDVI:.15,AOD:.06,NO2_OMI:.6,SoilMoisture:4});
+export const PROJECTED_DELTAS=Object.freeze({LST_Day:1,LST_Night:1,NDVI:.1,AOD:.05,NO2_OMI:.4,SoilMoisture:3});
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const NEUTRAL=[229,229,217],COOL=[52,144,190],RED=[204,32,46],VEG_WARM=[218,78,48];
 /** Blue (low) to red (high); vegetation keeps blue = greener, orange = less green. */
@@ -22,11 +22,11 @@ export function evidenceColor(value,scale,change=false,vegetation=false){
   if(!Number.isFinite(value))return [0,0,0,0];
   const out=new Uint8ClampedArray(4);colorInto(out,0,value,scale,change,vegetation);return [...out];
 }
-function colorInto(out,i,value,scale,change,vegetation){
+function colorInto(out,i,value,scale,change,vegetation,minAlpha=55){
   let t=change?clamp(value/scale.delta,-1,1):clamp((value-scale.min)/(scale.max-scale.min),0,1)*2-1;
   if(vegetation)t=-t;
   const end=t<0?COOL:vegetation?VEG_WARM:RED,w=Math.abs(t);
-  out[i]=NEUTRAL[0]+(end[0]-NEUTRAL[0])*w+.5;out[i+1]=NEUTRAL[1]+(end[1]-NEUTRAL[1])*w+.5;out[i+2]=NEUTRAL[2]+(end[2]-NEUTRAL[2])*w+.5;out[i+3]=change?55+180*w+.5:200;
+  out[i]=NEUTRAL[0]+(end[0]-NEUTRAL[0])*w+.5;out[i+1]=NEUTRAL[1]+(end[1]-NEUTRAL[1])*w+.5;out[i+2]=NEUTRAL[2]+(end[2]-NEUTRAL[2])*w+.5;out[i+3]=change?Math.max(minAlpha,55+180*w)+.5:200;
 }
 const lutRanges=new WeakMap();
 function lutRange(lut){
@@ -81,6 +81,10 @@ export function recolorEvidence(current,baseline,lut,{scale,offset=0,factor=1,ch
   const projected=(slopes&&years>0)||adjust,range=projected?lutRange(lut):null,use=delta?{...scale,delta}:scale;
   const output=new Uint8ClampedArray(current.length);
   if(change&&!baseline)return output;
+  // Projected-change view (delta given): draw only pixels whose own trend is significant;
+  // tiles outside the trend grid have no projection and stay transparent.
+  const trendOnly=delta!=null&&change;
+  if(trendOnly&&!(slopes&&years>0))return output;
   // Cached decoding for tiles that are re-coloured every year (projected base maps, baselines).
   const cv=cache?tileValues(current,lut):null,bv=cache&&change?tileValues(baseline,lut):null;
   for(let p=0,i=0;i<current.length;p++,i+=4){
@@ -88,9 +92,10 @@ export function recolorEvidence(current,baseline,lut,{scale,offset=0,factor=1,ch
     if(cv){v=cv[p];if(v!==v)continue;}else{if(!current[i+3])continue;v=lut.get((current[i]<<16)|(current[i+1]<<8)|current[i+2]);if(v===undefined)continue;}
     if(change){if(bv){b=bv[p];if(b!==b)continue;}else{if(!baseline[i+3])continue;b=lut.get((baseline[i]<<16)|(baseline[i+1]<<8)|baseline[i+2]);if(b===undefined)continue;}}
     // Projected years: latest real pixel + its own significant trend, kept on the colour scale.
+    if(trendOnly&&slopes[p]===0)continue;
     if(slopes&&years>0)v=Math.max(range[0],Math.min(range[1],v+slopes[p]*years));
     else if(adjust)v=Math.max(range[0],Math.min(range[1],v+adjust(p)));
-    colorInto(output,i,change?(v-b)*factor:(v+offset)*factor,use,change,vegetation);
+    colorInto(output,i,change?(v-b)*factor:(v+offset)*factor,use,change,vegetation,trendOnly?120:55);
   }
   return output;
 }

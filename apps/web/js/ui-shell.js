@@ -12,6 +12,9 @@ const ALIASES = {
   ashburn: "ashburn virginia loudoun data center alley aws amazon microsoft equinix", abilene: "abilene texas stargate openai oracle crusoe lancium",
   thedalles: "the dalles oregon google columbia river",
 };
+// Future side: the measured trend extended to 2035 (timeline rows, Phase = projected), shown with
+// that theme's NASA map projected pixel by pixel. Reported themes (water, power) have no projection.
+const FUTURE_YEAR = 2035, FUTURE_LAYER = { heat: "LST_Night", green: "NDVI", air: "NO2_OMI" }, FUTURE_VAR = { heat: "LST_Night", green: "NDVI", air: "NO2_OMI" };
 const S = { sites: [], context: {}, wayback: null, cs: null, site: null, theme: "air", rows: new Map(), facts: {}, side: "after", flip: null, heatMap: true, min: false };
 
 // ------------------------------------------------------------------ landing
@@ -58,7 +61,7 @@ function buildChrome() {
     <section id="v3Panel" hidden aria-live="polite">
       <nav class="v3-tabs" role="tablist" aria-label="What to look at">${Object.entries(THEMES).map(([k, t]) => `<button class="v3-tab" role="tab" data-theme="${k}" style="--c:${t.hex}">${icon(k)}<span>${t.label}</span></button>`).join("")}</nav>
       <div class="v3-body"><button class="v3-min" id="v3Min" aria-label="Hide panel" title="Hide to see the map">Hide ▾</button><p class="v3-claim" id="v3Claim"></p><p class="v3-conf" id="v3Conf"></p></div>
-      <div class="v3-ba"><button class="side" data-side="before"></button><button class="side" data-side="after"></button><button class="v3-btn flip" id="v3Flip" aria-pressed="false">▶ Flip</button></div>
+      <div class="v3-ba"><button class="side" data-side="before"></button><button class="side" data-side="after"></button><button class="side future" data-side="future"></button><button class="v3-btn flip" id="v3Flip" aria-pressed="false">▶ Flip</button></div>
       <div class="v3-links"><button class="v3-btn dark" id="v3PhotosBtn">Compare satellite photos</button><button class="v3-link" id="v3Years">All years</button><button class="v3-link" id="v3Sources">Sources &amp; charts</button><button class="v3-link" id="v3HeatMap" hidden></button><span class="note" id="v3Note"></span></div>
     </section>
     <button id="v3Pill" class="v3-btn dark" hidden aria-label="Show panel"></button>
@@ -123,6 +126,15 @@ async function loadFacts(site) {
   S.facts.power = { rep: reportedPower(site.ledger?.power, S.context.homesPerMW), years: beforeAfterYears("power", S.rows, site.onset) };
 }
 
+function futureFact(key) {
+  const rv = FUTURE_VAR[key], row = S.rows.get(FUTURE_YEAR), v = Number(row?.[`${rv}_Local`]), site = Number(row?.[`${rv}_Site`]);
+  if (!row || !Number.isFinite(v)) return "No projection for this measure";
+  if (key === "heat") return `If the trend continues: nights ${Math.abs(v).toFixed(1)} °C ${v >= 0 ? "warmer" : "cooler"} than nearby`;
+  const around = site - v, p = Number.isFinite(site) && around ? (v / Math.abs(around)) * 100 : null;
+  if (p == null) return "No projection for this measure";
+  return key === "green" ? `If the trend continues: ${Math.abs(p).toFixed(0)}% ${v < 0 ? "less green" : "greener"} than nearby`
+    : `If the trend continues: ${Math.abs(p).toFixed(0)}% ${v >= 0 ? "more" : "less"} NO₂ than nearby`;
+}
 function sideFact(key, year, before) {
   const f = S.facts[key];
   if (f.published) return f.published[before ? "before" : "after"].fact;
@@ -156,6 +168,18 @@ function render() {
     $("#v3Note").textContent = `Data: ${T.source}`;
     }
   }
+  const fb = P.querySelector('[data-side="future"]'), canProject = !T.reported && !f.published && !!FUTURE_LAYER[key];
+  fb.hidden = !canProject;
+  if (canProject) {
+    fb.innerHTML = `<span class="lab">PROJECTED</span><span class="yr">${FUTURE_YEAR}</span><span class="fact">${esc(futureFact(key))}</span>`;
+    fb.setAttribute("aria-pressed", String(S.side === "future"));
+    fb.title = "The measured trend extended to 2035 on the map, pixel by pixel. Not a forecast.";
+  }
+  if (canProject && S.side === "future") {
+    const what = { heat: "red = warmer nights than in 2026, blue = cooler", green: "orange = less green than in 2026, blue = greener", air: "red = more NO₂ than in 2026, blue = less" }[key];
+    $("#v3Claim").textContent = `If the measured trend continues to ${FUTURE_YEAR}: ${what}.`;
+    $("#v3Conf").innerHTML = `<b>Projection, not a forecast.</b> Each map pixel continues its own 2003–2026 NASA trend; only places with a statistically significant trend are coloured. ${esc(T.why)}`;
+  }
   for (const side of ["before", "after"]) {
     const y = f.years[side];
     P.querySelector(`[data-side="${side}"]`).innerHTML = `<span class="lab">${side.toUpperCase()}</span><span class="yr">${y}</span><span class="fact">${esc(sideFact(key, y, side === "before"))}</span>`;
@@ -166,18 +190,24 @@ function render() {
 
 // ------------------------------------------------------------------ before / after
 function setSide(side) {
+  const T = THEMES[S.theme], f = S.facts[S.theme];
+  if (side === "future" && (T.reported || f.published || !FUTURE_LAYER[S.theme])) side = "after";
   S.side = side;
-  const year = S.facts[S.theme].years[side];
+  const year = side === "future" ? FUTURE_YEAR : f.years[side];
+  // The projected side shows the theme's own NASA map (projected per pixel); the measured sides keep
+  // the team default (heat map only, when switched on).
+  const layer = S.theme === "water" ? "Water" : side === "future" ? FUTURE_LAYER[S.theme] : S.theme === "heat" && S.heatMap ? "LST_Night" : "none";
+  try { if (S.cs && S.cs.getMapLayer?.() !== layer) S.cs.setMapLayer(layer); } catch { /* scene not ready yet */ }
   window.CloudShadowTimeline?.setYear(year); // drives the team's scene, smoke and landscape via "cs:year"
   window.dispatchEvent(new CustomEvent("cs:theme", { detail: { theme: S.theme, site: S.site, facts: S.facts[S.theme], side, year, mapOn: S.theme === "heat" && S.heatMap } }));
   render();
 }
-function startFlip() { S.flip = setInterval(() => setSide(S.side === "after" ? "before" : "after"), 1800); $("#v3Flip").setAttribute("aria-pressed", "true"); $("#v3Flip").textContent = "❚❚ Stop"; }
+function startFlip() { S.flip = setInterval(() => setSide(S.side === "before" ? "after" : "before"), 1800); $("#v3Flip").setAttribute("aria-pressed", "true"); $("#v3Flip").textContent = "❚❚ Stop"; }
 function stopFlip() { clearInterval(S.flip); S.flip = null; $("#v3Flip")?.setAttribute("aria-pressed", "false"); if ($("#v3Flip")) $("#v3Flip").textContent = "▶ Flip"; }
 
 function selectTheme(key) {
   S.theme = key;
-  try { S.cs?.setMapLayer(key === "heat" && S.heatMap ? "LST_Night" : "none"); } catch { /* scene not ready yet */ }
+  // setSide (below) picks the map layer for this theme and side.
   // Map at near-full strength so the regional pattern reads clearly over the low-poly scene (team default is 0.65).
   const op = $("#opacity"); if (op && key === "heat" && S.heatMap && +op.value < 0.9) { op.value = "0.9"; op.dispatchEvent(new Event("input")); }
   const hm = $("#v3HeatMap"); hm.hidden = key !== "heat"; hm.textContent = S.heatMap ? "Hide heat map" : "Show heat map";

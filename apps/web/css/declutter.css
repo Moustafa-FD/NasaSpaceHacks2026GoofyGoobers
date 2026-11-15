@@ -71,3 +71,6 @@ body.globe-lifted #globe { bottom: 150px !important; }
 #topbar .brand-logo { display: block; height: 38px; width: auto; }
 @media (max-width: 680px) { #topbar .brand-logo { height: 30px; } }
 .layer-dot.water { background: #70bedb; }
+
+/* Water (rainfall) ramp: dry brown → wet teal (stops match water-map.js). */
+#mapColorScale .evidence-ramp.water { background: linear-gradient(90deg, #8c510a 0%, #d8b365 19%, #f6e8c3 39%, #c7eae5 56%, #5ab4ac 72%, #01665e 100%); }

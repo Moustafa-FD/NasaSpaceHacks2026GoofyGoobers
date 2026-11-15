@@ -30,7 +30,7 @@
       <button class="map-layer" data-map-layer="LST_Night" aria-pressed="false"><i class="layer-dot heat"></i>Heat</button>
       <button class="map-layer" data-map-layer="NDVI" aria-pressed="false"><i class="layer-dot vegetation"></i>Vegetation</button>
       <button class="map-layer" data-map-layer="NO2_OMI" aria-pressed="false"><i class="layer-dot air"></i>Air pollution</button>
-      <button class="map-layer" data-map-layer="SoilMoisture" aria-pressed="false"><i class="layer-dot water"></i>Water</button>
+      <button class="map-layer" data-map-layer="Water" aria-pressed="false"><i class="layer-dot water"></i>Water</button>
     </div>
     <button id="tourBtn" class="quiet-button">Take a tour <span aria-hidden="true">↗</span></button>
   </header>
@@ -46,7 +46,7 @@
       <div class="detail-content controls">
         <p id="layerNote" class="hint">Satellite imagery shows the real-world landscape.</p>
         <label class="cmp"><input type="checkbox" id="mapChange" checked /> Show change from an earlier year</label>
-        <label>Compare with July of <select id="baselineYear"><option>2003</option><option selected>2005</option><option>2010</option><option>2015</option><option>2020</option><option>2023</option><option value="latest">latest map (future years: projected change only)</option></select></label>
+        <label>Compare with July of <select id="baselineYear"><option value="auto" selected>Auto: 2005 · future years vs. 2026</option><option>2003</option><option>2005</option><option>2010</option><option>2015</option><option>2020</option><option>2023</option></select></label>
         <label>All layers<select id="layerSel"><option value="none">Satellite</option><option value="LST_Day">Heat · daytime</option><option value="NDVI">Vegetation</option><option value="NO2_OMI">Air pollution · NO₂</option><option value="LST_Night">Heat · nighttime</option><option value="NO2">NO₂ · recent detailed record</option><option value="AOD">Particles / haze</option><option value="AirTemp">Regional air temperature</option><option value="HLS">High-resolution satellite (HLS)</option><option value="DIST">Land disturbance</option></select></label>
         <label>Map date<input type="date" id="dateA" /></label>
         <label class="cmp"><input type="checkbox" id="cmpToggle" /> Compare two dates</label>

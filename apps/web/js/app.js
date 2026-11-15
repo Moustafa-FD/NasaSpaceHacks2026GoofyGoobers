@@ -356,9 +356,9 @@
     // Projected years continue the same comparison as observed years (vs. the chosen baseline
     // year), so 2027 picks up where 2026 left off and the trend builds on it. Choosing
     // "latest map" as the baseline shows only the projected change, on a trend-sized scale.
-    const baseChoice=$('#baselineYear').value,latestBase=baseChoice==='latest';
-    const projectedChange=change&&!!a.projectYear&&latestBase&&Number.isFinite(PROJECTED_DELTAS[kind]);
-    const baseline=change?(projectedChange?{layer:a.layer,date:a.date}:overlaySpec(kind,`${latestBase?new Date().getUTCFullYear():baseChoice}-07-15`)):null;
+    const baseChoice=$('#baselineYear').value,autoBase=baseChoice==='auto';
+    const projectedChange=change&&!!a.projectYear&&autoBase&&Number.isFinite(PROJECTED_DELTAS[kind]);
+    const baseline=change?(projectedChange?{layer:a.layer,date:a.date}:overlaySpec(kind,`${autoBase?2005:baseChoice}-07-15`)):null;
     const delta=projectedChange?PROJECTED_DELTAS[kind]:null;
     let b=compare?overlaySpec(kind,$('#dateB').value||today):null;
     if(b&&VARS[kind]){
@@ -382,7 +382,8 @@
       NO2: ["Recent NO₂", "A more detailed satellite NO₂ record available since September 2023."],
       AOD: ["Particles / haze", "Aerosol optical depth shows how much sunlight airborne particles block."],
       AirTemp: ["Air temperature", "Regional air temperature from MERRA-2 reanalysis."],
-      SoilMoisture: ["Water", "Root-zone soil moisture from NASA's GLDAS land model (monthly, ~25 km). Blue is wetter, orange drier."],
+      SoilMoisture: ["Soil moisture", "Root-zone soil moisture from NASA's GLDAS land model (monthly, ~25 km). Blue is wetter, orange drier."],
+      Water: ["Water", "Rainfall per year (mm) on one scale for every site: NASA MERRA-2 for past years, CMIP6 climate scenarios after 2026."],
       HLS: ["Satellite · HLS", "NASA high-resolution surface imagery. Available image dates vary."],
       DIST: ["Land disturbance", "Mapped vegetation disturbance, which can include clearing, construction, and fire."],
     };
@@ -401,7 +402,7 @@
       $("#mapLegend").classList.toggle("map-projected", !!spec.projectYear);
       const delta=payload?.delta,scale=delta?{...MAP_SCALES[kind],delta}:MAP_SCALES[kind],change=payload?payload.change:$('#mapChange').checked;
       document.querySelector('#mapColorScale .evidence-ramp')?.classList.toggle('veg',kind==='NDVI'||kind==='SoilMoisture');
-      const base=payload?.baseline||overlaySpec(kind,`${$('#baselineYear').value==='latest'?new Date().getUTCFullYear():$('#baselineYear').value}-07-15`);
+      const base=payload?.baseline||overlaySpec(kind,`${$('#baselineYear').value==='auto'?2005:$('#baselineYear').value}-07-15`);
       const shown=spec.projectYear?`${spec.projectYear} (projected)`:spec.date;
       const changeText=delta?`Projected change ${base.date.slice(0,4)} → ${spec.projectYear}`:`${shown} minus ${base.date}`;
       $('#mapLegendDetail').textContent = `${change?changeText:shown} · ${scale.resolution} native data${spec.fallbackNote?` · ${spec.fallbackNote}`:''}${spec.projectNote?` · ${spec.projectNote}`:''}`;
@@ -732,6 +733,7 @@
   const [{attachEnvironmentPanel},{attachEnvironmentMap},{attachEnvironmentStory},{attachSiteEvidence},{attachFutureData},{attachFutureScene},{attachEvidenceWorkbench},{attachSceneReadout},{attachEvidenceScene}]=await Promise.all([import('./environment-panel.js'),import('./environment-map.js'),import('./environment-story.js'),import('./scene-evidence.js'),import('./future-data.js'),import('./future-scene.js'),import('./evidence-workbench.js'),import('./scene-readout.js'),import('./evidence-scene.js')]);
   const initialYear=+q.get('year')||+$('#tlSlider').value||2025;
   attachEnvironmentMap(viewer,{sites:SITES});
+  import('./water-map.js').then(({attachWaterMap})=>{window.CloudShadow.water=attachWaterMap(viewer);if(state.mapLayer==='Water')refreshOverlay();}).catch(()=>{});
   attachSceneReadout(viewer);
   const futureData=attachFutureData({site:state.site,year:initialYear,loadSupplemental:true,onRequest:(kind,options)=>environmentPanel?.runAction(kind,options)});
   window.addEventListener('cs:future-state',({detail})=>{
