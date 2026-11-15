@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>How Footprint Atlas measures xAI Colossus 1</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#80d9c0"/></marker>
+  </defs>
+  <rect width="1600" height="900" fill="#0b1620"/>
+
+  <!-- title -->
+  <text x="70" y="92" font-size="50" font-weight="700" fill="#edf5f5">How we measure xAI Colossus 1</text>
+  <text x="70" y="140" font-size="25" fill="#9fb8bd">South Memphis, TN · on-site methane gas turbines · Boxtown neighbourhood 3 km away</text>
+
+  <!-- 4 steps -->
+  <g font-size="22" fill="#d8e6e8">
+    <!-- 1 -->
+    <rect x="70" y="200" width="330" height="455" rx="22" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <circle cx="125" cy="255" r="30" fill="#3490be"/><text x="125" y="265" font-size="28" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+    <text x="170" y="265" font-size="32" font-weight="700" fill="#edf5f5">NASA data</text>
+    <text x="100" y="330">Surface heat, greenness,</text>
+    <text x="100" y="360">haze  <tspan fill="#8fb3bb">· MODIS</tspan></text>
+    <text x="100" y="410">Air pollution NO₂</text>
+    <text x="100" y="440" fill="#8fb3bb">· OMI, TROPOMI</text>
+    <text x="100" y="490">30 m yearly images <tspan fill="#8fb3bb">· HLS</tspan></text>
+    <text x="100" y="540">Real winds <tspan fill="#8fb3bb">· GEOS-FP</tspan></text>
+    <text x="100" y="590">Climate to 2100 <tspan fill="#8fb3bb">· CMIP6</tspan></text>
+
+    <!-- 2 -->
+    <rect x="450" y="200" width="330" height="455" rx="22" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <circle cx="505" cy="255" r="30" fill="#3490be"/><text x="505" y="265" font-size="28" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+    <text x="550" y="265" font-size="32" font-weight="700" fill="#edf5f5">Turn maps</text>
+    <text x="550" y="300" font-size="32" font-weight="700" fill="#edf5f5">into numbers</text>
+    <text x="480" y="360">Decode NASA map</text>
+    <text x="480" y="390">colours into real values</text>
+    <!-- site vs ring sketch -->
+    <circle cx="615" cy="500" r="70" fill="none" stroke="#80d9c0" stroke-width="3" stroke-dasharray="7 6"/>
+    <circle cx="615" cy="500" r="14" fill="#cc202e"/>
+    <text x="615" y="420" font-size="18" fill="#cfe9e1" text-anchor="middle">surroundings</text>
+    <text x="615" y="537" font-size="18" fill="#f1b4b9" text-anchor="middle">site</text>
+    <text x="480" y="600">Site vs. surroundings,</text>
+    <text x="480" y="625" fill="#8fb3bb">every month 2003–2026</text>
+
+    <!-- 3 -->
+    <rect x="830" y="200" width="330" height="455" rx="22" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <circle cx="885" cy="255" r="30" fill="#3490be"/><text x="885" y="265" font-size="28" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+    <text x="930" y="265" font-size="32" font-weight="700" fill="#edf5f5">Test the</text>
+    <text x="930" y="300" font-size="32" font-weight="700" fill="#edf5f5">change</text>
+    <text x="860" y="360">Is the trend real?</text>
+    <text x="860" y="390" fill="#8fb3bb">Mann-Kendall + p-value</text>
+    <text x="860" y="440">How fast?</text>
+    <text x="860" y="470" fill="#8fb3bb">Sen's slope ± 95% range</text>
+    <text x="860" y="520">Where is it changing?</text>
+    <text x="860" y="550" fill="#8fb3bb">trend for every map pixel</text>
+    <text x="860" y="600">Where does smoke go?</text>
+    <text x="860" y="625" fill="#8fb3bb">plume on real winds</text>
+
+    <!-- 4 -->
+    <rect x="1210" y="200" width="320" height="455" rx="22" fill="#12263a" stroke="#2f5b78" stroke-width="2"/>
+    <circle cx="1265" cy="255" r="30" fill="#3490be"/><text x="1265" y="265" font-size="28" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+    <text x="1310" y="265" font-size="32" font-weight="700" fill="#edf5f5">Show it on</text>
+    <text x="1310" y="300" font-size="32" font-weight="700" fill="#edf5f5">a 3D globe</text>
+    <!-- timeline sketch -->
+    <line x1="1245" y1="400" x2="1495" y2="400" stroke="#4d6d79" stroke-width="6" stroke-linecap="round"/>
+    <line x1="1245" y1="400" x2="1385" y2="400" stroke="#80d9c0" stroke-width="6" stroke-linecap="round"/>
+    <line x1="1385" y1="400" x2="1445" y2="400" stroke="#c9a7ff" stroke-width="6" stroke-dasharray="8 6"/>
+    <circle cx="1385" cy="400" r="11" fill="#edf5f5"/>
+    <text x="1245" y="370" font-size="18" fill="#80d9c0">PAST</text>
+    <text x="1365" y="370" font-size="18" fill="#edf5f5">NOW</text>
+    <text x="1420" y="440" font-size="18" fill="#c9a7ff">FUTURE</text>
+    <text x="1240" y="500">Slide through time:</text>
+    <text x="1240" y="530" fill="#8fb3bb">2003 → 2026 measured</text>
+    <text x="1240" y="560" fill="#c9a7ff">→ 2035 trend continues</text>
+    <text x="1240" y="590" fill="#8fb3bb">→ 2100 climate models</text>
+  </g>
+  <line x1="405" y1="415" x2="443" y2="415" stroke="#80d9c0" stroke-width="5" marker-end="url(#arrow)"/>
+  <line x1="785" y1="415" x2="823" y2="415" stroke="#80d9c0" stroke-width="5" marker-end="url(#arrow)"/>
+  <line x1="1165" y1="415" x2="1203" y2="415" stroke="#80d9c0" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <!-- findings -->
+  <rect x="70" y="685" width="1460" height="145" rx="22" fill="#10202b" stroke="#80d9c0" stroke-width="2"/>
+  <text x="105" y="728" font-size="26" font-weight="700" fill="#80d9c0">What we found at Colossus 1</text>
+  <g font-size="23" fill="#edf5f5">
+    <text x="105" y="770">Greenness down <tspan font-weight="700" fill="#f0a27c">−0.06 / decade</tspan> vs. surroundings <tspan fill="#9fb8bd">(p = 0.003)</tspan></text>
+    <text x="105" y="808">NO₂ up after the turbines <tspan font-weight="700" fill="#f28a93">+0.24</tspan> <tspan fill="#9fb8bd">(borderline, p = 0.051)</tspan></text>
+    <text x="835" y="770">Wind from the SSW pushes the plume <tspan font-weight="700">north</tspan></text>
+    <text x="835" y="808">Haze: <tspan font-weight="700">no significant increase</tspan></text>
+  </g>
+  <text x="70" y="874" font-size="19" fill="#7f9aa1">Data: NASA · A trend extension is not a forecast · Change near a facility is evidence, not proof of cause</text>
+</svg>

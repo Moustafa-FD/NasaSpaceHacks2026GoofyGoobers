@@ -59,3 +59,19 @@ body.globe-lifted #globe { bottom: 150px !important; }
 /* Projected (trend-extension) map years: unmistakably not an observation. */
 #mapLegend.map-projected { border: 1px dashed #c9a7ff !important; box-shadow: 0 0 0 1px rgba(201,167,255,.25), 0 6px 22px rgba(120,80,200,.25); }
 #mapLegend.map-projected #mapLegendTitle { color: #d9c2ff; letter-spacing: .02em; }
+
+/* The legend grows upward from the timeline; keep it clear of the Globe view card.
+   The long method note appears on hover/focus, like the other explanations. */
+#mapLegend { max-height: calc(100vh - var(--timeline-height, 155px) - 38px - 200px); overflow-y: auto; }
+#mapLegend #mapResolution { display: none; }
+#mapLegend:hover #mapResolution, #mapLegend:focus-within #mapResolution { display: block; }
+@media (max-width: 680px) { #mapLegend { max-height: none; } }
+
+/* Brand: the Footprint Atlas logo (globe + wordmark), sized to the top bar. */
+#topbar .brand-logo { display: block; height: 38px; width: auto; }
+@media (max-width: 680px) { #topbar .brand-logo { height: 30px; } }
+.layer-dot.water { background: #70bedb; }
+
+/* Water (rainfall) ramp: dry brown → wet teal (stops match water-map.js). */
+#mapColorScale .evidence-ramp.water { background: linear-gradient(90deg, #8c510a 0%, #d8b365 19%, #f6e8c3 39%, #c7eae5 56%, #5ab4ac 72%, #01665e 100%); }
+#mapColorScale .evidence-ramp.water-change { background: linear-gradient(90deg, #8c510a, #f6f6ee, #01665e); }

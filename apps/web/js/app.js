@@ -1,7 +1,7 @@
 // Cloud Shadow - main app: globe, panel, charts, ledger, tour.
 (async function () {
   const { campusMarkerFromEvent, formatSiteMarkerLabel, siteMarkerPresentation } = await import("./site-marker.js");
-  const { MAP_SCALES, createEvidenceProvider, evidenceTexture } = await import('./evidence-map.js');
+  const { MAP_SCALES, PROJECTED_DELTAS, createEvidenceProvider, evidenceTexture } = await import('./evidence-map.js');
   const { createMapTransition, mapCrossfadeAlphas } = await import('./map-transition.js');
   const { trackImageryProvider } = await import('./imagery-readiness.js');
   const { sourceDateForYear, seasonalFallbackDate, mapRequestKey } = await import('./map-source-window.js');
@@ -229,10 +229,10 @@
       const L = "HLS_S30_Nadir_BRDF_Adjusted_Reflectance"; return { layer: L, date: snapDate(L, date) };
     }
   }
-  function makeLayer(spec, baseline = null, kind = state.mapLayer, center = state.live || state.site, projection = null) {
+  function makeLayer(spec, baseline = null, kind = state.mapLayer, center = state.live || state.site, projection = null, delta = null) {
     const z = CATALOG[spec.layer].z;
     const v=VARS[kind],lut=v? _luts[v.cmap]:null;
-    const p = lut ? createEvidenceProvider(Cesium,{url:tileUrl(spec.layer,spec.date),baselineUrl:baseline?tileUrl(spec.layer,baseline.date):null,lut,variable:kind,offset:v.offset,factor:v.scale,change:!!baseline,maximumLevel:z,projection,onError:()=>{ $('#mapLegendDetail').textContent='Some comparison pixels unavailable · transparent gaps are missing data.'; }})
+    const p = lut ? createEvidenceProvider(Cesium,{url:tileUrl(spec.layer,spec.date),baselineUrl:baseline?tileUrl(spec.layer,baseline.date):null,lut,variable:kind,offset:v.offset,factor:v.scale,change:!!baseline,maximumLevel:z,projection,delta,onError:()=>{ $('#mapLegendDetail').textContent='Some comparison pixels unavailable · transparent gaps are missing data.'; }})
       : new Cesium.UrlTemplateImageryProvider({ url: tileUrl(spec.layer, spec.date), maximumLevel: z, credit: "NASA GIBS",...(kind==='HLS'?{rectangle:Cesium.Rectangle.fromDegrees(Math.max(-180,center.lon-.2),Math.max(-90,center.lat-.15),Math.min(180,center.lon+.2),Math.min(90,center.lat+.15))}: {}) });
     const readiness=trackImageryProvider(p);
     const l = viewer.imageryLayers.addImageryProvider(p);
@@ -258,8 +258,8 @@
   function prepareTexture(payload){
     const key=mapRequestKey(payload);
     if(textureCache.has(key))return textureCache.get(key);
-    const {kind,center,a,baseline,change,projection}=payload,v=VARS[kind];
-    const task=v?(async()=>{await loadLut(v.cmap);return evidenceTexture({center,url:tileUrl(a.layer,a.date),baselineUrl:baseline?tileUrl(a.layer,baseline.date):null,lut:_luts[v.cmap],variable:kind,offset:v.offset,factor:v.scale,change,maximumLevel:CATALOG[a.layer].z,projection});})():Promise.resolve(null);
+    const {kind,center,a,baseline,change,projection,delta}=payload,v=VARS[kind];
+    const task=v?(async()=>{await loadLut(v.cmap);return evidenceTexture({center,url:tileUrl(a.layer,a.date),baselineUrl:baseline?tileUrl(a.layer,baseline.date):null,lut:_luts[v.cmap],variable:kind,offset:v.offset,factor:v.scale,change,maximumLevel:CATALOG[a.layer].z,projection,delta});})():Promise.resolve(null);
     textureCache.set(key,task);task.catch(()=>textureCache.delete(key));
     while(textureCache.size>4)textureCache.delete(textureCache.keys().next().value);
     return task;
@@ -275,7 +275,7 @@
       if(signal.aborted)return {layers:[],payload,texture};
       const resource={layers:[],payload,texture,weight:0}; resources.add(resource);
       try{
-        resource.layers.push(makeLayer(payload.a,payload.baseline,payload.kind,payload.center,payload.projection));
+        resource.layers.push(makeLayer(payload.a,payload.baseline,payload.kind,payload.center,payload.projection,payload.delta));
         if(payload.compare){
           resource.layers.push(makeLayer(payload.b,null,payload.kind,payload.center));
           resource.layers[0].splitDirection=Cesium.SplitDirection.LEFT;
@@ -351,14 +351,22 @@
       }
       a={...a,date};
     }
-    const baseline=change?overlaySpec(kind,$('#baselineYear').value+'-07-15'):null;
+    // Projected years in change mode: projected change since the latest real map (the
+    // prediction itself), on a colour range sized to the trends, instead of vs. 2005.
+    // Projected years continue the same comparison as observed years (vs. the chosen baseline
+    // year), so 2027 picks up where 2026 left off and the trend builds on it. Choosing
+    // "latest map" as the baseline shows only the projected change, on a trend-sized scale.
+    const baseChoice=$('#baselineYear').value,autoBase=baseChoice==='auto';
+    const projectedChange=change&&!!a.projectYear&&autoBase&&Number.isFinite(PROJECTED_DELTAS[kind]);
+    const baseline=change?(projectedChange?{layer:a.layer,date:a.date}:overlaySpec(kind,`${autoBase?2005:baseChoice}-07-15`)):null;
+    const delta=projectedChange?PROJECTED_DELTAS[kind]:null;
     let b=compare?overlaySpec(kind,$('#dateB').value||today):null;
     if(b&&VARS[kind]){
       const desiredB=$('#dateB').value||today,date=sourceDateForYear(expandIntervals(b.layer),+desiredB.slice(0,4),desiredB);
       if(!date){clearScientificMap(`No comparison imagery for ${desiredB.slice(0,4)}.`);return;}
       b={...b,date};
     }
-    requestedMap={kind,change,compare,a,b,baseline,center:{...(state.live||state.site)}};
+    requestedMap={kind,change,compare,a,b,baseline,delta,center:{...(state.live||state.site)}};
     if(!committedMap)syncLayerControls(a,requestedMap);
     $('#mapLegend').hidden=['HLS','DIST'].includes(kind);
     void mapTransition.show(mapRequestKey(requestedMap),requestedMap).catch(()=>{});
@@ -368,19 +376,21 @@
     const descriptions = {
       none: ["Satellite", "Satellite imagery shows the real-world landscape."],
       LST_Day: ["Heat", "Daytime surface temperature: the warmth of ground and roofs, not the air."],
-      LST_Night: ["Night heat", "Nighttime surface temperature, measured after sunset."],
+      LST_Night: ["Heat (night)", "Night-time surface temperature (~10:30 pm). Stored heat from roofs and paving shows most clearly at night; daytime heat is in the layer list."],
       NDVI: ["Vegetation", "Greenness (NDVI) shows vegetation cover. It does not measure crop yield."],
       NO2_OMI: ["Air pollution", "Nitrogen dioxide (NO₂) in the atmospheric column. This is a regional satellite view, not street-level exposure."],
       NO2: ["Recent NO₂", "A more detailed satellite NO₂ record available since September 2023."],
       AOD: ["Particles / haze", "Aerosol optical depth shows how much sunlight airborne particles block."],
       AirTemp: ["Air temperature", "Regional air temperature from MERRA-2 reanalysis."],
+      SoilMoisture: ["Soil moisture", "Root-zone soil moisture from NASA's GLDAS land model (monthly, ~25 km). Blue is wetter, orange drier."],
+      Water: ["Water", "Rainfall per year (mm) on one scale for every site: NASA MERRA-2 for past years, CMIP6 climate scenarios after 2026."],
       HLS: ["Satellite · HLS", "NASA high-resolution surface imagery. Available image dates vary."],
       DIST: ["Land disturbance", "Mapped vegetation disturbance, which can include clearing, construction, and fire."],
     };
     const [label, note] = descriptions[kind] || descriptions.none;
     $("#layerSummary").textContent = label;
     $("#layerNote").textContent = note;
-    const family = ({ HLS: "none", LST_Night: "LST_Day", NO2: "NO2_OMI", AOD: "NO2_OMI" })[kind] || kind;
+    const family = ({ HLS: "none", LST_Day: "LST_Night", NO2: "NO2_OMI", AOD: "NO2_OMI" })[kind] || kind;
     document.querySelectorAll("[data-map-layer]").forEach((button) => {
       const active = button.dataset.mapLayer === family;
       button.classList.toggle("active", active); button.setAttribute("aria-pressed", String(active));
@@ -390,15 +400,17 @@
     if (showLegend) {
       $("#mapLegendTitle").textContent = spec.projectYear ? `${label} · PROJECTED ${spec.projectYear}` : label;
       $("#mapLegend").classList.toggle("map-projected", !!spec.projectYear);
-      const scale=MAP_SCALES[kind],change=payload?payload.change:$('#mapChange').checked;
-      const base=payload?.baseline||overlaySpec(kind,$('#baselineYear').value+'-07-15');
+      const delta=payload?.delta,scale=delta?{...MAP_SCALES[kind],delta}:MAP_SCALES[kind],change=payload?payload.change:$('#mapChange').checked;
+      document.querySelector('#mapColorScale .evidence-ramp')?.classList.toggle('veg',kind==='NDVI'||kind==='SoilMoisture');
+      const base=payload?.baseline||overlaySpec(kind,`${$('#baselineYear').value==='auto'?2005:$('#baselineYear').value}-07-15`);
       const shown=spec.projectYear?`${spec.projectYear} (projected)`:spec.date;
-      $('#mapLegendDetail').textContent = `${change?`${shown} minus ${base.date}`:shown} · ${scale.resolution} native data${spec.fallbackNote?` · ${spec.fallbackNote}`:''}${spec.projectNote?` · ${spec.projectNote}`:''}`;
+      const changeText=delta?`Projected change ${base.date.slice(0,4)} → ${spec.projectYear}`:`${shown} minus ${base.date}`;
+      $('#mapLegendDetail').textContent = `${change?changeText:shown} · ${scale.resolution} native data${spec.fallbackNote?` · ${spec.fallbackNote}`:''}${spec.projectNote?` · ${spec.projectNote}`:''}`;
       $('#mapLegendScale').hidden=true;
       $('#mapColorScale').hidden=false;
       $('#mapScaleLow').textContent=change?`−${scale.delta}`:scale.min;
       $('#mapScaleHigh').textContent=(change?`+${scale.delta}`:scale.max)+' '+scale.unit;
-      $('#mapScaleMeaning').textContent=kind==='NDVI'?(change?'Blue: greener · red: less green':'Blue: greener · red: sparse vegetation'):(change?'Blue: lower · red: higher':'Blue: lower · red: higher');
+      $('#mapScaleMeaning').textContent=kind==='SoilMoisture'?(delta?'Blue: projected to get wetter · orange: projected to get drier · neutral: no significant trend':change?'Blue: wetter · orange: drier':'Blue: wet soil · orange: dry soil'):delta?(kind==='NDVI'?'Blue: projected to get greener · orange: projected to lose green · neutral: no significant trend':'Blue: projected decrease · red: projected increase · neutral: no significant trend'):kind==='NDVI'?(change?'Blue: greener · red: less green':'Blue: greener · red: sparse vegetation'):(change?'Blue: lower · red: higher':'Blue: lower · red: higher');
       const tm=payload?.projection?.trend?.stats;
       $('#mapResolution').textContent=spec.projectYear&&tm?`Trend extension, not a forecast: ${Math.round(tm.significantShare*100)}% of the ${(tm.tested/1000).toFixed(0)}k pixels near the site have a significant ${payload.projection.trend.years.join('–')} July trend (Mann-Kendall, Hamed-Rao, false-discovery q < 0.10); the rest stay at their latest value. Outside the site box the map is the latest real snapshot. Not proof of a facility effect.`:spec.projectYear?'Trend extension, not a forecast: each pixel near the site continues its own significant NASA July trend from the latest real map; pixels without one stay unchanged. Not proof of a facility effect.':'Colour-class estimates from NASA imagery. Transparent = no data. Comparison is between snapshots, not a long-term trend or proof of a facility effect.';
     }
@@ -428,10 +440,12 @@
   $("#opacity").oninput = () => resources.forEach(resource=>paintOpacity(resource,resource.weight));
   $('#mapChange').onchange=()=>setMapLayer(state.mapLayer,$('#dateA').value);
   $('#baselineYear').onchange=()=>setMapLayer(state.mapLayer,$('#dateA').value);
+  let yearMapTimer=0;
   window.addEventListener('cs:year',({detail})=>{
     if(!detail?.year||!VARS[state.mapLayer])return;
     const date=`${detail.year}-07-15`;
-    if($('#dateA').value.slice(0,4)!==date.slice(0,4))setMapLayer(state.mapLayer,date);
+    clearTimeout(yearMapTimer);
+    yearMapTimer=setTimeout(()=>{if(VARS[state.mapLayer]&&$('#dateA').value.slice(0,4)!==date.slice(0,4))setMapLayer(state.mapLayer,date);},90);
   });
 
   // draggable split
@@ -483,7 +497,7 @@
     for (const [id, v] of Object.entries(VARS)) {
       const b = document.createElement("button"); b.className = "tab" + (state.varId === id ? " active" : "");
       const star = !state.live && state.site.watchFor?.includes(id) ? '<span class="star" title="Most relevant for this site">★ watch</span>' : "";
-      const labels = { LST_Day: "Heat · day", LST_Night: "Heat · night", NDVI: "Vegetation", NO2: "NO₂ · recent", NO2_OMI: "NO₂ · long record", AOD: "Particles / haze", AirTemp: "Air temperature" };
+      const labels = { LST_Day: "Heat · day", LST_Night: "Heat · night", NDVI: "Vegetation", SoilMoisture: "Water · soil moisture", NO2: "NO₂ · recent", NO2_OMI: "NO₂ · long record", AOD: "Particles / haze", AirTemp: "Air temperature" };
       b.innerHTML = `${labels[id] || v.label}${star}`; b.onclick = () => { state.varId = id; renderTabs(); runAnalysis(); };
       $("#varTabs").appendChild(b);
     }
@@ -719,6 +733,7 @@
   const [{attachEnvironmentPanel},{attachEnvironmentMap},{attachEnvironmentStory},{attachSiteEvidence},{attachFutureData},{attachFutureScene},{attachEvidenceWorkbench},{attachSceneReadout},{attachEvidenceScene}]=await Promise.all([import('./environment-panel.js'),import('./environment-map.js'),import('./environment-story.js'),import('./scene-evidence.js'),import('./future-data.js'),import('./future-scene.js'),import('./evidence-workbench.js'),import('./scene-readout.js'),import('./evidence-scene.js')]);
   const initialYear=+q.get('year')||+$('#tlSlider').value||2025;
   attachEnvironmentMap(viewer,{sites:SITES});
+  import('./water-map.js').then(({attachWaterMap})=>{window.CloudShadow.water=attachWaterMap(viewer);if(state.mapLayer==='Water')refreshOverlay();}).catch(()=>{});
   attachSceneReadout(viewer);
   const futureData=attachFutureData({site:state.site,year:initialYear,loadSupplemental:true,onRequest:(kind,options)=>environmentPanel?.runAction(kind,options)});
   window.addEventListener('cs:future-state',({detail})=>{

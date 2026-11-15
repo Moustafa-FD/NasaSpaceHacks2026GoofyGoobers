@@ -1,0 +1,186 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>Footprint Atlas architecture</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#44546a"/></marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2b6cb0"/></marker>
+    <style>
+      .grp{fill:none;stroke:#9aa7b8;stroke-width:1.6;stroke-dasharray:7 5}
+      .gt{font-size:19px;font-weight:600;fill:#334155}
+      .box{fill:#fff;stroke:#44546a;stroke-width:1.6}
+      .nm{font-size:19px;font-weight:600;fill:#1f2937}
+      .tc{font-size:15px;fill:#4b5563}
+      .mono{font-family:Consolas,Menlo,monospace;font-size:14px;fill:#2b6cb0}
+      .ln{stroke:#44546a;stroke-width:1.8;fill:none}
+      .lb{font-size:14px;fill:#44546a}
+      .ic{fill:none;stroke:#1f2937;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    </style>
+    <symbol id="sat" viewBox="0 0 32 32"><g class="ic"><rect x="12" y="12" width="8" height="8"/><rect x="2" y="13" width="8" height="6"/><rect x="22" y="13" width="8" height="6"/><path d="M10 16h2M20 16h2M16 20v4M12 28q4-4 8 0"/></g></symbol>
+    <symbol id="api" viewBox="0 0 32 32"><g class="ic"><path d="M10 8 L4 16 L10 24M22 8 L28 16 L22 24M18 6 L14 26"/></g></symbol>
+    <symbol id="wind" viewBox="0 0 32 32"><g class="ic"><path d="M3 11h16a4 4 0 1 0-4-4M3 18h22a4 4 0 1 1-4 4M3 25h11"/></g></symbol>
+    <symbol id="drop" viewBox="0 0 32 32"><g class="ic"><path d="M16 3C16 3 6 15 6 21a10 10 0 0 0 20 0C26 15 16 3 16 3z"/></g></symbol>
+    <symbol id="grid" viewBox="0 0 32 32"><g class="ic"><rect x="3" y="3" width="26" height="26"/><path d="M3 12h26M3 20h26M12 3v26M20 3v26"/></g></symbol>
+    <symbol id="py" viewBox="0 0 32 32"><g class="ic"><rect x="4" y="5" width="24" height="22" rx="2"/><path d="M4 11h24M9 17l3 3-3 3M15 23h7"/></g></symbol>
+    <symbol id="db" viewBox="0 0 32 32"><g class="ic"><ellipse cx="16" cy="7" rx="11" ry="4"/><path d="M5 7v18a11 4 0 0 0 22 0V7M5 16a11 4 0 0 0 22 0"/></g></symbol>
+    <symbol id="srv" viewBox="0 0 32 32"><g class="ic"><rect x="4" y="4" width="24" height="10" rx="1.5"/><rect x="4" y="18" width="24" height="10" rx="1.5"/><path d="M9 9h.1M9 23h.1M14 9h9M14 23h9"/></g></symbol>
+    <symbol id="cpu" viewBox="0 0 32 32"><g class="ic"><rect x="8" y="8" width="16" height="16" rx="1.5"/><path d="M12 4v4M16 4v4M20 4v4M12 24v4M16 24v4M20 24v4M4 12h4M4 16h4M4 20h4M24 12h4M24 16h4M24 20h4"/></g></symbol>
+    <symbol id="web" viewBox="0 0 32 32"><g class="ic"><rect x="3" y="5" width="26" height="22" rx="2"/><path d="M3 10h26"/><circle cx="16" cy="18.5" r="5.5"/><path d="M10.5 18.5h11M16 13q-3 5.5 0 11q3-5.5 0-11"/></g></symbol>
+    <symbol id="film" viewBox="0 0 32 32"><g class="ic"><rect x="3" y="11" width="26" height="17" rx="1.5"/><path d="M3 11l24-5 1.5 5M9 10l3-4M16 8.5l3-4M23 7l3-4"/><path d="M13 15v9l7-4.5z"/></g></symbol>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#ffffff"/>
+  <text x="56" y="62" font-size="34" font-weight="700" fill="#111827">Footprint Atlas: architecture</text>
+
+  <!-- NASA services -->
+  <rect class="grp" x="40" y="110" width="420" height="870" rx="12"/>
+  <text class="gt" x="60" y="142">NASA Earthdata services</text>
+  <rect class="box" x="60" y="162" width="380" height="118" rx="8"/>
+  <use href="#sat" x="74" y="178" width="34" height="34"/>
+  <text class="nm" x="122" y="198">GIBS</text><text class="mono" x="186" y="198">WMTS · PNG tiles</text>
+  <text class="tc" x="122" y="224">MODIS LST day/night, NDVI, AOD</text>
+  <text class="tc" x="122" y="246">OMI + TROPOMI NO₂, MERRA-2 T2M</text>
+  <text class="tc" x="122" y="268">HLS 30 m reflectance</text>
+
+  <rect class="box" x="60" y="300" width="380" height="88" rx="8"/>
+  <use href="#api" x="74" y="316" width="34" height="34"/>
+  <text class="nm" x="122" y="336">POWER</text><text class="mono" x="200" y="336">REST · JSON</text>
+  <text class="tc" x="122" y="362">WS10M, WD10M, T2M, PRECTOTCORR,</text>
+  <text class="tc" x="122" y="380">RH2M · CMIP6 annual series</text>
+
+  <rect class="box" x="60" y="408" width="380" height="88" rx="8"/>
+  <use href="#wind" x="74" y="424" width="34" height="34"/>
+  <text class="nm" x="122" y="444">GEOS-FP</text><text class="mono" x="214" y="444">OPeNDAP</text>
+  <text class="tc" x="122" y="470">inst3_2d_asm_Nx · 0.25° · 3-hourly</text>
+  <text class="tc" x="122" y="488">u10m, v10m, t2m, slp</text>
+
+  <rect class="box" x="60" y="516" width="380" height="88" rx="8"/>
+  <use href="#drop" x="74" y="532" width="34" height="34"/>
+  <text class="nm" x="122" y="552">Giovanni</text><text class="mono" x="222" y="552">Harmony · token</text>
+  <text class="tc" x="122" y="578">GPM IMERG, GLDAS, GRACE-DA,</text>
+  <text class="tc" x="122" y="596">OMI area-average time series</text>
+
+  <rect class="box" x="60" y="624" width="380" height="88" rx="8"/>
+  <use href="#grid" x="74" y="640" width="34" height="34"/>
+  <text class="nm" x="122" y="660">NEX-GDDP-CMIP6</text><text class="mono" x="288" y="660">THREDDS NCSS</text>
+  <text class="tc" x="122" y="686">5 GCMs · SSP2-4.5 / SSP5-8.5</text>
+  <text class="tc" x="122" y="704">daily tas, tasmax, pr · 1995–2100</text>
+
+  <rect class="box" x="60" y="758" width="380" height="88" rx="8" stroke-dasharray="5 4"/>
+  <use href="#api" x="74" y="774" width="34" height="34"/>
+  <text class="nm" x="122" y="794">Other sources</text>
+  <text class="tc" x="122" y="820">Esri World Imagery · OSM Overpass</text>
+  <text class="tc" x="122" y="838">USGS Water Data · EPA / NPRI</text>
+
+  <!-- Python pipeline -->
+  <rect class="grp" x="540" y="110" width="440" height="870" rx="12"/>
+  <text class="gt" x="560" y="142">Data pipeline · Python 3.11</text>
+  <rect class="box" x="560" y="162" width="400" height="88" rx="8"/>
+  <use href="#py" x="574" y="178" width="34" height="34"/>
+  <text class="nm" x="622" y="198">Tile decoder</text><text class="mono" x="752" y="198">precompute.py</text>
+  <text class="tc" x="622" y="224">colormap RGB → value · site window</text>
+  <text class="tc" x="622" y="242">vs. ring · monthly series</text>
+
+  <rect class="box" x="560" y="270" width="400" height="88" rx="8"/>
+  <use href="#py" x="574" y="286" width="34" height="34"/>
+  <text class="nm" x="622" y="306">Trend engine</text><text class="mono" x="758" y="306">trends/stats.py</text>
+  <text class="tc" x="622" y="332">Mann-Kendall (Hamed-Rao), Sen's</text>
+  <text class="tc" x="622" y="350">slope + CI, Welch t, de-seasoning</text>
+
+  <rect class="box" x="560" y="378" width="400" height="88" rx="8"/>
+  <use href="#py" x="574" y="394" width="34" height="34"/>
+  <text class="nm" x="622" y="414">Trend maps</text><text class="mono" x="740" y="414">trend_maps.py</text>
+  <text class="tc" x="622" y="440">per-pixel Sen + MK, Benjamini-</text>
+  <text class="tc" x="622" y="458">Hochberg (q &lt; 0.10) · int16 slopes</text>
+
+  <rect class="box" x="560" y="486" width="400" height="88" rx="8"/>
+  <use href="#py" x="574" y="502" width="34" height="34"/>
+  <text class="nm" x="622" y="522">Flow fields</text><text class="mono" x="742" y="522">fields/build.py</text>
+  <text class="tc" x="622" y="548">12 frames/yr · site + global grids</text>
+  <text class="tc" x="622" y="566">u/v/T/SLP packed into PNG atlases</text>
+
+  <rect class="box" x="560" y="594" width="400" height="88" rx="8"/>
+  <use href="#py" x="574" y="610" width="34" height="34"/>
+  <text class="nm" x="622" y="630">Projections</text><text class="mono" x="746" y="630">projections/</text>
+  <text class="tc" x="622" y="656">CMIP6 period stats · Gaussian plume</text>
+  <text class="tc" x="622" y="674">(Briggs σ, Pasquill) → χ/Q per year</text>
+
+  <rect class="box" x="560" y="702" width="400" height="88" rx="8"/>
+  <use href="#py" x="574" y="718" width="34" height="34"/>
+  <text class="nm" x="622" y="738">Water summary</text><text class="mono" x="776" y="738">water_summary.py</text>
+  <text class="tc" x="622" y="764">annual aggregation + trend test</text>
+  <text class="tc" x="622" y="782">per variable and site</text>
+
+  <rect class="box" x="560" y="810" width="400" height="88" rx="8"/>
+  <use href="#cpu" x="574" y="826" width="34" height="34"/>
+  <text class="nm" x="622" y="846">Job workers</text><text class="mono" x="750" y="846">screening/ · data/</text>
+  <text class="tc" x="622" y="872">on-demand runs · JSON lines on stdout</text>
+  <text class="tc" x="622" y="890">shares code with the batch pipeline</text>
+
+  <!-- storage -->
+  <rect class="grp" x="1060" y="300" width="250" height="480" rx="12"/>
+  <text class="gt" x="1080" y="332">Storage</text>
+  <rect class="box" x="1080" y="350" width="210" height="300" rx="8"/>
+  <use href="#db" x="1163" y="364" width="44" height="44"/>
+  <text class="nm" x="1185" y="436" text-anchor="middle">data/cloudshadow</text>
+  <g class="mono" text-anchor="middle">
+    <text x="1185" y="466">series/</text><text x="1185" y="488">unreal/timeline/</text><text x="1185" y="510">trendmaps/</text>
+    <text x="1185" y="532">fields/</text><text x="1185" y="554">plumes/</text><text x="1185" y="576">projections/</text><text x="1185" y="598">water/</text>
+  </g>
+  <text class="tc" x="1185" y="630" text-anchor="middle">JSON + PNG · Git</text>
+  <rect class="box" x="1080" y="670" width="210" height="88" rx="8" stroke-dasharray="5 4"/>
+  <text class="nm" x="1185" y="706" text-anchor="middle">.tilecache/</text>
+  <text class="tc" x="1185" y="732" text-anchor="middle">raw GIBS tiles (local)</text>
+
+  <!-- backend -->
+  <rect class="grp" x="1390" y="110" width="250" height="870" rx="12"/>
+  <text class="gt" x="1410" y="142">Backend · Node.js 24</text>
+  <rect class="box" x="1410" y="300" width="210" height="190" rx="8"/>
+  <use href="#srv" x="1424" y="314" width="34" height="34"/>
+  <text class="nm" x="1468" y="336">Web server</text>
+  <text class="mono" x="1424" y="370">server.cjs :8765</text>
+  <g class="tc"><text x="1424" y="398">static files</text><text x="1424" y="420">/api/sites, /api/analysis</text><text x="1424" y="442">/api/layers</text><text x="1424" y="464">/api/environment</text></g>
+
+  <rect class="box" x="1410" y="600" width="210" height="160" rx="8"/>
+  <use href="#srv" x="1424" y="614" width="34" height="34"/>
+  <text class="nm" x="1468" y="636">Job API</text>
+  <text class="mono" x="1424" y="670">apps/api /v1 :3000</text>
+  <g class="tc"><text x="1424" y="698">job queue + persistence</text><text x="1424" y="720">contract validation</text><text x="1424" y="742">TypeScript</text></g>
+
+  <!-- clients -->
+  <rect class="grp" x="1720" y="110" width="170" height="870" rx="12"/>
+  <text class="gt" x="1740" y="142">Clients</text>
+  <rect class="box" x="1735" y="200" width="140" height="300" rx="8"/>
+  <use href="#web" x="1785" y="214" width="40" height="40"/>
+  <text class="nm" x="1805" y="280" text-anchor="middle">Browser</text>
+  <g class="tc" text-anchor="middle"><text x="1805" y="314">CesiumJS 1.121</text><text x="1805" y="338">WebGL2 fluid</text><text x="1805" y="362">wind particles</text><text x="1805" y="386">tile recolour</text><text x="1805" y="410">+ trend maps</text><text x="1805" y="434">Chart.js 4</text><text x="1805" y="458">ES modules</text></g>
+
+  <rect class="box" x="1735" y="560" width="140" height="200" rx="8"/>
+  <use href="#film" x="1785" y="574" width="40" height="40"/>
+  <text class="nm" x="1805" y="640" text-anchor="middle">Unreal 5.8</text>
+  <g class="tc" text-anchor="middle"><text x="1805" y="672">Cesium for</text><text x="1805" y="694">Unreal 2.31</text><text x="1805" y="718">Niagara</text><text x="1805" y="740">MRQ render</text></g>
+
+  <!-- connections -->
+  <g class="ln" marker-end="url(#a)">
+    <path d="M440 221 H556"/>
+    <path d="M440 344 H500 V316 H556"/>
+    <path d="M440 452 H500 V530 H556"/>
+    <path d="M440 452 H500 V638 H556"/>
+    <path d="M440 560 H500 V746 H556"/>
+    <path d="M440 668 H520 V650 H556"/>
+    <path d="M960 450 H1076"/>
+    <path d="M1290 420 H1406"/>
+    <path d="M1620 380 H1731"/>
+    <path d="M1620 470 H1680 V640 H1731"/>
+    <path d="M1515 490 V596"/>
+    <path d="M1410 730 H1350 V940 H760 V902"/>
+  </g>
+  <g class="lb">
+    <text x="984" y="440">write</text>
+    <text x="1328" y="410">read</text>
+    <text x="1650" y="370">HTTP</text>
+    <text x="1650" y="462">HTTP</text>
+    <text x="1525" y="550">proxy</text>
+    <text x="1030" y="932">spawn · JSON lines</text>
+  </g>
+  <path d="M400 162 V96 H1805 V196" fill="none" stroke="#2b6cb0" stroke-width="1.8" stroke-dasharray="8 6" marker-end="url(#ab)"/>
+  <text x="900" y="88" font-size="15" fill="#2b6cb0">WMTS tiles fetched live by the browser</text>
+</svg>

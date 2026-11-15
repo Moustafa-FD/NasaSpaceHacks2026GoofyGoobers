@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Footprint Atlas</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
   <meta name="description" content="Explore places in 3D and discover environmental change with NASA data. NASA Space Apps 2026 · Goofy Goobers." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -23,16 +24,17 @@
   <div id="split" hidden><div class="split-grip">⟷</div><span class="split-tag left" id="splitL"></span><span class="split-tag right" id="splitR"></span></div>
   <header id="topbar">
     <button id="panelToggle" type="button" aria-controls="panel" aria-expanded="true" title="Hide the side panel for a larger globe">☰</button>
-    <div class="brand"><span class="logo" aria-hidden="true">◐</span><div><strong>Footprint Atlas</strong><small>A closer look at a changing Earth</small></div></div>
+    <div class="brand"><img class="brand-logo" src="assets/footprint-atlas-logo.png" alt="Footprint Atlas" width="1188" height="442" /><small>A closer look at a changing Earth</small></div>
     <div class="map-layers" role="group" aria-label="Map layers">
       <button class="map-layer active" data-map-layer="none" aria-pressed="true"><i class="layer-dot satellite"></i>Satellite</button>
-      <button class="map-layer" data-map-layer="LST_Day" aria-pressed="false"><i class="layer-dot heat"></i>Heat</button>
+      <button class="map-layer" data-map-layer="LST_Night" aria-pressed="false"><i class="layer-dot heat"></i>Heat</button>
       <button class="map-layer" data-map-layer="NDVI" aria-pressed="false"><i class="layer-dot vegetation"></i>Vegetation</button>
       <button class="map-layer" data-map-layer="NO2_OMI" aria-pressed="false"><i class="layer-dot air"></i>Air pollution</button>
+      <button class="map-layer" data-map-layer="Water" aria-pressed="false"><i class="layer-dot water"></i>Water</button>
     </div>
     <button id="tourBtn" class="quiet-button">Take a tour <span aria-hidden="true">↗</span></button>
   </header>
-  <aside id="mapLegend" class="map-legend" aria-label="Map layer legend" hidden><strong id="mapLegendTitle"></strong><span id="mapLegendDetail"></span><img id="mapLegendScale" alt="NASA layer colour scale" hidden /><div id="mapColorScale"><div class="evidence-ramp"></div><div class="evidence-scale"><span id="mapScaleLow"></span><span id="mapScaleHigh"></span></div><p id="mapScaleMeaning"></p></div><p id="mapResolution"></p></aside>
+  <aside id="mapLegend" class="map-legend" aria-label="Map layer legend" tabindex="0" hidden><strong id="mapLegendTitle"></strong><span id="mapLegendDetail"></span><img id="mapLegendScale" alt="NASA layer colour scale" hidden /><div id="mapColorScale"><div class="evidence-ramp"></div><div class="evidence-scale"><span id="mapScaleLow"></span><span id="mapScaleHigh"></span></div><p id="mapScaleMeaning"></p></div><p id="mapResolution"></p></aside>
   <aside id="panel" aria-label="Places and information">
     <div class="panel-heading"><span class="eyebrow">EARTH, OVER TIME</span><h1>What changes here<span>?</span></h1><p>Five study areas. Compare environmental evidence over time.</p></div>
     <section class="places-section" aria-label="Choose a place"><div id="siteChips" class="chips"></div></section>
@@ -44,7 +46,7 @@
       <div class="detail-content controls">
         <p id="layerNote" class="hint">Satellite imagery shows the real-world landscape.</p>
         <label class="cmp"><input type="checkbox" id="mapChange" checked /> Show change from an earlier year</label>
-        <label>Compare with July of <select id="baselineYear"><option>2003</option><option selected>2005</option><option>2010</option><option>2015</option><option>2020</option><option>2023</option></select></label>
+        <label>Compare with July of <select id="baselineYear"><option value="auto" selected>Auto: 2005 · future years vs. 2026</option><option>2003</option><option>2005</option><option>2010</option><option>2015</option><option>2020</option><option>2023</option></select></label>
         <label>All layers<select id="layerSel"><option value="none">Satellite</option><option value="LST_Day">Heat · daytime</option><option value="NDVI">Vegetation</option><option value="NO2_OMI">Air pollution · NO₂</option><option value="LST_Night">Heat · nighttime</option><option value="NO2">NO₂ · recent detailed record</option><option value="AOD">Particles / haze</option><option value="AirTemp">Regional air temperature</option><option value="HLS">High-resolution satellite (HLS)</option><option value="DIST">Land disturbance</option></select></label>
         <label>Map date<input type="date" id="dateA" /></label>
         <label class="cmp"><input type="checkbox" id="cmpToggle" /> Compare two dates</label>

@@ -166,7 +166,14 @@ class Particles {
  * jumps are discontinuities, not wind time; never apply the multiplier twice. */
 export function analysisDeltaSeconds(delta,animating=true){return animating&&Number.isFinite(delta)&&delta>0&&delta<5?Math.min(delta,.25):0;}
 export const flowBudget=(quality)=>({high:{site:420,global:1800},balanced:{site:220,global:1100},low:{site:100,global:600}}[quality]||{site:220,global:1100});
+/** Latest analysed year before the current calendar year (a complete year) that has this
+ * site's wind field; falls back to the latest available year. */
+export function referenceWindYear(index,siteId,currentYear=new Date().getUTCFullYear()){
+  const years=[...new Set((index?.products||[]).filter(p=>p.kind==='site'?p.site===siteId:p.kind==='global').map(p=>p.year))].filter(Number.isInteger).sort((a,b)=>b-a);
+  return years.find(y=>y<currentYear)??years[0]??null;
+}
 export function resolveWindReadout(row={},phase='observed',analysis=null){
+  if(analysis?.reference&&Number.isFinite(analysis.speed)&&Number.isFinite(analysis.towardDeg))return {...analysis,label:`GEOS-FP ${analysis.referenceYear} pattern`,title:`Wind trails show NASA GEOS-FP analysed winds from ${analysis.referenceYear}, the latest complete year, as a reference pattern. No wind forecast exists for future years.`};
   const known=value=>typeof value==='number'&&Number.isFinite(value);
   if((phase==='observed'||phase==='present')&&analysis&&known(analysis.speed)&&known(analysis.towardDeg))return {...analysis,label:'GEOS-FP analysis',title:'NASA GEOS-FP assimilated model analysis at the displayed UTC time. Arrow points toward travel; not a local anemometer measurement. Motion is an illustrative time-lapse.'};
   if(phase==='climate'||phase==='scenario')return null;
@@ -212,7 +219,7 @@ export function attachFlow(viewer,options={}) {
     }
     if(!wind){unavailable('Analysis has no valid wind at this location');return;}
     const token=F.token;
-    emit('cs:wind',{...wind,active:true,source:'NASA GEOS-FP analysis',siteId:F.site.id,year:F.year,
+    emit('cs:wind',{...wind,active:true,source:F.referenceYear?`NASA GEOS-FP ${F.referenceYear} analysis · reference pattern, not a forecast`:'NASA GEOS-FP analysis',reference:!!F.referenceYear,referenceYear:F.referenceYear||null,siteId:F.site.id,year:F.year,
       sampleWind:(lat,lon)=>token===F.token?sampleWind(field,lat,lon,F.t):null});
   }
   function buildLayers(){
@@ -225,21 +232,27 @@ export function attachFlow(viewer,options={}) {
   function setYear(site,year,phase){
     const key=`${site?.id}:${year}:${phase}`;
     if(F.key===key){publish();return pending||Promise.resolve();}
-    F.key=key;F.site=site;F.year=year;F.phase=phase;F.t=0;pending=null;const token=++F.token;
     const future=phase==='projected'||phase==='climate'||phase==='scenario';
-    clear();unavailable(future?'No GEOS-FP forecast for future scenario years':'Loading wind analysis');
+    // Scrubbing through future years: the reference-year trails are identical, so keep them.
+    if(future&&site&&F.refSite===site.id&&F.referenceYear&&(F.siteLayer||F.globalLayer)){F.key=key;F.year=year;F.phase=phase;pending=null;++F.token;publish();return Promise.resolve();}
+    F.key=key;F.site=site;F.year=year;F.phase=phase;F.t=0;pending=null;F.refSite=null;const token=++F.token;
+    clear();F.referenceYear=null;unavailable(future?'Loading reference-year winds (no wind forecast exists)':'Loading wind analysis');
     lastTime=Cesium.JulianDate.clone(viewer.clock.currentTime);sinceEmit=accumulated=0;
-    if(disabled||!site||future)return Promise.resolve();
+    if(disabled||!site)return Promise.resolve();
     pending=(async()=>{
       try{
         const index=await readIndex();if(!alive||token!==F.token)return;
-        const find=kind=>(index.products||[]).find(p=>p.kind===kind&&p.year===year&&(kind==='global'||p.site===site.id));
+        // Future years have no analysed or forecast winds. Show the latest complete analysed
+        // year as an explicitly labelled reference pattern, never the previously shown year.
+        const source=future?referenceWindYear(index,site.id):year;
+        if(future){F.referenceYear=source;if(!Number.isInteger(source)){unavailable('No GEOS-FP reference year available');return;}}
+        const find=kind=>(index.products||[]).find(p=>p.kind===kind&&p.year===source&&(kind==='global'||p.site===site.id));
         const sp=find('site'),gp=find('global');
         const loaded=await Promise.allSettled([sp?readField(sp):null,gp?readField(gp):null]);
         if(!alive||token!==F.token)return;
         F.siteField=loaded[0].status==='fulfilled'?loaded[0].value:null;
         F.globalField=loaded[1].status==='fulfilled'?loaded[1].value:null;
-        buildLayers();
+        buildLayers();if(future)F.refSite=site.id;
         if(F.siteField||F.globalField)publish();else unavailable('No wind analysis available for this year');
       }catch{if(alive&&token===F.token){clear();unavailable('Wind analysis unavailable');}}
     })();

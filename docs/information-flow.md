@@ -56,6 +56,16 @@ Moving the slider sends one `cs:year` event, so the map, the panel and the 3D sc
 | **Trend extension** | 2027–2035 | **Projected map, pixel by pixel**: the latest real same-season map plus each pixel's own significant NASA trend × years ahead (heat day/night, greenness, NO₂, haze). Dashed purple legend "PROJECTED <year>". Outside the site box: latest real map | Sen's-slope trend line and 95% CI band, which widens each year | Ground follows the trend value; the projection look is stylized | PROJECTED · IF THE TREND CONTINUES |
 | **Climate scenarios** | 2036–2100 | No annual map | Regional NEX-GDDP-CMIP6 period summaries (SSP2-4.5 / SSP5-8.5, 5-model spread) | Climate context only; no facility effect | Regional scenario, not a facility forecast |
 
+**Water on the map:** the Water button (and the Water tab in both interfaces) shows **worldwide yearly rainfall** from NASA MERRA-2 (bias-corrected monthly precipitation summed per calendar year, ~50 km grid, 2003–2025; `scripts/water_global.py`).
+- With *Show change* on (default), each place is coloured by how much wetter (teal) or drier (brown) that year was than its own 2005–2024 normal (±25%). Example: 2012 shows the US drought, with Memphis 27% below normal. With it off, absolute mm/year on one scale (0–1800) everywhere, so sites compare directly (normals: Memphis ≈ 1,340, Ashburn ≈ 1,060, Abilene ≈ 660 mm/year).
+- 2027–2035: each cell continues its own measured 2003–2025 rainfall trend (Sen's slope; Mann-Kendall with Hamed-Rao; Benjamini-Hochberg q < 0.10 across cells, `trend.png`). Only about 7% of cells worldwide have a significant trend, and none within ~2° of Memphis or Ashburn, so most of the map stays clear and the legend says so.
+- After 2035: **no water map**. The legend explains that a 23-year rainfall trend is not extended further; regional climate scenarios (NEX-GDDP-CMIP6) remain in the panel.
+- GLDAS root-zone soil moisture remains in the layer list.
+
+**Wind trails in future years** (2027–2100) show the NASA GEOS-FP winds of the latest complete analysed year (2025) as a labelled reference pattern ("GEOS-FP 2025 pattern"). No wind forecast exists, so the pattern does not change between future years.
+
+**Heat button:** the top Heat button shows **night** surface heat. Night heat has a significant trend over 53–97% of pixels at every site; daytime heat has one over 0–6%, so its projected map barely changes. Daytime heat is still in the layer list.
+
 Two rules hold in every era:
 - **Never fabricate data.** A year with no data says why ("No dispersion footprint for 2050", "Dispersion footprints start in 2018") and never reuses another year's result unlabelled.
 - **Never attribute change from proximity alone.** Satellite change near a facility is evidence, not proof.
@@ -67,7 +77,8 @@ Two rules hold in every era:
 1. For each year 2003–2026 (NO₂ from 2005): the median of the decoded mid-June to mid-August composites, the same season the map shows.
 2. For each pixel: Sen's slope, plus a Mann-Kendall test with the Hamed-Rao autocorrelation correction (`services/models/trends/stats.py`, validated against SciPy). It needs at least 12 valid years, 3 of them recent.
 3. Across all pixels of the map: Benjamini-Hochberg false-discovery control at q < 0.10, the level Wilks (2016, *BAMS*) recommends for spatially correlated maps. Only those pixels keep a slope; every other pixel is stored as "no change".
-4. In the browser, a projected year shows the latest real same-season map plus slope × (year − base year), kept on the same colour scale. The same rule tints the low-poly 3D ground.
+4. With **Show change** on (the default), projected years keep the **same comparison as observed years** (the chosen baseline, 2005 by default): the projected map minus the baseline map, on the same scale. So 2027 continues exactly where 2026 left off, and pixels with a significant trend keep changing year by year (by 2035 at Colossus 1, 88% of night-heat pixels and 21% of greenness pixels differ visibly from 2026). Choosing **"latest map"** in *Compare with* instead shows only the projected change since 2026, on a trend-sized range (±1.5 °C heat, ±0.15 NDVI, ±0.06 AOD, ±0.6×10¹⁵ NO₂, ±4 kg/m² soil water).
+5. Under the hood, a projected year shows the latest real same-season map plus slope × (year − base year), kept on the same colour scale. The same rule tints the low-poly 3D ground.
 
 This is the same "if the trend continues" extension as the panel numbers, applied per pixel. It is **not a forecast**. Pixel trends include regional change: night-time warming covers most of the Memphis area, for example. So a projected map shows *where* the record is changing, not what the facility causes. Haze (AOD) has no significant pixels at Colossus 1, so its projected map correctly stays the same.
 

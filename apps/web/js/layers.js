@@ -46,6 +46,13 @@ const VARS = {
     sensor: "MODIS / Terra · daily · 3 km · 2000–today",
     define: "Aerosol optical depth: how much sunlight is blocked by particles in the air (smoke, soot, dust, sulfate haze). Gas turbines and diesel backup generators add fine particles (PM2.5). 0.1 is clean air; above 0.5 is hazy.",
   },
+  SoilMoisture: {
+    noun: "root-zone soil moisture", label: "Water: soil moisture (GLDAS)", short: "Soil water", unit: "kg/m²", digits: 1,
+    layer: "GLDAS_Underground_Soil_Moisture_Monthly", cmap: "cm_GLDAS_Underground_Soil_Moisture_Monthly.xml",
+    start: "2003-01-01", every: 1, ring: [30, 70], win: 0, offset: 0, scale: 1, higherIsWorse: false,
+    sensor: "NASA GLDAS Noah land model · monthly · 0.25°",
+    define: "Water held in the soil below the surface (the root zone), from NASA's GLDAS land-surface model driven by satellite and ground observations. Lower values mean drier ground; data centers that pump groundwater or seal land can contribute locally, but weather dominates.",
+  },
   AirTemp: {
     noun: "regional air temperature", label: "Weather: regional air temperature", short: "Air temp", unit: "°C", digits: 2,
     layer: "MERRA2_2m_Air_Temperature_Monthly", cmap: "cm_MERRA2_2m_Air_Temperature_Monthly.xml",

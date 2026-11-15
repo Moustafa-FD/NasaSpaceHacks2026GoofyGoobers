@@ -1,0 +1,59 @@
+{
+ "schemaVersion": "water-global/1.0",
+ "units": "mm/year",
+ "encoding": "8-bit gray, value x 20 mm/year, 255 = no data",
+ "grid": {
+  "nx": 576,
+  "ny": 361,
+  "lon0": -180.3125,
+  "lat0": 90.25,
+  "dlon": 0.625,
+  "dlat": 0.5,
+  "rows": "north to south"
+ },
+ "step": 20,
+ "nodata": 255,
+ "years": [
+  2003,
+  2004,
+  2005,
+  2006,
+  2007,
+  2008,
+  2009,
+  2010,
+  2011,
+  2012,
+  2013,
+  2014,
+  2015,
+  2016,
+  2017,
+  2018,
+  2019,
+  2020,
+  2021,
+  2022,
+  2023,
+  2024,
+  2025
+ ],
+ "normalPeriod": [
+  2005,
+  2024
+ ],
+ "trend": {
+  "file": "trend.png",
+  "step": 0.5,
+  "zero": 128,
+  "nodata": 255,
+  "units": "mm/year per year",
+  "method": "Sen's slope; Mann-Kendall with Hamed-Rao correction; Benjamini-Hochberg q < 0.10 across cells (Wilks 2016); >= 18 complete years",
+  "projectionThrough": 2035,
+  "lineCentreYear": 2014.5
+ },
+ "source": {
+  "name": "NASA MERRA-2 bias-corrected precipitation (GIBS)",
+  "layer": "MERRA2_Precipitation_Bias_Corrected_Monthly"
+ }
+}

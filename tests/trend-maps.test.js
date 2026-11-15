@@ -74,3 +74,39 @@ test('the app projects map years after the record through 2035 only, and labels 
   assert.match(app, /not a forecast/);
   assert.ok(existsSync(new URL('../scripts/trend_maps.py', import.meta.url)));
 });
+
+test('colour scales: blue to red for heat, NO2 and haze; vegetation keeps blue = greener, orange = less green', async () => {
+  const { evidenceColor, PROJECTED_DELTAS } = await import('../apps/web/js/evidence-map.js');
+  assert.deepEqual(evidenceColor(30, MAP_SCALES.LST_Day, true).slice(0, 3), [204, 32, 46], 'heat increase = red');
+  assert.deepEqual(evidenceColor(-30, MAP_SCALES.LST_Day, true).slice(0, 3), [52, 144, 190], 'heat decrease = blue');
+  assert.deepEqual(evidenceColor(-1, MAP_SCALES.NDVI, true, true).slice(0, 3), [218, 78, 48], 'greenness loss = orange');
+  for (const v of ['LST_Day', 'LST_Night', 'NDVI', 'AOD', 'NO2_OMI']) assert.ok(PROJECTED_DELTAS[v] > 0 && PROJECTED_DELTAS[v] < MAP_SCALES[v].delta, v);
+});
+
+test('projected change since the latest map is exactly slope x years, and tile slopes are built once', async () => {
+  const { tileSlopes } = await import('../apps/web/js/evidence-map.js');
+  const trend = decodeTrendMap(tiny([0.5, 0, -0.5, 0.25]));
+  assert.equal(tileSlopes(trend, 2, 3, 9), tileSlopes(trend, 2, 3, 9), 'cached per tile');
+  const lut = new Map([[0x010203, 20], [0x040506, 40], [0x070809, 0]]);
+  const px = new Uint8ClampedArray(256 * 256 * 4); px.set([1, 2, 3, 255], 0); px.set([1, 2, 3, 255], 4);
+  const slopes = tileSlopes(trend, 2, 3, 9);
+  const out = recolorEvidence(px, px, lut, { scale: MAP_SCALES.LST_Day, change: true, slopes, years: 3, delta: 1.5, cache: true });
+  assert.deepEqual([...out.slice(0, 3)], [204, 32, 46], '+1.5 projected = full red on the ±1.5 range');
+  assert.equal(out[7] <= 56, true, 'no significant trend = faint neutral');
+});
+
+test('water is on the map: GLDAS soil moisture layer, Water button, Water tab, and a trend map per site', () => {
+  const html = readFileSync(new URL('../apps/web/index.html', import.meta.url), 'utf8');
+  assert.match(html, /data-map-layer="Water"[^>]*>.*Water<\/button>/);
+  assert.match(html, /data-map-layer="LST_Night"[^>]*>.*Heat<\/button>/, 'Heat opens night heat');
+  assert.match(html, /<option value="auto" selected>/, 'future years show the projected change by default');
+  assert.match(readFileSync(new URL('../apps/web/js/environment-story.js', import.meta.url), 'utf8'), /setMapLayer\?\.\('Water'\)/);
+  assert.match(readFileSync(new URL('../apps/web/js/layers.js', import.meta.url), 'utf8'), /GLDAS_Underground_Soil_Moisture_Monthly/);
+  const catalog = json('../data/cloudshadow/gibs_layers.json');
+  assert.ok(catalog.GLDAS_Underground_Soil_Moisture_Monthly?.intervals?.length);
+  for (const site of json('../data/cloudshadow/sites.json').sites) {
+    const raw = json(`../data/cloudshadow/trendmaps/${site.id}/SoilMoisture.json`);
+    assert.equal(raw.season, 'all months, median per year');
+    assert.equal(decodeTrendMap(raw).slope.length, raw.width * raw.height);
+  }
+});
