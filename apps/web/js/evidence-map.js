@@ -2,7 +2,7 @@
 // sub-pixel variation; missing/unknown colours remain transparent.
 export const MAP_SCALES = Object.freeze({
   LST_Day:{min:5,max:45,delta:8,unit:'°C',resolution:'~1 km'},
-  LST_Night:{min:0,max:30,delta:6,unit:'°C',resolution:'~1 km'},
+  LST_Night:{min:0,max:30,delta:3,unit:'°C',resolution:'~1 km'},
   NDVI:{min:0,max:1,delta:.3,unit:'NDVI',resolution:'~250 m'},
   NO2:{min:0,max:12,delta:5,unit:'×10¹⁵ molecules/cm²',resolution:'~5 km'},
   NO2_OMI:{min:0,max:10,delta:4,unit:'×10¹⁵ molecules/cm²',resolution:'~13 × 24 km'},
