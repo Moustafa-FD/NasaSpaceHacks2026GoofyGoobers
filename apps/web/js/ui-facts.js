@@ -118,3 +118,31 @@ export function beforeAfterYears(key, rows, onset, lastYear = 2025) {
   }
   return { before: Math.max(2003, start - 1), after: lastYear, rowVar: null };
 }
+
+// One headline number per theme and year for the badge above BEFORE/AFTER.
+// Returns { value, text, label } or null when there is no figure for that year.
+export function statFor(key, f, row, year, site) {
+  if (!f) return null;
+  const start = +String(site.onset).slice(0, 4), started = year >= start;
+  const lead = (s) => num(String(s ?? "").match(/[\d.,]+/)?.[0]?.replace(/,/g, ""));
+  if (f.published) {
+    const after = year >= f.published.after.year, p = lead(f.published.after.fact);
+    return { value: after ? p : 0, text: after ? `+${p}%` : "0%", label: `${THEMES[key].noun} vs 2024–25` };
+  }
+  if (THEMES[key].reported) {
+    const r = f.rep;
+    if (!r || r.missing) return null;
+    if (!started) return site.id === "ashburn" ? null : { value: 0, text: "0", label: key === "power" ? "MW" : "households' water" };
+    if (key === "power" && r.mw) return { value: r.mw, text: fmtN(r.mw), label: "megawatts" };
+    if (key === "water" && r.households) return { value: r.households, text: fmtN(Math.round(r.households / 100) * 100), label: "households' daily water" };
+    const v = lead(r.short);
+    return v == null ? null : { value: v, text: r.short.match(/^[\d.,]+%?/)[0], label: r.short.replace(/^[\d.,]+%?\s*/, "") };
+  }
+  const rv = f.years?.rowVar, v = num(row?.[`${rv}_Local`]);
+  if (v == null) return null;
+  if (key === "heat") return { value: Math.abs(v), text: `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)} °C`, label: `nights ${v >= 0 ? "warmer" : "cooler"} than nearby` };
+  const p = pct(v, num(row[`${rv}_Surround`]));
+  if (p == null) return null;
+  if (key === "green") return { value: Math.max(0, -p), text: `${Math.abs(p).toFixed(0)}%`, label: p < 0 ? "less green than nearby" : "greener than nearby" };
+  return { value: Math.max(0, p), text: `${Math.abs(p).toFixed(0)}%`, label: p >= 0 ? "more NO₂ than nearby" : "less NO₂ than nearby" };
+}

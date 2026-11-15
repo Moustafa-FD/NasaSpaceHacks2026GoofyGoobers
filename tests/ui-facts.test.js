@@ -51,3 +51,20 @@ test("only Clear/Strong measured results, published studies and documented figur
   assert.equal(reportedWater("ashburn", { kind: "official", value: "9% of county water", scope: "county-wide" }).text, "9% of county water");
   assert.equal(shown("power", { rep: reportedPower({ kind: "official", value: "41 turbines permitted" }) }), true);
 });
+
+test("badge numbers per theme and year", async () => {
+  const { statFor } = await import("../apps/web/js/ui-facts.js");
+  const site = { id: "colossus1", onset: "2024-06" };
+  const power = { rep: reportedPower({ mw: 150, value: "150 MW" }) };
+  assert.deepEqual(statFor("power", power, {}, 2023, site), { value: 0, text: "0", label: "MW" });
+  assert.equal(statFor("power", power, {}, 2025, site).text, "150");
+  const heat = { years: { rowVar: "LST_Night" } };
+  assert.equal(statFor("heat", heat, { LST_Night_Local: -0.16 }, 2025, site).text, "−0.2 °C");
+  const green = { years: { rowVar: "NDVI" } };
+  assert.deepEqual(statFor("green", green, { NDVI_Local: -0.1, NDVI_Surround: 0.5 }, 2025, site), { value: 20, text: "20%", label: "less green than nearby" });
+  const air = { published: { after: { year: 2026, fact: "≈ 49% more NO₂ (Apr–Jul)" } } };
+  assert.equal(statFor("air", air, {}, 2026, site).text, "+49%");
+  assert.equal(statFor("air", air, {}, 2025, site).value, 0);
+  const turb = { rep: reportedPower({ kind: "official", value: "x", short: "41 gas turbines permitted" }) };
+  assert.deepEqual(statFor("power", turb, {}, 2026, { id: "colossus2", onset: "2025-03" }), { value: 41, text: "41", label: "gas turbines permitted" });
+});

@@ -184,3 +184,15 @@ body.ui-v2.v2-landing-open #mapLegend { display: none !important; }
   body.ui-v2 #mapLegend:not([hidden]) { top: 262px !important; max-width: 62vw !important; }
   body.ui-v2 #mapLegend #mapResolution, body.ui-v2 #mapLegend #mapLegendDetail, body.ui-v2 #mapLegend .map-playback-status { display: none !important; }
 }
+
+/* headline number above BEFORE/AFTER: small, colour strength = value / site maximum (--k) */
+#v3Panel .v3-stat { left: 50%; transform: translateX(-50%); bottom: calc(var(--lift) + 114px); display: flex; align-items: baseline; gap: 10px; padding: 7px 18px 8px;
+  border-radius: 999px; white-space: nowrap; color: var(--ink); transition: background-color .5s ease, color .3s ease;
+  background: color-mix(in srgb, var(--c) calc(var(--k, .2) * 100%), var(--paper)); }
+.v3-stat[hidden] { display: none; }
+.v3-stat b { font: 600 26px/1 var(--serif); font-variant-numeric: tabular-nums; }
+.v3-stat span { font: 600 13px var(--sans); opacity: .85; }
+#v3Panel .v3-stat.on-dark { color: #fff; }
+@media (max-width: 1100px) { .v3-stat { bottom: calc(var(--lift) + 172px); } }
+@media (max-width: 640px) { .v3-stat { bottom: calc(var(--lift) + 306px); padding: 5px 14px 6px; } .v3-stat b { font-size: 21px; } .v3-stat span { font-size: 12px; } }
+@media (prefers-reduced-motion: reduce) { .v3-stat { transition: none; } }

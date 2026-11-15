@@ -2,7 +2,7 @@
 // Logic lives in ui-facts.js; this file only renders and wires the existing app (window.CloudShadow,
 // window.CloudShadowTimeline). The panel renders from the data files immediately, so a slow 3D scene
 // never leaves the user on an empty globe. ?ui=classic disables it.
-import { THEMES, PUBLISHED, shown, confidence, measuredVerdict, claim, reportedWater, reportedPower, levelFact, beforeAfterYears } from "./ui-facts.js";
+import { THEMES, PUBLISHED, shown, statFor, confidence, measuredVerdict, claim, reportedWater, reportedPower, levelFact, beforeAfterYears } from "./ui-facts.js";
 
 const q = new URLSearchParams(location.search);
 const $ = (s, r = document) => r.querySelector(s);
@@ -58,6 +58,7 @@ function buildChrome() {
     <section id="v3Panel" hidden aria-live="polite">
       <nav class="v3-tabs" role="tablist" aria-label="What to look at">${Object.entries(THEMES).map(([k, t]) => `<button class="v3-tab" role="tab" data-theme="${k}" style="--c:${t.hex}">${icon(k)}<span>${t.label}</span></button>`).join("")}</nav>
       <div class="v3-body"><button class="v3-min" id="v3Min" aria-label="Hide panel" title="Hide to see the map">Hide ▾</button><p class="v3-claim" id="v3Claim"></p><p class="v3-conf" id="v3Conf"></p></div>
+      <div class="v3-stat" id="v3Stat" aria-live="polite"><b id="v3StatNum"></b><span id="v3StatLab"></span></div>
       <div class="v3-ba"><button class="side" data-side="before"></button><button class="side" data-side="after"></button><button class="v3-btn flip" id="v3Flip" aria-pressed="false">▶ Flip</button></div>
       <div class="v3-links"><button class="v3-btn dark" id="v3PhotosBtn">Compare satellite photos</button><button class="v3-link" id="v3Years">All years</button><button class="v3-link" id="v3Sources">Sources &amp; charts</button><button class="v3-link" id="v3HeatMap" hidden></button><span class="note" id="v3Note"></span></div>
     </section>
@@ -90,6 +91,7 @@ function buildChrome() {
     panel.insertAdjacentHTML("afterbegin", `<div class="science-close"><b>Sources &amp; charts</b><button type="button">Close ✕</button></div>`);
     panel.querySelector(".science-close button").onclick = () => toggleScience(false);
   }
+  window.addEventListener("cs:year", (e) => { if (S.site && e.detail?.year != null && (!e.detail.siteId || e.detail.siteId === S.site.id)) renderStat(e.detail.year); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { toggleScience(false); $("#v3Photos").hidden = true; $("#v2HowCard").hidden = true; } });
 }
 
@@ -165,12 +167,41 @@ function render() {
 }
 
 // ------------------------------------------------------------------ before / after
+// Badge colour strength = this year's number / the biggest number for this site and theme (all years with data).
+function renderStat(year) {
+  const key = S.theme, f = S.facts[key], box = $("#v3Stat"); if (!box || !S.site) return;
+  const at = (y) => statFor(key, f, S.rows.get(y), y, S.site);
+  const st = at(year);
+  box.hidden = !st;
+  if (!st) return;
+  const years = [...S.rows.keys(), f.years.before, f.years.after];
+  const max = Math.max(...years.map((y) => at(y)?.value ?? 0), st.value, 1e-9);
+  const k = Math.max(0, Math.min(1, st.value / max));
+  box.style.setProperty("--k", (0.12 + 0.88 * k).toFixed(3));
+  box.classList.toggle("on-dark", k > 0.45);
+  $("#v3StatLab").textContent = st.label;
+  countTo($("#v3StatNum"), st.text);
+}
+// Count from the previous number to the new one; text after the number (units) is kept as-is.
+function countTo(el, text) {
+  const m = text.match(/^([+−-]?)([\d,]+(?:\.\d+)?)(.*)$/), from = parseFloat((el.textContent.match(/[\d,.]+/)?.[0] || "0").replace(/,/g, ""));
+  cancelAnimationFrame(el._raf);
+  if (!m || matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = text; return; }
+  const to = parseFloat(m[2].replace(/,/g, "")), dec = (m[2].split(".")[1] || "").length, t0 = performance.now();
+  const step = (t) => {
+    const p = Math.min(1, (t - t0) / 600), e = 1 - (1 - p) ** 3, v = from + (to - from) * e;
+    el.textContent = `${m[1]}${v.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec })}${m[3]}`;
+    if (p < 1) el._raf = requestAnimationFrame(step);
+  };
+  el._raf = requestAnimationFrame(step);
+}
+
 function setSide(side) {
   S.side = side;
   const year = S.facts[S.theme].years[side];
   window.CloudShadowTimeline?.setYear(year); // drives the team's scene, smoke and landscape via "cs:year"
   window.dispatchEvent(new CustomEvent("cs:theme", { detail: { theme: S.theme, site: S.site, facts: S.facts[S.theme], side, year, mapOn: S.theme === "heat" && S.heatMap } }));
-  render();
+  render(); renderStat(year);
 }
 function startFlip() { S.flip = setInterval(() => setSide(S.side === "after" ? "before" : "after"), 1800); $("#v3Flip").setAttribute("aria-pressed", "true"); $("#v3Flip").textContent = "❚❚ Stop"; }
 function stopFlip() { clearInterval(S.flip); S.flip = null; $("#v3Flip")?.setAttribute("aria-pressed", "false"); if ($("#v3Flip")) $("#v3Flip").textContent = "▶ Flip"; }
