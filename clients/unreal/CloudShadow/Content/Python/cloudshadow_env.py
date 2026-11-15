@@ -235,7 +235,7 @@ def build(density=1.0, seed=SEED):
     h = ground_height()
     meadow_mat = _material(MAT_MEADOW, SRF_PARENT,
                            {"BaseColorTexture": MOSS_TEX + "B", "NormalTexture": MOSS_TEX + "N", "MetallicRoughnessTexture": MOSS_TEX + "ORM"},
-                           {"Tiling": TILE / 6.0, "Saturation": 1.1, "Brightness": 0.6, "Min Roughness": 0.85, "Max Roughness": 1.0, "Specular": 0.2}, tint=(0.42, 0.52, 0.28, 1.0))
+                           {"Tiling": TILE / 6.0, "Saturation": 1.25, "Brightness": 0.95, "Min Roughness": 0.85, "Max Roughness": 1.0, "Specular": 0.2}, tint=(0.40, 0.58, 0.22, 1.0))
     rubble_mats = [_material(MAT_RUBBLE + sfx, SRF_PARENT, {}, {"Tiling": TILE / tl, "Brightness": br, "Min Roughness": 0.8},
                              tint=tn) for sfx, tl, br, tn in (("", 4.0, 1.0, (1.0, 0.90, 0.78, 1.0)),
                                                              ("_B", 3.0, 0.8, (0.92, 0.80, 0.66, 1.0)),
@@ -386,6 +386,35 @@ def build_hall(h):
             n = -sy / 2 + 20 + j * (sy - 40) / 23
             xs.append(unreal.Transform(location=_local(e, n, HALL_H + 1.4), scale=unreal.Vector(9.0, 5.0, 2.8)))
     units.add_instances(xs, False, False)
+    # chiller fans: two dark fan housings on top of every unit
+    dark = cs._emissive_material("/Game/CloudShadow/Materials/M_HallFan", (0.05, 0.05, 0.06), 0.0)
+    fans = _hism(hall, "/Engine/BasicShapes/Cylinder", "RoofFans")
+    fans.set_material(0, dark)
+    fx = []
+    for t in xs:
+        p = t.translation
+        for d in (-220.0, 220.0):
+            fx.append(unreal.Transform(location=unreal.Vector(p.x + d, p.y, p.z + 150.0), scale=unreal.Vector(3.2, 3.2, 0.25)))
+    fans.add_instances(fx, False, False)
+    # ribbed wall cladding (a vertical rib every 6 m) and a dark parapet band at the roofline
+    ribs = _hism(hall, "/Engine/BasicShapes/Cube", "WallRibs")
+    ribs.set_material(0, grey)
+    rx = []
+    for side in (-1, 1):
+        n = int(sx / 6)
+        for i in range(n + 1):
+            e = -sx / 2 + i * sx / n
+            rx.append(unreal.Transform(location=_local(e, side * (sy / 2 + 0.25), HALL_H / 2), scale=unreal.Vector(0.4, 0.5, HALL_H)))
+        n = int(sy / 6)
+        for i in range(n + 1):
+            nn = -sy / 2 + i * sy / n
+            rx.append(unreal.Transform(location=_local(side * (sx / 2 + 0.25), nn, HALL_H / 2), scale=unreal.Vector(0.5, 0.4, HALL_H)))
+    ribs.add_instances(rx, False, False)
+    band = _hism(hall, "/Engine/BasicShapes/Cube", "Parapet")
+    band.set_material(0, grey)
+    band.add_instances([unreal.Transform(location=_local(0, side * (sy / 2 + 0.3), HALL_H - 0.6), scale=unreal.Vector(sx + 1.2, 0.6, 1.2)) for side in (-1, 1)] +
+                       [unreal.Transform(location=_local(side * (sx / 2 + 0.3), 0, HALL_H - 0.6), scale=unreal.Vector(0.6, sy + 1.2, 1.2)) for side in (-1, 1)],
+                       False, False)
     hall.set_actor_hidden_in_game(True)
     hall.set_is_temporarily_hidden_in_editor(True)
 

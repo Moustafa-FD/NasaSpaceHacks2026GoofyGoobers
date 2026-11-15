@@ -147,12 +147,12 @@ def story():
         return (f0, f1, st)
 
     return [
-        beat(0, 165, grade="space", caption="Every AI answer is computed in a real building, somewhere."),
+        beat(0, 165, grade="space", haze="space", caption="Every AI answer is computed in a real building, somewhere."),
         beat(165, 300, stamp="WHITEHAVEN, MEMPHIS · 2021", footer=FOOTER),
         beat(300, 348, stamp="2025", caption="Then, almost overnight…", focus=HALL_C, footer=FOOTER),
         beat(348, 370, stamp="2025", caption="Then, almost overnight…", focus=HALL_C, footer=FOOTER, haze="dust"),
         beat(370, 390, stamp="2025", caption="Then, almost overnight…", focus=HALL_C, footer=FOOTER, haze="settle"),
-        beat(390, 480, env="after", sun=19.7, grade="dusk", focus=(-40, 0),
+        beat(390, 480, env="after", sun=18.9, grade="dusk", focus=(-40, 0),
              stamp="xAI COLOSSUS 2", caption="An AI supercomputer", footer=FOOTER),
         beat(480, 570, env="after", sun=18.8, grade="dusk", power=True, focus=(-260, -200),
              stamp="POWER", caption="Hundreds of megawatts, around the clock", footer=POWER_FOOT),
@@ -160,7 +160,7 @@ def story():
              stamp="WATER", caption="Millions of gallons a day to keep it cool", footer=WATER_FOOT),
         beat(660, 780, env="after", sun=19.7, grade="dusk", haze="smog", focus=None,
              stamp="AIR", caption="Gas turbines, next to homes", footer=AIR_FOOT),
-        beat(780, 900, env="after", grade="space"),
+        beat(780, 900, env="after", grade="space", haze="space"),
     ]
 
 
@@ -169,7 +169,7 @@ def shots():
     return [(a, b, "colossus2", 0, "", st["caption"]) for a, b, st in story()]
 
 
-TITLE = ("FOOTPRINT ATLAS", "The hidden footprint of AI, measured from space with NASA data", 780, 900)
+TITLE = ("FOOTPRINT ATLAS", "The hidden footprint of data centers, measured from space with NASA data", 780, 900)
 TITLE_NOTE = "Effects are visualizations driven by NASA data and sourced reports."
 
 # post-process looks per beat: (saturation, white temp K, bloom, vignette, grain)
@@ -799,9 +799,10 @@ def apply(state):
     fog = _find("FA_HeightFog")
     if fog:   # (density, height falloff, inscattering colour): clear air / impact dust / smog
         dens, fall, col = {None: (0.0009, 0.02, (0.45, 0.55, 0.70)),
+                           "space": (0.0, 0.02, (0.45, 0.55, 0.70)),      # from orbit the haze integrates to white
                            "dust": (0.028, 0.006, (0.78, 0.62, 0.42)),
                            "settle": (0.010, 0.008, (0.74, 0.60, 0.44)),
-                           "smog": (0.006, 0.003, (0.40, 0.27, 0.15))}[state.get("haze")]
+                           "smog": (0.012, 0.06, (0.40, 0.27, 0.15))}[state.get("haze")]   # dense, ground-hugging
         fc = fog.get_component_by_class(unreal.ExponentialHeightFogComponent)
         cs._set(fc, fog_density=dens, fog_height_falloff=fall, fog_inscattering_luminance=unreal.LinearColor(*col, 1.0),
                 volumetric_fog_albedo=unreal.Color(int(col[0] * 255), int(col[1] * 255), int(col[2] * 255), 255))
@@ -984,10 +985,29 @@ RENDER_CVARS = {
 
 
 def _cesium_quality(sse):
-    """Lower screen-space error = sharper terrain/imagery; costs streaming time (warm-up covers it)."""
-    t = cs._terrain()
-    if t:
-        cs._set(t, maximum_screen_space_error=float(sse))
+    """Lower screen-space error = sharper tiles; costs streaming time (warm-up covers it). Applies to
+    every tileset - Google Photorealistic 3D Tiles carry almost every real-world shot."""
+    for t in cs._actors().get_all_level_actors():
+        if isinstance(t, unreal.Cesium3DTileset):
+            cs._set(t, maximum_screen_space_error=float(sse))
+
+
+# "final" profile: cinematic scalability everywhere, finer Nanite, sharper shadows, full texture streaming.
+# (Never r.ViewDistanceScale / HighQualityAerialPerspective: those blacked out the sky in renders.)
+FINAL_CVARS = {
+    "sg.ShadowQuality": 4, "sg.FoliageQuality": 4, "sg.EffectsQuality": 4, "sg.PostProcessQuality": 4,
+    "sg.TextureQuality": 4, "sg.GlobalIlluminationQuality": 4, "sg.ReflectionQuality": 4, "sg.ShadingQuality": 4,
+    "r.Nanite.MaxPixelsPerEdge": 0.5,                    # finer Nanite triangles
+    "r.Shadow.Virtual.ResolutionLodBiasDirectional": -1.5,
+    "r.Lumen.ScreenProbeGather.DownsampleFactor": 8,
+    "r.Lumen.ScreenProbeGather.TracingOctahedronResolution": 16,
+    "r.Lumen.Reflections.DownsampleFactor": 1,
+    "r.Streaming.FullyLoadUsedTextures": 1,
+    "r.MotionBlurQuality": 4, "r.DepthOfFieldQuality": 4, "r.BloomQuality": 5, "r.Tonemapper.Quality": 5,
+    "foliage.LODDistanceScale": 4.0,
+    "r.ScreenPercentage": 100,
+}
+QUALITY = "draft"                                         # set to "final" for the delivery render
 
 
 _exe = None          # module-level so the executor isn't garbage-collected mid-render
@@ -1059,7 +1079,13 @@ def _next_beat():
             spatial_sample_count=1, temporal_sample_count=shot["samples"],
             override_anti_aliasing=True, anti_aliasing_method=unreal.AntiAliasingMethod.AAM_NONE)
     cv = cfg.find_or_add_setting_by_class(unreal.MoviePipelineConsoleVariableSetting)
-    for k, v in (RENDER_CVARS if USE_RENDER_CVARS else {}).items():
+    cvars = dict(RENDER_CVARS if USE_RENDER_CVARS else {})
+    if QUALITY == "final":
+        cvars.update(FINAL_CVARS)
+        go = cfg.find_or_add_setting_by_class(unreal.MoviePipelineGameOverrideSetting)
+        cs._set(go, cinematic_quality_settings=True, use_high_quality_shadows=True, use_lod_zero=True,
+                texture_streaming=unreal.MoviePipelineTextureStreamingMethod.FULLY_LOAD)
+    for k, v in cvars.items():
         _try(cv.add_or_update_console_variable, k, float(v))
 
     log("Footprint Atlas: %s frames %d-%d [%s]" % (job.job_name, shot["start"], shot["end"], shot["state"]["stamp"]))
@@ -1107,12 +1133,12 @@ PlayResY: 1080
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Stamp,Arial,64,&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,1,0,0,0,100,100,6,0,1,2,2,7,90,90,80,1
-Style: Caption,Arial,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H78000000,0,0,0,0,100,100,0,0,1,2,1,2,120,120,70,1
+Style: Stamp,Arial,84,&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,1,0,0,0,100,100,6,0,1,2,2,7,90,90,80,1
+Style: Caption,Arial,60,&H00FFFFFF,&H00FFFFFF,&H00000000,&H78000000,0,0,0,0,100,100,0,0,1,2,1,2,120,120,70,1
 Style: Title,Arial,120,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,1,0,0,0,100,100,18,0,1,0,4,5,60,60,60,1
-Style: Sub,Arial,46,&H0033D1FF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,2,0,1,0,2,5,60,60,60,1
-Style: Footer,Arial,22,&H00DDDDDD,&H00FFFFFF,&H00000000,&H64000000,0,0,0,0,100,100,1,0,1,1,1,3,60,60,28,1
-Style: Note,Arial,26,&H00CCCCCC,&H00FFFFFF,&H00000000,&H00000000,0,1,0,0,100,100,1,0,1,0,1,5,60,60,60,1
+Style: Sub,Arial,54,&H0033D1FF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,2,0,1,0,2,5,60,60,60,1
+Style: Footer,Arial,32,&H00DDDDDD,&H00FFFFFF,&H00000000,&H64000000,0,0,0,0,100,100,1,0,1,1,1,3,60,60,28,1
+Style: Note,Arial,34,&H00CCCCCC,&H00FFFFFF,&H00000000,&H00000000,0,1,0,0,100,100,1,0,1,0,1,5,60,60,60,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
