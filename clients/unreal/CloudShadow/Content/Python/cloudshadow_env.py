@@ -478,6 +478,15 @@ def build_background_trees(seed=8):
             _es().destroy_actor(a)
     rnd = random.Random(seed)
     trees = json.load(open(BG_TREES, encoding="utf-8"))["trees"]
+    # only where the cameras look (memory: ~2,600 animated Nanite trees pushed the editor to 89 GB)
+    regions = (((-560, 160), (300, 650), 150),        # north band: S3 horizon
+               ((-820, -560), (-400, 400), 150),      # west band: S3/S4 sides
+               ((-760, -250), (-760, -300), 120))     # south-west woods: in front of the S4 drop camera
+    picked = []
+    for (e0, e1), (n0, n1), cap in regions:
+        inside = [t for t in trees if e0 <= t[0] <= e1 and n0 <= t[1] <= n1]
+        picked += inside[:cap]
+    trees = picked
     sectors = {}
     for e, n, kind in trees:
         sectors.setdefault(int((math.degrees(math.atan2(e + 200, n)) + 180) // 45) % 8, []).append((e, n, kind))

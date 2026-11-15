@@ -771,7 +771,7 @@ BOLT_VARIANTS = 6                  # pre-built bolt shapes per line; Sequencer f
 BOLT_STEP = 2                      # frames each bolt stays lit
 
 
-def _fractal_bolt(a, b, rnd, depth=6, rough=0.10, branch_p=0.18):
+def _fractal_bolt(a, b, rnd, depth=8, rough=0.13, branch_p=0.22):
     """Midpoint-displacement lightning between Unreal points a and b. Returns segments [(p, q)]
     including a few short side forks (the classic look of film lightning)."""
     def split(p, q, d, amp):
@@ -806,7 +806,7 @@ def build_bolts(seed=21):
             segs = []
             for i in range(len(pts) - 1):
                 segs += _fractal_bolt(pts[i], pts[i + 1], rnd)
-            for name, mat, thick in (("Core", core, 1.4), ("Glow", glow, 6.0)):
+            for name, mat, thick in (("Core", core, 0.55), ("Glow", glow, 2.6)):
                 h = cs._add_component(a, unreal.HierarchicalInstancedStaticMeshComponent, name)
                 h.set_static_mesh(cube)
                 h.set_material(0, mat)
@@ -868,17 +868,17 @@ def _key_bolts(seq, seed=33):
 # AnimatedSparseVolumeTextures and ray-marched as Heterogeneous Volumes (offline-quality, self-shadowed).
 VDB_DIR = "/Game/CloudShadow/VDB"
 SVT_MASTER = "/Engine/EngineMaterials/SparseVolumeMaterial"
-VOLUMES = {   # svt, albedo, density scale
-    "Dust": ("ground_explosion", (0.95, 0.82, 0.62), 0.9),
-    "Smoke": ("industrial_chimney_smoke", (0.42, 0.37, 0.32), 1.6),
-    "Steam": ("steam_plume", (1.0, 1.0, 1.0), 0.35),
+VOLUMES = {   # svt, albedo colour, density scale, albedo scale (the master defaults it to 0.18 = grey)
+    "Dust": ("ground_explosion", (0.95, 0.82, 0.62), 0.9, 0.9),
+    "Smoke": ("industrial_chimney_smoke", (0.60, 0.55, 0.50), 1.6, 0.45),
+    "Steam": ("steam_plume", (1.0, 1.0, 1.0), 0.35, 1.0),
 }
 HV_CVARS = {"r.HeterogeneousVolumes.MaxTraceDistance": 300000, "r.HeterogeneousVolumes.MaxShadowTraceDistance": 300000,
             "r.HeterogeneousVolumes.IndirectLighting": 1}                 # sky light into the volumes, or cores go black
 
 
 def _vdb_material(kind):
-    svt, albedo, dens = VOLUMES[kind]
+    svt, albedo, dens, ascale = VOLUMES[kind]
     path = "%s/MI_VDB_%s" % (VDB_DIR, kind)
     M = unreal.MaterialEditingLibrary
     mi = unreal.load_asset(path) if unreal.EditorAssetLibrary.does_asset_exist(path) else \
@@ -890,6 +890,7 @@ def _vdb_material(kind):
     M.set_material_instance_scalar_parameter_value(mi, "Temperature Scale", 0.0)
     M.set_material_instance_scalar_parameter_value(mi, "Blackbody Scale", 0.0)
     M.set_material_instance_scalar_parameter_value(mi, "Density Scale", dens)
+    M.set_material_instance_scalar_parameter_value(mi, "Albedo Scale", ascale)
     M.set_material_instance_vector_parameter_value(mi, "Albedo Color", unreal.LinearColor(*albedo, 1.0))
     M.update_material_instance(mi)
     unreal.EditorAssetLibrary.save_loaded_asset(mi)
@@ -922,8 +923,8 @@ def build_volumes():
         unreal.SystemLibrary.execute_console_command(w, "%s %d" % (k, v))
     hx, hy = HALL_C
     _volume("FA_VDB_Dust", "Dust", *env._offset(hx, hy), env.GROUND_H, 300.0)
-    for i, (e, n) in enumerate(((-70, -160), (10, 20), (80, 190))):            # rooftop cooling plant
-        _volume("FA_VDB_Steam_%d" % i, "Steam", *env._offset(hx + e, hy + n), env.GROUND_H + env.HALL_H, 24.0,
+    for i, (e, n) in enumerate(((20, -150), (60, 30))):                        # rooftop cooling plant, fully in the S7 frame
+        _volume("FA_VDB_Steam_%d" % i, "Steam", *env._offset(hx + e, hy + n), env.GROUND_H + env.HALL_H, 16.0,
                 yaw=180.0 + _data()["colossus2"]["wind"]["plumeTowardDeg"])
     wind = _data()["colossus1"]["wind"]["plumeTowardDeg"]
     for i, (e, n) in enumerate(((-40, -20), (30, 25))):                       # turbine stacks
@@ -951,7 +952,7 @@ def _key_volumes(seq):
     if d:   # the explosion runs ~1.7x speed from the impact: a fast, violent burst that keeps rolling
         _key_bool(seq, d, [(0, False), (impact, True), (390, False)])
         _key_frame(seq, d, [(0, 0.0), (impact, 0.0), (390, 72.0)])
-    for i in range(3):
+    for i in range(2):
         s = _find("FA_VDB_Steam_%d" % i)
         if s:
             _key_frame(seq, s, [(0, 40.0 + 20 * i), (570, 40.0 + 20 * i), (660, 100.0 + 20 * i)])
