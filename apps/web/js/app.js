@@ -308,8 +308,15 @@
     window.dispatchEvent(new CustomEvent('cs:map-layer',{detail:{kind,change,date:a?.date??null}}));
     if(!a){clearScientificMap();syncLayerControls(null);return;}
     if(VARS[kind]){
-      const date=sourceDateForYear(expandIntervals(a.layer),+desired.slice(0,4),desired);
-      if(!date){clearScientificMap(`No ${VARS[kind].short} imagery for ${desired.slice(0,4)}.`);return;}
+      const dates=expandIntervals(a.layer);
+      let date=sourceDateForYear(dates,+desired.slice(0,4),desired);
+      // Years beyond (or before) the satellite record: show the nearest real map and say so,
+      // instead of clearing the layer. Satellites never provide future maps.
+      if(!date){
+        const earlier=dates.filter(d=>d<=desired),fallback=earlier.length?earlier.at(-1):dates[0];
+        if(!fallback){clearScientificMap(`No ${VARS[kind].short} imagery for ${desired.slice(0,4)}.`);return;}
+        date=fallback;a={...a,fallbackNote:`No ${VARS[kind].short} map exists for ${desired.slice(0,4)}; showing the ${earlier.length?'latest':'earliest'} available (${fallback}).`};
+      }
       a={...a,date};
     }
     const baseline=change?overlaySpec(kind,$('#baselineYear').value+'-07-15'):null;
@@ -352,7 +359,7 @@
       $("#mapLegendTitle").textContent = label;
       const scale=MAP_SCALES[kind],change=payload?payload.change:$('#mapChange').checked;
       const base=payload?.baseline||overlaySpec(kind,$('#baselineYear').value+'-07-15');
-      $('#mapLegendDetail').textContent = `${change?`${spec.date} minus ${base.date}`:spec.date} · ${scale.resolution} native data`;
+      $('#mapLegendDetail').textContent = `${change?`${spec.date} minus ${base.date}`:spec.date} · ${scale.resolution} native data${spec.fallbackNote?` · ${spec.fallbackNote}`:''}`;
       $('#mapLegendScale').hidden=true;
       $('#mapColorScale').hidden=false;
       $('#mapScaleLow').textContent=change?`−${scale.delta}`:scale.min;
