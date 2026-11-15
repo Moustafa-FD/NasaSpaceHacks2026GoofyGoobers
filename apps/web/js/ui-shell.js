@@ -2,7 +2,7 @@
 // Logic lives in ui-facts.js; this file only renders and wires the existing app (window.CloudShadow,
 // window.CloudShadowTimeline). The panel renders from the data files immediately, so a slow 3D scene
 // never leaves the user on an empty globe. ?ui=classic disables it.
-import { THEMES, PUBLISHED, shown, confidence, measuredVerdict, claim, reportedWater, reportedPower, levelFact, beforeAfterYears } from "./ui-facts.js";
+import { THEMES, PUBLISHED, shown, statFor, confidence, measuredVerdict, claim, reportedWater, reportedPower, levelFact, beforeAfterYears } from "./ui-facts.js";
 
 const q = new URLSearchParams(location.search);
 const $ = (s, r = document) => r.querySelector(s);
@@ -63,6 +63,7 @@ function buildChrome() {
     <section id="v3Panel" hidden aria-live="polite">
       <nav class="v3-tabs" role="tablist" aria-label="What to look at">${Object.entries(THEMES).map(([k, t]) => `<button class="v3-tab" role="tab" data-theme="${k}" style="--c:${t.hex}">${icon(k)}<span>${t.label}</span></button>`).join("")}</nav>
       <div class="v3-body"><button class="v3-min" id="v3Min" aria-label="Hide panel" title="Hide to see the map">Hide ▾</button><p class="v3-claim" id="v3Claim"></p><p class="v3-conf" id="v3Conf"></p></div>
+      <div class="v3-stat" id="v3Stat" aria-live="polite"><b id="v3StatNum"></b><span id="v3StatLab"></span></div>
       <div class="v3-ba"><button class="side" data-side="before"></button><button class="side" data-side="after"></button><button class="side future" data-side="future"></button><button class="v3-btn flip" id="v3Flip" aria-pressed="false">▶ Flip</button></div>
       <div class="v3-links"><button class="v3-btn dark" id="v3PhotosBtn">Compare satellite photos</button><button class="v3-link" id="v3Years">All years</button><button class="v3-link" id="v3Sources">Sources &amp; charts</button><button class="v3-link" id="v3HeatMap" hidden></button><span class="note" id="v3Note"></span></div>
     </section>
@@ -95,6 +96,15 @@ function buildChrome() {
     panel.insertAdjacentHTML("afterbegin", `<div class="science-close"><b>Sources &amp; charts</b><button type="button">Close ✕</button></div>`);
     panel.querySelector(".science-close button").onclick = () => toggleScience(false);
   }
+  // Small year-speed control inside the timeline (shown with "All years").
+  const top = document.querySelector(".tl-top");
+  if (top && !$("#v3Speed")) {
+    top.insertAdjacentHTML("beforeend", `<label class="v3-speed" title="How fast Play moves through the years">Speed <input id="v3Speed" type="range" min="0" max="4" step="1" value="2" aria-label="Playback speed"><output id="v3SpeedOut">1×</output></label>`);
+    const SPEEDS = [0.25, 0.5, 1, 2, 4], sp = $("#v3Speed");
+    const apply = () => { const x = SPEEDS[+sp.value]; $("#v3SpeedOut").textContent = `${x}×`; window.CloudShadowTimeline?.setYearSpeed?.(x); };
+    sp.addEventListener("input", apply); apply();
+  }
+  window.addEventListener("cs:year", (e) => { if (S.site && e.detail?.year != null && (!e.detail.siteId || e.detail.siteId === S.site.id)) renderStat(e.detail.year); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { toggleScience(false); $("#v3Photos").hidden = true; $("#v2HowCard").hidden = true; } });
 }
 
@@ -106,7 +116,9 @@ function setMinimized(min, label) {
   if (!min) $("#v3Pill").classList.remove("v3-hint");
 }
 // ~4.5 km range at 38° tilt ≈ 2.8 km camera height, inside neighborhood.js ENTER_HEIGHT (5,800 m) so the low-poly scene loads.
-const flyClose = () => S.cs && S.site && S.cs.flyTo(S.site.lat, S.site.lon, 4.5, -38, 20, 2.5);
+// With off-site turbines (Colossus 2 → Southaven), aim between site and source, looking north so the plume drifts into view.
+const flyClose = () => { if (!S.cs || !S.site) return; const ps = S.site.effects?.plumeSource;
+  S.cs.flyTo(ps ? (S.site.lat + ps.lat) / 2 : S.site.lat, ps ? (S.site.lon + ps.lon) / 2 : S.site.lon, ps ? 5.6 : 4.5, -38, ps ? 0 : 20, 2.5); };
 // The app's own site flight can start after ours; re-check once the flights settle.
 const ensureClose = () => { for (const t of [900, 3600]) setTimeout(() => { if ((S.cs?.viewer?.camera.positionCartographic.height ?? 0) > 5800) flyClose(); }, t); };
 const toggleScience = (open) => { document.body.classList.toggle("science-open", open); if (open) document.body.classList.remove("panel-collapsed"); };
@@ -117,25 +129,23 @@ async function loadFacts(site) {
     fetch(`data/series/${site.id}.json`).then((r) => r.json()).then((d) => d.vars).catch(() => ({})),
     fetch(`data/unreal/timeline/${site.id}.json`).then((r) => r.json()).catch(() => ({ rows: [] })),
   ]);
-  S.rows = new Map(tl.rows.map((r) => [+r.Year, r]));
+  S.rows = new Map(tl.rows.map((r) => [+r.Year, r])); S.projections = tl.projections || {};
   const mean = (a) => { const v = a.filter((x) => x != null && isFinite(x)); return v.reduce((s, x) => s + x, 0) / v.length; };
   for (const key of ["air", "heat", "green"]) {
     const v = THEMES[key].rowVars.map((rv) => vars[rv] && measuredVerdict(key, Stats.analyze(vars[rv], site.onset), mean(vars[rv].ref), site.onset)).find(Boolean);
     const pub = PUBLISHED[site.id]?.[key], years = beforeAfterYears(key, S.rows, site.onset);
-    S.facts[key] = { verdict: v, published: pub, years: pub ? { ...years, before: pub.before.year, after: pub.after.year } : years };
+    S.facts[key] = { verdict: v, published: pub, rows: S.rows, projections: S.projections, years: pub ? { ...years, before: pub.before.year, after: pub.after.year } : years };
   }
   S.facts.water = { rep: reportedWater(site.id, site.ledger?.water), years: beforeAfterYears("water", S.rows, site.onset) };
   S.facts.power = { rep: reportedPower(site.ledger?.power, S.context.homesPerMW), years: beforeAfterYears("power", S.rows, site.onset) };
 }
 
+// Same scenario as the number badge (ui-facts.js projectRow): anchored on the last measured years; continues the
+// site's trend only where it is significant and post-construction, else "if unchanged". The raw 2035 row's fitted
+// line jumps away from the measured years (e.g. Colossus 2 greenery: 66% less green in 2026 → "8% greener").
 function futureFact(key) {
-  const rv = FUTURE_VAR[key], row = S.rows.get(FUTURE_YEAR), v = Number(row?.[`${rv}_Local`]), site = Number(row?.[`${rv}_Site`]);
-  if (!row || !Number.isFinite(v)) return "No projection for this measure";
-  if (key === "heat") return `If the trend continues: nights ${Math.abs(v).toFixed(1)} °C ${v >= 0 ? "warmer" : "cooler"} than nearby`;
-  const around = site - v, p = Number.isFinite(site) && around ? (v / Math.abs(around)) * 100 : null;
-  if (p == null) return "No projection for this measure";
-  return key === "green" ? `If the trend continues: ${Math.abs(p).toFixed(0)}% ${v < 0 ? "less green" : "greener"} than nearby`
-    : `If the trend continues: ${Math.abs(p).toFixed(0)}% ${v >= 0 ? "more" : "less"} NO₂ than nearby`;
+  const st = statFor(key, S.facts[key], S.rows.get(FUTURE_YEAR), FUTURE_YEAR, S.site);
+  return st && !st.none ? `${st.text} ${st.label}` : "No projection for this measure";
 }
 function sideFact(key, year, before) {
   const f = S.facts[key];
@@ -160,8 +170,8 @@ function render() {
     $("#v3Note").textContent = f.published.src[0];
   } else {
     const c = f.verdict.conf;
-    if (f.verdict.p >= 0.05) { // Heat only (see shown()): show the map, claim nothing
-      $("#v3Claim").textContent = "NASA's night-heat map of the area. Red = warmer than in 2005, blue = cooler.";
+    if (f.verdict.p >= 0.05) { // Heat/Air only (see shown()): show the picture, claim nothing
+      $("#v3Claim").textContent = key === "heat" ? "NASA's night-heat map of the area. Red = warmer than in 2005, blue = cooler." : "Satellite NO₂ around the site, compared with the land nearby. The number below shows each year's gap.";
       $("#v3Conf").innerHTML = `No clear change at the site itself yet, so we don't claim one. ${esc(T.why)}`;
       $("#v3Note").textContent = `Data: ${T.source}`;
     } else {
@@ -191,6 +201,35 @@ function render() {
 }
 
 // ------------------------------------------------------------------ before / after
+// Badge colour strength = this year's number / the biggest number for this site and theme (all years with data).
+function renderStat(year) {
+  const key = S.theme, f = S.facts[key], box = $("#v3Stat"); if (!box || !S.site) return;
+  const at = (y) => statFor(key, f, S.rows.get(y), y, S.site);
+  const st = at(year);
+  box.hidden = !st;
+  if (!st) return;
+  const years = [...S.rows.keys(), f.years.before, f.years.after];
+  const max = Math.max(...years.map((y) => at(y)?.value ?? 0), st.value, 1e-9);
+  const k = Math.max(0, Math.min(1, st.value / max));
+  box.style.setProperty("--k", (0.12 + 0.88 * k).toFixed(3));
+  box.classList.toggle("on-dark", k > 0.45);
+  $("#v3StatLab").textContent = st.label;
+  countTo($("#v3StatNum"), st.text);
+}
+// Count from the previous number to the new one; text after the number (units) is kept as-is.
+function countTo(el, text) {
+  const m = text.match(/^([+−-]?)([\d,]+(?:\.\d+)?)(.*)$/), from = parseFloat((el.textContent.match(/[\d,.]+/)?.[0] || "0").replace(/,/g, ""));
+  cancelAnimationFrame(el._raf);
+  if (!m || matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = text; return; }
+  const to = parseFloat(m[2].replace(/,/g, "")), dec = (m[2].split(".")[1] || "").length, t0 = performance.now();
+  const step = (t) => {
+    const p = Math.min(1, (t - t0) / 600), e = 1 - (1 - p) ** 3, v = from + (to - from) * e;
+    el.textContent = `${m[1]}${v.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec })}${m[3]}`;
+    if (p < 1) el._raf = requestAnimationFrame(step);
+  };
+  el._raf = requestAnimationFrame(step);
+}
+
 function setSide(side) {
   const T = THEMES[S.theme], f = S.facts[S.theme];
   if (side === "future" && (T.reported || f.published || !FUTURE_LAYER[S.theme])) side = "after";
@@ -202,7 +241,7 @@ function setSide(side) {
   try { if (S.cs && S.cs.getMapLayer?.() !== layer) S.cs.setMapLayer(layer); } catch { /* scene not ready yet */ }
   window.CloudShadowTimeline?.setYear(year); // drives the team's scene, smoke and landscape via "cs:year"
   window.dispatchEvent(new CustomEvent("cs:theme", { detail: { theme: S.theme, site: S.site, facts: S.facts[S.theme], side, year, mapOn: !!MAP_LAYER[S.theme] && S.heatMap } }));
-  render();
+  render(); renderStat(year);
 }
 function startFlip() { S.flip = setInterval(() => setSide(S.side === "before" ? "after" : "before"), 1800); $("#v3Flip").setAttribute("aria-pressed", "true"); $("#v3Flip").textContent = "❚❚ Stop"; }
 function stopFlip() { clearInterval(S.flip); S.flip = null; $("#v3Flip")?.setAttribute("aria-pressed", "false"); if ($("#v3Flip")) $("#v3Flip").textContent = "▶ Flip"; }
@@ -249,7 +288,7 @@ async function openSite(id) {
   // Themes without Clear/Strong evidence (or a documented figure) are not offered for this site.
   const ok = Object.keys(THEMES).filter((k) => shown(k, S.facts[k]));
   document.querySelectorAll(".v3-tab").forEach((b) => { b.hidden = !ok.includes(b.dataset.theme); });
-  const pref = q.get("theme") in THEMES ? q.get("theme") : site.effects?.plume ? "air" : (site.watchFor?.[0] || "").startsWith("LST") ? "heat" : "green";
+  const pref = q.get("theme") in THEMES ? q.get("theme") : site.effects?.plume || site.effects?.plumeSource ? "air" : (site.watchFor?.[0] || "").startsWith("LST") ? "heat" : "green";
   S.theme = ok.includes(pref) ? pref : ok[0];
   S.side = q.get("side") === "before" ? "before" : "after";
   if (S.cs && S.cs.state?.site?.id !== id) S.cs.selectSite(id);

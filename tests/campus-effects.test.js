@@ -41,7 +41,7 @@ test("local sources are bounded, lazy, pause via the existing clock, and clean u
     effects.setYear(2023,{WS10M:4,PlumeTowardDeg:90}); effects.setActive(true);
     assert.equal(live.length,0,'before onset must not allocate or emit particles');
     effects.setYear(2025,{WS10M:4,PlumeTowardDeg:90});
-    assert.equal(live.length,3); assert.ok(live.every((source)=>source.show&&source.emissionRate===4));
+    assert.equal(live.length,4); assert.ok(live.every((source)=>source.show&&source.emissionRate===2.5));
     await t.test('native particle catch-up stays bounded after year-sized jumps and long hidden intervals',()=>{
       const year=365*86400;
       assert.equal(Math.floor((year%Number.MAX_VALUE)*4),126144000,'the previous infinite emitter period attempted126million allocations');
@@ -70,9 +70,9 @@ test("local sources are bounded, lazy, pause via the existing clock, and clean u
     particle.age=12;live[0].updateCallback(particle);assert.equal(renderedAlpha(),0);
     effects.setActive(false); assert.ok(live.every((source)=>!source.show&&source.emissionRate===0));
     effects.setYear(2030,{WS10M:2,PlumeTowardDeg:0},'projected'); effects.setActive(true);
-    assert.ok(live.every((source)=>source.emissionRate===3));
+    assert.ok(live.every((source)=>source.emissionRate===2));
     effects.destroy(); effects.destroy(); effects.setActive(true); effects.setYear(2026,{});
-    assert.equal(live.length,0); assert.equal(destructions,3);
+    assert.equal(live.length,0); assert.equal(destructions,4);
     const noCombustion=attachCampusEffects(viewer,{onset:'2020',effects:{plume:false}},sceneData);
     noCombustion.setActive(true); noCombustion.setYear(2026,{}); assert.equal(live.length,0); noCombustion.destroy();
   } finally {globalThis.Cesium=savedCesium;globalThis.document=savedDocument;}

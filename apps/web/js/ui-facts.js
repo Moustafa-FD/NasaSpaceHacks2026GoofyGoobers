@@ -41,7 +41,7 @@ export const PUBLISHED = {
 export function shown(key, f) {
   if (!f) return false;
   if (THEMES[key].reported) return !!f.rep && !f.rep.missing;
-  if (key === "heat") return true; // always offered for the NASA heat map; the claim text stays neutral unless Clear/Strong
+  if (key === "heat" || key === "air") return true; // always offered (heat map / NO₂ picture); the claim stays neutral unless Clear/Strong
   return !!f.published || (!!f.verdict && f.verdict.p < 0.05);
 }
 
@@ -117,4 +117,62 @@ export function beforeAfterYears(key, rows, onset, lastYear = 2025) {
     if (before && after) return { before, after, rowVar: rv };
   }
   return { before: Math.max(2003, start - 1), after: lastYear, rowVar: null };
+}
+
+// One headline number per theme and year for the badge above BEFORE/AFTER.
+// Returns { value, text, label } or null when there is no figure for that year.
+export function statFor(key, f, row, year, site) {
+  if (!f) return null;
+  const start = +String(site.onset).slice(0, 4), started = year >= start;
+  const lead = (s) => num(String(s ?? "").match(/[\d.,]+/)?.[0]?.replace(/,/g, ""));
+  if (f.published) {
+    const after = year >= f.published.after.year, p = lead(f.published.after.fact), later = year > f.published.after.year;
+    return { value: after ? p : 0, text: after ? `+${p}%` : "0%", label: `${THEMES[key].noun} vs 2024–25${later ? " · if the turbines keep running" : ""}` };
+  }
+  if (THEMES[key].reported) {
+    const r = f.rep;
+    if (!r || r.missing) return null;
+    if (!started) return site.id === "ashburn" ? null : { value: 0, text: "0", label: key === "power" ? "MW" : "households' water" };
+    if (key === "power" && r.mw) return { value: r.mw, text: fmtN(r.mw), label: "megawatts" };
+    if (key === "water" && r.households) return { value: r.households, text: fmtN(Math.round(r.households / 100) * 100), label: r.homes?.includes("–") ? "households' daily water (top of range)" : "households' daily water" };
+    const v = lead(r.short);
+    return v == null ? null : { value: v, text: r.short.match(/^[\d.,]+%?/)[0], label: r.short.replace(/^[\d.,]+%?\s*/, "") };
+  }
+  if (row?.Phase === "projected") {
+    const pr = projectRow(key, f, year, site);
+    if (!pr) return { value: 0, text: "—", label: "no projection for this measure", none: true };
+    row = pr;
+  }
+  // Use the panel's variable, else the theme's other one (TROPOMI NO₂ only exists 2024–26; OMI covers 2005 on).
+  const rv = [f.years?.rowVar, ...(THEMES[key].rowVars || [])].find((x) => x && num(row?.[`${x}_Local`]) != null);
+  if (!rv) return null;
+  const v = num(row[`${rv}_Local`]), proj = row.Phase === "scenario" ? (row.trend ? " · trend projection" : " · if unchanged") : "";
+  if (key === "heat") return { value: Math.abs(v), text: `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)} °C`, label: `nights ${v >= 0 ? "warmer" : "cooler"} than nearby${proj}` };
+  const p = pct(v, num(row[`${rv}_Surround`]));
+  if (p == null) return null;
+  if (key === "green") return { value: Math.max(0, -p), text: `${Math.abs(p).toFixed(0)}%`, label: `${p < 0 ? "less green than nearby" : "greener than nearby"}${proj}` };
+  return { value: Math.max(0, p), text: `${Math.abs(p).toFixed(0)}%`, label: `${p >= 0 ? "more NO₂ than nearby" : "less NO₂ than nearby"}${proj}` };
+}
+
+// Future years (2027–35) as a realistic scenario instead of the raw fitted line (which jumps in 2027 and can't
+// follow a construction step). Start from the mean of the last two measured years; continue the site-vs-nearby
+// trend only if it is significant (p < 0.05) AND the site has run ≥ 5 years (so the trend is post-construction);
+// otherwise hold the measured state ("if unchanged"). Percentages keep the measured "nearby" level as the base.
+export function projectRow(key, f, year, site) {
+  const rows = f?.rows, proj = f?.projections; if (!rows) return null;
+  const rvs = [f.years?.rowVar, ...(THEMES[key].rowVars || [])].filter(Boolean);
+  for (const rv of rvs) {
+    const measured = [...rows.values()].filter((r) => r.Phase !== "projected" && num(r[`${rv}_Local`]) != null && num(r[`${rv}_Surround`]) != null)
+      .sort((a, b) => +a.Year - +b.Year).slice(-2);
+    if (!measured.length) continue;
+    const mean = (k) => measured.reduce((s, r) => s + num(r[`${rv}_${k}`]), 0) / measured.length;
+    const baseYear = measured.reduce((s, r) => s + +r.Year, 0) / measured.length, lastYear = +measured.at(-1).Year;
+    const t = proj?.[rv]?.local, onset = +String(site.onset).slice(0, 4);
+    const trend = !!t && t.p < 0.05 && Number.isFinite(t.slopePerDecade) && lastYear - onset >= 5;
+    let local = mean("Local") + (trend ? (t.slopePerDecade / 10) * (year - baseYear) : 0);
+    const sur = mean("Surround");
+    if (key === "green") local = Math.max(local, -Math.abs(sur)); // can't lose more than all the greenery
+    return { Phase: "scenario", trend, [`${rv}_Local`]: local, [`${rv}_Surround`]: sur };
+  }
+  return null;
 }

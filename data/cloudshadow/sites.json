@@ -162,8 +162,13 @@
       },
       "effects": {
         "plume": false,
-        "plumeNote": null,
-        "ringVar": "NDVI"
+        "plumeNote": "Gas turbines across the state line at 2875 Stanton Rd S, Southaven MS (MZX Tech), powering Colossus 2 (visualization; NO2 rise per Qiang et al. 2026, arXiv:2611.06115)",
+        "ringVar": "NDVI",
+        "plumeSource": {
+          "lat": 34.9844,
+          "lon": -90.0423,
+          "src": "US Census geocoder for the address in the Earthjustice notice of intent to sue (Feb 2026)"
+        }
       }
     },
     {

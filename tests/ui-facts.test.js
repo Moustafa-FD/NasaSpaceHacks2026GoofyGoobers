@@ -42,7 +42,7 @@ test("reported figures keep their scope and households/homes framing", () => {
 
 test("only Clear/Strong measured results, published studies and documented figures are shown", async () => {
   const { shown } = await import("../apps/web/js/ui-facts.js");
-  assert.equal(shown("air", { verdict: { p: 0.051 } }), false);
+  assert.equal(shown("air", { verdict: { p: 0.051 } }), true); // Air and Heat are always offered, with neutral text
   assert.equal(shown("heat", { verdict: { p: 0.049 } }), true);
   assert.equal(shown("green", { verdict: { p: 0.2 } }), false);
   assert.equal(shown("air", { verdict: { p: 0.3 }, published: { text: "x" } }), true);
@@ -50,4 +50,43 @@ test("only Clear/Strong measured results, published studies and documented figur
   assert.equal(shown("water", { rep: { missing: true } }), false);
   assert.equal(reportedWater("ashburn", { kind: "official", value: "9% of county water", scope: "county-wide" }).text, "9% of county water");
   assert.equal(shown("power", { rep: reportedPower({ kind: "official", value: "41 turbines permitted" }) }), true);
+});
+
+test("badge numbers per theme and year", async () => {
+  const { statFor } = await import("../apps/web/js/ui-facts.js");
+  const site = { id: "colossus1", onset: "2024-06" };
+  const power = { rep: reportedPower({ mw: 150, value: "150 MW" }) };
+  assert.deepEqual(statFor("power", power, {}, 2023, site), { value: 0, text: "0", label: "MW" });
+  assert.equal(statFor("power", power, {}, 2025, site).text, "150");
+  const heat = { years: { rowVar: "LST_Night" } };
+  assert.equal(statFor("heat", heat, { LST_Night_Local: -0.16 }, 2025, site).text, "−0.2 °C");
+  const green = { years: { rowVar: "NDVI" } };
+  assert.deepEqual(statFor("green", green, { NDVI_Local: -0.1, NDVI_Surround: 0.5 }, 2025, site), { value: 20, text: "20%", label: "less green than nearby" });
+  const air = { published: { after: { year: 2026, fact: "≈ 49% more NO₂ (Apr–Jul)" } } };
+  assert.equal(statFor("air", air, {}, 2026, site).text, "+49%");
+  assert.equal(statFor("air", air, {}, 2025, site).value, 0);
+  const turb = { rep: reportedPower({ kind: "official", value: "x", short: "41 gas turbines permitted" }) };
+  assert.deepEqual(statFor("power", turb, {}, 2026, { id: "colossus2", onset: "2025-03" }), { value: 41, text: "41", label: "gas turbines permitted" });
+});
+
+test("badge keeps a value across measured years (other NO₂ instrument) and shows none for projected rows", async () => {
+  const { statFor } = await import("../apps/web/js/ui-facts.js");
+  const site = { id: "colossus1", onset: "2024-06" };
+  assert.equal(statFor("air", { years: { rowVar: "NO2" } }, { NO2_OMI_Local: 0.2, NO2_OMI_Surround: 2 }, 2015, site).text, "10%");
+  const st = statFor("green", { years: { rowVar: "NDVI" } }, { Phase: "projected", NDVI_Local: -0.19, NDVI_Site: 0.33, NDVI_Surround: null }, 2030, site);
+  assert.equal(st.none, true); assert.equal(st.value, 0); // no measured rows to anchor on → no number
+});
+
+test("future years: anchored on measured years; trend only if significant and the site is ≥ 5 years old", async () => {
+  const { statFor } = await import("../apps/web/js/ui-facts.js");
+  const rows = new Map([[2025, { Year: 2025, Phase: "observed", NDVI_Local: -0.30, NDVI_Surround: 0.5 }], [2026, { Year: 2026, Phase: "present", NDVI_Local: -0.32, NDVI_Surround: 0.5 }],
+    [2030, { Year: 2030, Phase: "projected", NDVI_Local: 0.05, NDVI_Surround: null }]]);
+  const young = { id: "x", onset: "2025-03" }, old = { id: "y", onset: "2012-01" };
+  const f = { years: { rowVar: "NDVI" }, rows, projections: { NDVI: { local: { slopePerDecade: -0.1, p: 0.01 } } } };
+  const held = statFor("green", f, rows.get(2030), 2030, young); // new site: hold, never the raw "+10% greener" line
+  assert.equal(held.text, "62%"); assert.match(held.label, /less green.*if unchanged/);
+  const trended = statFor("green", f, rows.get(2030), 2030, old); // mature site with a significant trend: continue it
+  assert.equal(trended.text, "71%"); // base −0.31 (2025.5) − 0.01/yr × 4.5 = −0.355 of 0.5 assert.match(trended.label, /trend projection/);
+  const flat = statFor("green", { ...f, projections: { NDVI: { local: { slopePerDecade: -0.1, p: 0.2 } } } }, rows.get(2030), 2030, old);
+  assert.equal(flat.text, "62%"); // not significant → hold
 });
