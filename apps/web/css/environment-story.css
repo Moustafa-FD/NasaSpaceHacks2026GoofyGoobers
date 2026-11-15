@@ -113,3 +113,15 @@
 #environmentStory button:disabled{cursor:progress;opacity:.65}
 .est-annual-chart{width:100%;height:auto;margin:16px 0;overflow:visible}.est-annual-chart text{font:16px Inter,sans-serif;fill:#c5d8da}
 #timeline .tl-chip.climate-model{display:inline-flex;font-size:12px}#timeline .tl-chip.climate-model b{font-size:13px}
+/* Issue #11: say what the map vs the panel shows; prepared Giovanni water context */
+#environmentStory .est-map-context{font-size:12.5px;line-height:1.5;color:#a9c1ca;background:#0f1f27;border-left:3px solid #4fb6c9;border-radius:6px;padding:7px 10px;margin:10px 0 4px}
+#environmentStory .est-giovanni{margin:16px 0;padding:12px 14px;background:#10202a;border-radius:8px}
+#environmentStory .est-giovanni h4{margin:0 0 6px;font-size:13px;font-weight:600;color:#cfe0e6;letter-spacing:.02em}
+#environmentStory .est-giovanni-row{padding:10px 0 8px 10px;border-bottom:1px solid #1f3742;border-left:3px solid #4a6470}
+#environmentStory .est-giovanni-row:last-of-type{border-bottom:0}
+#environmentStory .est-giovanni-row.est-clear{border-left-color:#f2a541}
+#environmentStory .est-giovanni-row.est-borderline{border-left-color:#c9b56b}
+#environmentStory .est-giovanni-row span{display:block;font-size:13px;color:#bfd3db}
+#environmentStory .est-giovanni-row strong{display:block;font-size:22px;font-weight:500;margin:2px 0}
+#environmentStory .est-giovanni-row strong small{font-size:13px;color:#a9c1ca}
+#environmentStory .est-giovanni-row p{margin:2px 0 0;font-size:12.5px;color:#a9c1ca;line-height:1.45}

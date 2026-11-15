@@ -4,21 +4,37 @@
   const { MAP_SCALES, createEvidenceProvider, evidenceTexture } = await import('./evidence-map.js');
   const { createMapTransition, mapCrossfadeAlphas } = await import('./map-transition.js');
   const { trackImageryProvider } = await import('./imagery-readiness.js');
-  const { sourceDateForYear, mapRequestKey } = await import('./map-source-window.js');
+  const { sourceDateForYear, seasonalFallbackDate, mapRequestKey } = await import('./map-source-window.js');
   const $ = (s) => document.querySelector(s);
   const fmt = (v, d = 2) => (v == null || !isFinite(v) ? "–" : (v > 0 ? "+" : "") + v.toFixed(d));
   const fmtP = (p) => (p == null || !isFinite(p) ? "–" : p < 0.001 ? "p < 0.001" : "p = " + p.toFixed(3));
   const toast = (msg, ms = 3500) => { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => (t.hidden = true), ms); };
 
   // ------------------------------------------------------------ data
-  const [sitesDoc, hlsDates] = await Promise.all([
+  const [sitesDoc, hlsDates, appConfig] = await Promise.all([
     fetch("data/sites.json").then((r) => r.json()),
     fetch("data/hls_dates.json").then((r) => r.json()).catch(() => ({})),
+    // FOOTPRINT_STORY_SITE (server env / build time) picks the opening study site.
+    fetch("config.json").then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
     loadCatalog(),
   ]);
-  const SITES = sitesDoc.sites, CTX = sitesDoc.context;
+  const storyId = appConfig?.storySite, storySite = sitesDoc.sites.find((s) => s.id === storyId);
+  const SITES = storySite ? [storySite, ...sitesDoc.sites.filter((s) => s !== storySite)] : sitesDoc.sites, CTX = sitesDoc.context;
   const SERIES = {};
   await Promise.all(SITES.map(async (s) => { try { SERIES[s.id] = (await (await fetch(`data/series/${s.id}.json`)).json()).vars; } catch { SERIES[s.id] = {}; } }));
+
+  // ------------------------------------------------------------ side panel collapse (more globe)
+  {
+    const toggle = $("#panelToggle"), apply = (collapsed) => {
+      document.body.classList.toggle("panel-collapsed", collapsed);
+      toggle?.setAttribute("aria-expanded", String(!collapsed));
+      if (toggle) toggle.title = collapsed ? "Show the side panel" : "Hide the side panel for a larger globe";
+      try { localStorage.setItem("csPanelCollapsed", collapsed ? "1" : "0"); } catch { /* storage optional */ }
+    };
+    let saved = null; try { saved = localStorage.getItem("csPanelCollapsed"); } catch { /* storage optional */ }
+    apply(saved === "1");
+    toggle?.addEventListener("click", () => apply(!document.body.classList.contains("panel-collapsed")));
+  }
 
   // ------------------------------------------------------------ globe
   Cesium.Ion.defaultAccessToken = localStorage.getItem("cesiumIonToken") || "";
@@ -33,6 +49,13 @@
     sceneModePicker: false, navigationHelpButton: false, fullscreenButton: false, infoBox: false, selectionIndicator: false,
   });
   const scene = viewer.scene;
+  // Zoomed far out, lift the globe above the timeline so the whole Earth stays visible.
+  // Re-checked when the camera stops (no per-frame cost); close views keep the full screen.
+  {
+    const LIFT_ABOVE_M = 2_000_000;
+    const updateLift = () => document.body.classList.toggle("globe-lifted", viewer.camera.positionCartographic.height > LIFT_ABOVE_M);
+    viewer.camera.moveEnd.addEventListener(updateLift); updateLift();
+  }
   // Inspect the actual Cesium context locally with ?gpu=1; no telemetry is sent.
   if (new URLSearchParams(location.search).get("gpu") === "1") {
     const gl = viewer.canvas.getContext("webgl2") || viewer.canvas.getContext("webgl");
@@ -117,7 +140,8 @@
 
   // ------------------------------------------------------------ map overlay + compare
   let overlayA = null, overlayB = null;
-  const state = { site: SITES[0], live: null, varId: "NO2", mapLayer: "none" };
+  // Default Air view = the 20-year OMI record, the same dataset as the top "Air pollution" button.
+  const state = { site: SITES[0], live: null, varId: "NO2_OMI", mapLayer: "none" };
   let environmentPanel=null, environmentStory=null;
   const today = new Date().toISOString().slice(0, 10);
 
@@ -177,6 +201,22 @@
     updateSitePins();
   });
 
+  // Per-pixel trend maps (scripts/trend_maps.py): projected map years after the record.
+  const TREND_MAP_LAST_YEAR = 2035, trendMaps = new Map();
+  let trendMapIndex = null;
+  fetch("data/trendmaps/index.json").then((r) => r.ok ? r.json() : null).then((index) => { trendMapIndex = index; if (VARS[state.mapLayer] && +($("#dateA").value || "").slice(0, 4) > 2026) refreshOverlay(); }).catch(() => {});
+  function loadTrendMap(siteId, kind) {
+    const key = `${siteId}/${kind}`;
+    if (!trendMaps.has(key)) {
+      const task = import('./evidence-map.js').then(async ({ decodeTrendMap }) => {
+        const response = await fetch(`data/trendmaps/${encodeURIComponent(siteId)}/${encodeURIComponent(kind)}.json`);
+        if (!response.ok) throw new Error(`Trend map ${key} unavailable`);
+        return decodeTrendMap(await response.json());
+      });
+      trendMaps.set(key, task); task.catch(() => trendMaps.delete(key));
+    }
+    return trendMaps.get(key);
+  }
   function overlaySpec(kind, date) {
     if (kind === "none") return null;
     if (VARS[kind]) { const L = VARS[kind].layer; const d = snapDate(L, date); return { layer: L, date: d }; }
@@ -189,10 +229,10 @@
       const L = "HLS_S30_Nadir_BRDF_Adjusted_Reflectance"; return { layer: L, date: snapDate(L, date) };
     }
   }
-  function makeLayer(spec, baseline = null, kind = state.mapLayer, center = state.live || state.site) {
+  function makeLayer(spec, baseline = null, kind = state.mapLayer, center = state.live || state.site, projection = null) {
     const z = CATALOG[spec.layer].z;
     const v=VARS[kind],lut=v? _luts[v.cmap]:null;
-    const p = lut ? createEvidenceProvider(Cesium,{url:tileUrl(spec.layer,spec.date),baselineUrl:baseline?tileUrl(spec.layer,baseline.date):null,lut,variable:kind,offset:v.offset,factor:v.scale,change:!!baseline,maximumLevel:z,onError:()=>{ $('#mapLegendDetail').textContent='Some comparison pixels unavailable · transparent gaps are missing data.'; }})
+    const p = lut ? createEvidenceProvider(Cesium,{url:tileUrl(spec.layer,spec.date),baselineUrl:baseline?tileUrl(spec.layer,baseline.date):null,lut,variable:kind,offset:v.offset,factor:v.scale,change:!!baseline,maximumLevel:z,projection,onError:()=>{ $('#mapLegendDetail').textContent='Some comparison pixels unavailable · transparent gaps are missing data.'; }})
       : new Cesium.UrlTemplateImageryProvider({ url: tileUrl(spec.layer, spec.date), maximumLevel: z, credit: "NASA GIBS",...(kind==='HLS'?{rectangle:Cesium.Rectangle.fromDegrees(Math.max(-180,center.lon-.2),Math.max(-90,center.lat-.15),Math.min(180,center.lon+.2),Math.min(90,center.lat+.15))}: {}) });
     const readiness=trackImageryProvider(p);
     const l = viewer.imageryLayers.addImageryProvider(p);
@@ -218,20 +258,24 @@
   function prepareTexture(payload){
     const key=mapRequestKey(payload);
     if(textureCache.has(key))return textureCache.get(key);
-    const {kind,center,a,baseline,change}=payload,v=VARS[kind];
-    const task=v?(async()=>{await loadLut(v.cmap);return evidenceTexture({center,url:tileUrl(a.layer,a.date),baselineUrl:baseline?tileUrl(a.layer,baseline.date):null,lut:_luts[v.cmap],variable:kind,offset:v.offset,factor:v.scale,change,maximumLevel:CATALOG[a.layer].z});})():Promise.resolve(null);
+    const {kind,center,a,baseline,change,projection}=payload,v=VARS[kind];
+    const task=v?(async()=>{await loadLut(v.cmap);return evidenceTexture({center,url:tileUrl(a.layer,a.date),baselineUrl:baseline?tileUrl(a.layer,baseline.date):null,lut:_luts[v.cmap],variable:kind,offset:v.offset,factor:v.scale,change,maximumLevel:CATALOG[a.layer].z,projection});})():Promise.resolve(null);
     textureCache.set(key,task);task.catch(()=>textureCache.delete(key));
     while(textureCache.size>4)textureCache.delete(textureCache.keys().next().value);
     return task;
   }
   const mapTransition=createMapTransition({
     load:async(payload,signal)=>{
+      if(payload.a.projectYear&&!payload.projection){
+        try{payload.projection={trend:await loadTrendMap(payload.a.siteId,payload.kind),years:payload.a.projectYear-payload.a.baseYear};}
+        catch{payload.a={...payload.a,projectYear:undefined,projectNote:undefined,fallbackNote:`The ${payload.a.projectYear} projected map could not be loaded; showing the ${payload.a.date} map.`};}
+      }
       // Decode the local scientific raster before creating any replacement layers.
       const texture=await prepareTexture(payload);
       if(signal.aborted)return {layers:[],payload,texture};
       const resource={layers:[],payload,texture,weight:0}; resources.add(resource);
       try{
-        resource.layers.push(makeLayer(payload.a,payload.baseline,payload.kind,payload.center));
+        resource.layers.push(makeLayer(payload.a,payload.baseline,payload.kind,payload.center,payload.projection));
         if(payload.compare){
           resource.layers.push(makeLayer(payload.b,null,payload.kind,payload.center));
           resource.layers[0].splitDirection=Cesium.SplitDirection.LEFT;
@@ -288,11 +332,23 @@
     const kind=state.mapLayer,change=$('#mapChange').checked&&!!VARS[kind],compare=$('#cmpToggle').checked&&!change;
     const desired=$('#dateA').value||today;
     let a=overlaySpec(kind,desired);
-    window.dispatchEvent(new CustomEvent('cs:map-layer',{detail:{kind,change}}));
+    window.dispatchEvent(new CustomEvent('cs:map-layer',{detail:{kind,change,date:a?.date??null}}));
     if(!a){clearScientificMap();syncLayerControls(null);return;}
     if(VARS[kind]){
-      const date=sourceDateForYear(expandIntervals(a.layer),+desired.slice(0,4),desired);
-      if(!date){clearScientificMap(`No ${VARS[kind].short} imagery for ${desired.slice(0,4)}.`);return;}
+      const dates=expandIntervals(a.layer);
+      let date=sourceDateForYear(dates,+desired.slice(0,4),desired);
+      // Years beyond (or before) the satellite record: show the nearest real map and say so,
+      // instead of clearing the layer. Satellites never provide future maps.
+      if(!date){
+        // Same season as the requested date, so a July view never borrows an autumn map.
+        const earlier=dates.filter(d=>d<=desired),fallback=seasonalFallbackDate(dates,desired)||(earlier.length?earlier.at(-1):dates[0]);
+        if(!fallback){clearScientificMap(`No ${VARS[kind].short} imagery for ${desired.slice(0,4)}.`);return;}
+        date=fallback;
+        const year=+desired.slice(0,4),baseYear=+fallback.slice(0,4),site=state.live?null:state.site;
+        if(site&&year>baseYear&&year<=TREND_MAP_LAST_YEAR&&trendMapIndex?.sites?.[site.id]?.includes(kind))
+          a={...a,projectYear:year,baseYear,siteId:site.id,projectNote:`PROJECTED ${year} · if each pixel's long-term NASA trend continues from the ${fallback} map. Only pixels with a significant trend change; not a forecast.`};
+        else a={...a,fallbackNote:`No ${VARS[kind].short} map exists for ${desired.slice(0,4)}; showing the nearest same-season map (${fallback}), not a projection.`};
+      }
       a={...a,date};
     }
     const baseline=change?overlaySpec(kind,$('#baselineYear').value+'-07-15'):null;
@@ -332,16 +388,19 @@
     const showLegend = !!spec && !["HLS", "DIST"].includes(kind);
     $("#mapLegend").hidden = !showLegend;
     if (showLegend) {
-      $("#mapLegendTitle").textContent = label;
+      $("#mapLegendTitle").textContent = spec.projectYear ? `${label} · PROJECTED ${spec.projectYear}` : label;
+      $("#mapLegend").classList.toggle("map-projected", !!spec.projectYear);
       const scale=MAP_SCALES[kind],change=payload?payload.change:$('#mapChange').checked;
       const base=payload?.baseline||overlaySpec(kind,$('#baselineYear').value+'-07-15');
-      $('#mapLegendDetail').textContent = `${change?`${spec.date} minus ${base.date}`:spec.date} · ${scale.resolution} native data`;
+      const shown=spec.projectYear?`${spec.projectYear} (projected)`:spec.date;
+      $('#mapLegendDetail').textContent = `${change?`${shown} minus ${base.date}`:shown} · ${scale.resolution} native data${spec.fallbackNote?` · ${spec.fallbackNote}`:''}${spec.projectNote?` · ${spec.projectNote}`:''}`;
       $('#mapLegendScale').hidden=true;
       $('#mapColorScale').hidden=false;
       $('#mapScaleLow').textContent=change?`−${scale.delta}`:scale.min;
       $('#mapScaleHigh').textContent=(change?`+${scale.delta}`:scale.max)+' '+scale.unit;
       $('#mapScaleMeaning').textContent=kind==='NDVI'?(change?'Blue: greener · red: less green':'Blue: greener · red: sparse vegetation'):(change?'Blue: lower · red: higher':'Blue: lower · red: higher');
-      $('#mapResolution').textContent='Colour-class estimates from NASA imagery. Transparent = no data. Comparison is between snapshots, not a long-term trend or proof of a facility effect.';
+      const tm=payload?.projection?.trend?.stats;
+      $('#mapResolution').textContent=spec.projectYear&&tm?`Trend extension, not a forecast: ${Math.round(tm.significantShare*100)}% of the ${(tm.tested/1000).toFixed(0)}k pixels near the site have a significant ${payload.projection.trend.years.join('–')} July trend (Mann-Kendall, Hamed-Rao, false-discovery q < 0.10); the rest stay at their latest value. Outside the site box the map is the latest real snapshot. Not proof of a facility effect.`:spec.projectYear?'Trend extension, not a forecast: each pixel near the site continues its own significant NASA July trend from the latest real map; pixels without one stay unchanged. Not proof of a facility effect.':'Colour-class estimates from NASA imagery. Transparent = no data. Comparison is between snapshots, not a long-term trend or proof of a facility effect.';
     }
   }
   async function setMapLayer(kind, dateA, dateB, compare) {

@@ -11,6 +11,7 @@
 const http = require("http"), fs = require("fs"), path = require("path");
 const { spawn } = require("child_process");
 const { environmentGateway } = require('./environment-gateway.cjs');
+const { storyConfig } = require('../../scripts/story-config.cjs');
 const { nearbyWaterStations } = require('./water-stations.cjs');
 const { DATA, VARS, loadAll, analyzeOne, summarize } = require("../../scripts/summary.cjs");
 const WEB = __dirname;
@@ -211,6 +212,7 @@ const server = http.createServer(async (req, res) => {
       if (result.body.retryAfterMs) res.setHeader("Retry-After", String(Math.ceil(result.body.retryAfterMs / 1000)));
       return send(res, result.code, JSON.stringify(result.body));
     }
+    if (p === "/config.json") return send(res, 200, (({ storySite }) => ({ storySite }))(storyConfig()));
     if (p === "/api/health") return send(res, 200, { ok: true, sites: all.sites.length, capabilities: { neighborhoodStreaming: true } });
     if (p === "/api/reload") { reload(); return send(res, 200, { ok: true }); }
     if (p === "/api/sites") return send(res, 200, { sites: summarize(all) });
@@ -253,7 +255,8 @@ if (require.main === module) {
       }
     }
     const server = createWebServer({gateway:environmentGateway({port:apiPort})});
-    server.listen(PORT, '127.0.0.1', () => console.log(`Footprint Atlas on http://localhost:${PORT} · environmental gateway /api/environment`));
+    const story = storyConfig(); if (story.warning) console.warn(story.warning);
+    server.listen(PORT, '127.0.0.1', () => console.log(`Footprint Atlas on http://localhost:${PORT} · environmental gateway /api/environment · opening site: ${story.storySite || 'default (first in sites.json)'}`));
     for (const signal of ['SIGINT','SIGTERM']) process.once(signal, () => { server.close(); void api?.close().finally(()=>process.exit(0)); if(!api)process.exit(0); });
   })().catch(error=>{console.error(error);process.exitCode=1;});
 }

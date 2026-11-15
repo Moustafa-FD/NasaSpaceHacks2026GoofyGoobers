@@ -72,18 +72,20 @@ test('site/year changes ignore late product loads and never retain previous-year
   assert.equal(layers.length,0);assert.equal(flow.state.siteField,null);assert.match(states.at(-1).reason,/No GEOS-FP forecast/);flow.dispose();
 });
 
-test('CPU optional fluid has no precipitation/pollution dye, pauses on shared clock and disposes',t=>{
+test('CPU fluid: precipitation never makes dye; pollution dye starts only at the facility; pauses and disposes',t=>{
   const viewer=browser(t),images=[],entities=[];
   document.createElement=()=>({width:0,height:0,getContext:()=>({createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}),putImageData:image=>images.push(image.data.slice())})});
   Object.assign(Cesium,{Rectangle:{fromDegrees:(...values)=>values},ImageMaterialProperty:class{constructor(options){Object.assign(this,options);}},CallbackProperty:class{constructor(callback){this.getValue=callback;}}});
   viewer.entities={add(entity){entities.push(entity);return entity;},remove(entity){entities.splice(entities.indexOf(entity),1);}};
   const fluid=attachFluidCPU(viewer,{lat:0,lon:0});
-  fluid.setWeather({windTowardDeg:90,windSpeed:2,pollution:2,moisture:2});
+  fluid.setWeather({windTowardDeg:90,windSpeed:2,pollution:0,moisture:2});
   for(let i=1;i<=12;i++){viewer.clock.currentTime=i*.05;viewer.scene.preRender.raise();}
-  assert.ok(images.length>0);assert.ok(images.at(-1).every((value,index)=>index%4!==3||value===0),'weather inputs never create unsourced dye');
-  fluid.injectTracer(.5,.5,.6);
-  for(let i=13;i<=18;i++){viewer.clock.currentTime=i*.05;viewer.scene.preRender.raise();}
-  assert.ok(images.at(-1).some((value,index)=>index%4===3&&value>0),'an explicit debug tracer still works');
+  assert.ok(images.length>0);assert.ok(images.at(-1).every((value,index)=>index%4!==3||value===0),'precipitation never creates dye');
+  fluid.setWeather({windTowardDeg:90,windSpeed:2,pollution:.8,moisture:2});
+  for(let i=13;i<=24;i++){viewer.clock.currentTime=i*.05;viewer.scene.preRender.raise();}
+  const last=images.at(-1),side=Math.round(Math.sqrt(last.length/4));
+  assert.ok(last.some((value,index)=>index%4===3&&value>0),'facility pollution dye is visible');
+  for(let k=0;k<side;k++)for(const [x,y] of [[k,0],[k,side-1],[0,k],[side-1,k]])assert.equal(last[(y*side+x)*4+3],0,'texture borders stay transparent');
   const count=images.length;viewer.clock.multiplier=0;viewer.clock.currentTime=1.2;viewer.scene.preRender.raise();assert.equal(images.length,count);
   fluid.dispose();assert.equal(entities.length,0);assert.equal(viewer.scene.preRender.listeners.size,0);
 });
@@ -95,18 +97,21 @@ test('globe FX builds bounded cloud/rain primitives without weather rectangles o
   const Cesium={Cartesian3:Vector,Cartesian2:Vector,DirectionalLight:Options,CloudCollection:class{add(options){return options;}},ParticleSystem:Options,BoxEmitter:Vector,
     Color:{fromCssColorString:()=>({withAlpha:()=>({})})},Transforms:{eastNorthUpToFixedFrame:()=>({})},Matrix4:{multiplyByPoint:(_,point)=>point},JulianDate:{fromDate:()=>1},Math:{toRadians:n=>n*Math.PI/180}};
   const viewer={clock:{currentTime:0},scene:{globe:{},skyAtmosphere:{},primitives:{add(value){primitives.push(value);return value;},remove(value){primitives.splice(primitives.indexOf(value),1);}}},entities:{add(value){entities.push(value);throw new Error('No site-sized planes or arbitrary massing');},remove(){}}};
-  const context={Cesium,analysisDeltaSeconds,referenceSunDirection:()=>[1,0,0],getMotionSpeed:()=>.35,window:{addEventListener(){},dispatchEvent(){}},CustomEvent:class{},document:{createElement:()=>({getContext:()=>({createLinearGradient:()=>({addColorStop(){}}),fillRect(){}})})},console};
+  const fluidCalls=[],weather=[];
+  const context={attachFluid:(v,site)=>{fluidCalls.push(site.id);return {setWeather(w){weather.push(w);},setWindField(){},setWind(){},setVisible(){},dispose(){}};},Cesium,analysisDeltaSeconds,referenceSunDirection:()=>[1,0,0],getMotionSpeed:()=>.35,window:{addEventListener(){},dispatchEvent(){}},CustomEvent:class{},document:{createElement:()=>({getContext:()=>({createLinearGradient:()=>({addColorStop(){}}),fillRect(){}})})},console};
   const source=readFileSync(new URL('../apps/web/js/fx.js',import.meta.url),'utf8').replace(/^import .*;\r?$/gm,'').replace(/export /g,'');
   runInNewContext(source+`\nglobalThis.hooks={build(v){viewer=v;scene=v.scene;S.nightLights={};buildSite({id:'a',lat:35,lon:-90,onset:'2020',effects:{plume:true}},new Map());},applyYear,setLight,get state(){return S;}};`,context);
   context.hooks.build(viewer);
-  assert.equal(entities.length,0);assert.equal(primitives.length,2);assert.equal(context.hooks.state.fluid,null);
+  // Pollution fluid exists only for documented on-site combustion sites (effects.plume).
+  assert.equal(entities.length,0);assert.equal(primitives.length,2);assert.deepEqual(fluidCalls,['a']);assert.ok(context.hooks.state.fluid);
   assert.equal(context.hooks.state.massing.length,0);
   context.hooks.applyYear(2025,{PrecipMMDay:8,T2M:60,NO2_OMI_Local:999,WS10M:3,PlumeTowardDeg:90},'observed');
   assert.ok(context.hooks.state.rain.emissionRate<=180);
   assert.equal(viewer.scene.skyAtmosphere.hueShift,0);
+  assert.ok(weather.at(-1).pollution>0&&weather.at(-1).pollution<=1,'observed years after onset release facility dye');
   context.hooks.applyYear(2050,{},'climate');
   assert.equal(context.hooks.state.rain.emissionRate,0);assert.equal(context.hooks.state.windSpeed,0);
-  assert.equal(context.hooks.state.fluid,null);assert.equal(primitives.length,2);
+  assert.equal(weather.at(-1).pollution,0,'scenario years never release dye');assert.equal(primitives.length,2);
   // Advancing/rewinding data years and switching day/night must never move the
   // native simulation clock: that formerly caused millions of plume emissions.
   Object.defineProperty(viewer.clock,'currentTime',{get:()=>123,set(){throw new Error('Lighting jumped the native particle clock');}});

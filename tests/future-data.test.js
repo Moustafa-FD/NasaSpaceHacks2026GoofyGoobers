@@ -100,8 +100,10 @@ test('shared future bridge loads bounded local trends, rejects late site loads a
   loads.get('data/unreal/timeline/ashburn.json')({ ok: true, json: async () => ({ site: 'ashburn', rows: [{ Year: 2030, Phase: 'projected', LST_Day_Site: 20 }] }) });
   await switched; await tick(); assert.equal(bridge.state.trend.value, 20);
   const running = bridge.request('plume-scenario'); await bridge.request('plume-scenario'); assert.equal(calls.length, 1); assert.equal(calls[0][1].year, 2030); assert.equal(bridge.state.pending, true);
-  resolveJob({ result: { site: { id: 'ashburn' }, grid: { values: [[0, 1], [1, 0]], units: 's/m³' }, evidence: 'scenario' } });
-  await running; assert.equal(bridge.state.pending, false); assert.equal(bridge.state.plume.available, true);
+  resolveJob({ result: { site: { id: 'ashburn' }, grid: { values: [[0, 1], [1, 0]], units: 's/m³' }, evidence: 'scenario', frames: { first: '2018-01-16T00:00Z', last: '2026-10-16T09:00Z' } } });
+  // A footprint exists only inside its wind record: none for 2030, shown for 2025.
+  await running; assert.equal(bridge.state.pending, false); assert.equal(bridge.state.plume, null);
+  bridge.setYear(2025); assert.equal(bridge.state.plume.available, true);
   assert.equal(bridge.state.plume.annualForecast, false);
   bridge.destroy();
 });
@@ -119,4 +121,16 @@ test('future model requests use selected bounded source periods and never silent
   for (const year of [2030, 2040, 2049]) for (const kind of ['climate', 'agriculture']) assert.deepEqual(validateEnvironmentRequest(buildEnvironmentRequest(kind, site, year, { now })), []);
   assert.throws(() => buildEnvironmentRequest('agriculture', site, 2090, { now }), /through 2049/);
   assert.equal(buildEnvironmentRequest('agriculture', site, 2040, { now }).future.end, '2040-12-31');
+});
+
+test('a one-year screening recalculation is added to the earlier multi-year result', async () => {
+  const { attachFutureData } = await import('../apps/web/js/future-data.js');
+  const site = { id: 'colossus1', lat: 35.0601, lon: -90.1564 }, events = new EventTarget();
+  const data = attachFutureData({ site, year: 2030, eventTarget: events, fetchImpl: null });
+  const point = { siteId: site.id, point: { latitude: site.lat, longitude: site.lon } };
+  const row = (year) => ({ year, metrics: [{ label: 'x', value: year, unit: 'W' }] });
+  data.ingest({ siteId: site.id, kind: 'environment-screening', result: { ...point, years: [2029, 2030, 2031].map(row) } });
+  data.ingest({ siteId: site.id, kind: 'environment-screening', result: { ...point, years: [row(2050)] } });
+  assert.deepEqual(data.state.products['environment-screening'].years.map((r) => r.year), [2029, 2030, 2031, 2050]);
+  data.destroy();
 });

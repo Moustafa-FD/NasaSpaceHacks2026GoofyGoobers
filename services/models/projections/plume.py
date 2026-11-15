@@ -118,7 +118,55 @@ def load_site_frames(site_id: str, fields_dir: Path = FIELDS_DIR) -> list[Frame]
     return frames
 
 
-def point_frames(lat: float, lon: float, *, first_year: int = 2018, frames_per_year: int = 12, workers: int = 4,
+def prepared_box_frames(lat: float, lon: float, fields_dir: Path = FIELDS_DIR) -> tuple[list[Frame], str] | None:
+    """Wind at any point inside a prepared site box, read from the stored GEOS-FP atlases (no download).
+
+    Uses the box whose centre is nearest. Values are bilinear from the 8-bit atlas (0.31 m/s steps), so
+    speeds are coarser than the exact siteSeries but directions match. Returns None if no box covers the point.
+    """
+    from ..fields.product import decode, read_png_rgb
+    best = None
+    for site_dir in sorted(fields_dir.iterdir()) if fields_dir.is_dir() else []:
+        if not site_dir.is_dir() or site_dir.name == "global":
+            continue
+        manifests = sorted(site_dir.glob("*.json"))
+        if not manifests:
+            continue
+        grid = json.loads(manifests[0].read_text(encoding="utf-8"))["grid"]
+        if not (grid["latMin"] + grid["dLat"] <= lat <= grid["latMax"] - grid["dLat"] and grid["lonMin"] + grid["dLon"] <= lon <= grid["lonMax"] - grid["dLon"]):
+            continue
+        centre = math.hypot((grid["latMin"] + grid["latMax"]) / 2 - lat, (grid["lonMin"] + grid["lonMax"]) / 2 - lon)
+        if best is None or centre < best[0]:
+            best = (centre, site_dir.name, manifests)
+    if best is None:
+        return None
+    frames: list[Frame] = []
+    for path in best[2]:
+        m = json.loads(path.read_text(encoding="utf-8"))
+        g, a, enc = m["grid"], m["atlas"], m["encoding"]["wind"]
+        width, _, pixels = read_png_rgb(path.parent / m["files"]["wind"])
+        fx = (lon - g["lonMin"]) / g["dLon"]
+        fy = (g["latMax"] - lat) / g["dLat"]            # atlas rows run north -> south
+        i0, j0 = int(fx), int(fy)
+        tx, ty = fx - i0, fy - j0
+        for k, frame in enumerate(m["frames"]):
+            ox, oy = (k % a["cols"]) * a["tileWidth"], (k // a["cols"]) * a["tileHeight"]
+
+            def px(i, j, ch):
+                return pixels[((oy + j) * width + ox + i) * 3 + ch]
+            if any(px(i, j, 2) != 255 for i in (i0, i0 + 1) for j in (j0, j0 + 1)):
+                continue
+
+            def bl(ch, lo, hi):
+                val = lambda i, j: decode(px(i, j, ch), lo, hi)
+                return (val(i0, j0) * (1 - tx) + val(i0 + 1, j0) * tx) * (1 - ty) + (val(i0, j0 + 1) * (1 - tx) + val(i0 + 1, j0 + 1) * tx) * ty
+            u, v = bl(0, enc["R"]["min"], enc["R"]["max"]), bl(1, enc["G"]["min"], enc["G"]["max"])
+            when = datetime.strptime(frame["time"], "%Y-%m-%dT%H:%MZ").replace(tzinfo=timezone.utc)
+            frames.append(Frame(when, u, v))
+    return (frames, best[1]) if frames else None
+
+
+def point_frames(lat: float, lon: float, *, first_year: int = 2018, frames_per_year: int = 12, workers: int = 12,
                  progress=None) -> list[Frame]:
     """GEOS-FP analysed 10 m wind at any point (bilinear from the 4 surrounding cells), same sampling as the fields."""
     from concurrent.futures import ThreadPoolExecutor
@@ -262,6 +310,21 @@ def main(argv: list[str] | None = None) -> int:
         (out / f"{site['id']}.json").write_text(json.dumps(result, allow_nan=False), encoding="utf-8")
         print(f"{site['id']}: peak chi/Q {result['peak']['chiOverQ']:.3g} s/m3 at {result['peak']['distanceM']} m, "
               f"{result['frames']['used']} wind frames", file=sys.stderr)
+        # One footprint per calendar year, from that year's analysed winds only, so the
+        # timeline shows how the drift pattern changes. No year without winds gets a map.
+        frames = load_site_frames(site["id"])
+        years = sorted({f.time.year for f in frames})
+        year_dir = out / site["id"]
+        year_dir.mkdir(parents=True, exist_ok=True)
+        for year in years:
+            subset = [f for f in frames if f.time.year == year]
+            yearly = scenario(site, height_m=args.height, land_use=args.land_use, frames=subset)
+            yearly["year"] = year
+            yearly["assumptions"]["effectiveStackHeightNote"] = "Assumed for screening; no published stack/exhaust data were available."
+            yearly["assumptions"]["windFrames"] = f"{len(subset)} NASA GEOS-FP analysed instants in {year} (one per month, rotating hours)"
+            (year_dir / f"{year}.json").write_text(json.dumps(yearly, allow_nan=False), encoding="utf-8")
+        (year_dir / "index.json").write_text(json.dumps({"schemaVersion": "plume-years/1.0", "site": site["id"], "years": years}), encoding="utf-8")
+        print(f"{site['id']}: per-year footprints {years[0]}-{years[-1]}", file=sys.stderr)
     return 0
 
 

@@ -80,10 +80,11 @@ export async function createCityLabels(viewer,{fetcher=fetch}={}) {
       const position=positions.get(city.id);if(!occluder.isPointVisible(position))continue;
       const projected=C.SceneTransforms.worldToWindowCoordinates(scene,position,screenPoint);
       if(!projected||projected.x<90||projected.x>width-90||projected.y<80||projected.y>heightPx-reservedBottom)continue;
-      const w=Math.min(290,Math.max(city.name.length*7,populationText(city).length*6))+20;
-      const box={x:projected.x-w/2,y:projected.y-52,w,h:52};
+      // Name only on the globe (less clutter); population stays in the pick id and the nearby badge.
+      const w=Math.min(220,city.name.length*7.5)+16;
+      const box={x:projected.x-w/2,y:projected.y-28,w,h:28};
       if(boxes.some(b=>box.x<b.x+b.w&&box.x+box.w>b.x&&box.y<b.y+b.h&&box.y+box.h>b.y))continue;
-      boxes.push(box);const label=pool[used++];label.position=position;label.text=`${city.name}\n${populationText(city)}`;label.show=true;
+      boxes.push(box);const label=pool[used++];label.position=position;label.text=city.name;label.show=true;
       label.id={city:city.name,population:city.population,referenceYear:city.year,source:citySource(city)};
       if(used===pool.length)break;
     }

@@ -117,7 +117,7 @@ export function createStaticEnvironment({ fetchImpl = globalThis.fetch, dataBase
     return cache.get(path);
   };
   const id = (siteId) => { if (!/^[a-zA-Z0-9_-]{1,80}$/.test(siteId)) throw new Error('Invalid site ID.'); return siteId; };
-  return { climate: (siteId) => load(`projections/${id(siteId)}.json`, 'climate-projection/1.0'), plume: (siteId) => load(`plumes/${id(siteId)}.json`, 'plume-scenario/1.0'), clear: () => cache.clear() };
+  return { climate: (siteId) => load(`projections/${id(siteId)}.json`, 'climate-projection/1.0'), plume: (siteId) => load(`plumes/${id(siteId)}.json`, 'plume-scenario/1.0'), plumeYear: (siteId, year) => { if (!Number.isInteger(year) || year < 2018 || year > 2100) return Promise.reject(new Error('No analysed winds for this year.')); return load(`plumes/${id(siteId)}/${year}.json`, 'plume-scenario/1.0'); }, clear: () => cache.clear() };
 }
 
 /** Monitoring-location discovery is separate from actual parameter/time coverage. */

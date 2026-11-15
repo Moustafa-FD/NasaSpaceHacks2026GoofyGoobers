@@ -29,6 +29,7 @@
     "data:verify-expanded": "node --env-file-if-exists=.env scripts/verify-expanded.ts",
     "test:data": "node --env-file-if-exists=.env scripts/test-data.ts",
     "data:fields": "python -m services.models.fields.build",
+    "data:trend-maps": "python scripts/trend_maps.py",
     "test:web": "node --test tests/*.test.js"
   },
   "dependencies": {

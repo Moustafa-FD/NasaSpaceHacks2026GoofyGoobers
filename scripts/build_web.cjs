@@ -13,6 +13,11 @@ const skip = (p) => p.endsWith(".cjs") || path.basename(p).startsWith(".");
 fs.cpSync(path.join(ROOT, "apps", "web"), OUT, { recursive: true, filter: (src) => !skip(src) });
 fs.cpSync(path.join(ROOT, "data", "cloudshadow"), path.join(OUT, "data"), { recursive: true, filter: (src) => !path.basename(src).startsWith(".") });
 fs.writeFileSync(path.join(OUT, ".nojekyll"), ""); // let GitHub Pages serve every file as-is
+// Opening study site (FOOTPRINT_STORY_SITE) is baked in at build time for static hosting.
+const story = require("./story-config.cjs").storyConfig();
+if (story.warning) console.warn(story.warning);
+fs.writeFileSync(path.join(OUT, "config.json"), JSON.stringify({ storySite: story.storySite }) + "\n");
+console.log(`opening site: ${story.storySite || "default"}`);
 
 let files = 0, bytes = 0;
 (function walk(d) { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); const s = fs.statSync(p); if (s.isDirectory()) walk(p); else { files++; bytes += s.size; } } })(OUT);

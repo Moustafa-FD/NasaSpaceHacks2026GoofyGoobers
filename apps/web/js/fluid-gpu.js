@@ -6,10 +6,11 @@
 // the result is copied into a 2D canvas that Cesium drapes on the ground as a texture.
 // Falls back to the CPU solver (fluid.js) if WebGL2 float render targets aren't available.
 //
-// Optional dev tool, not attached to the main globe. Wind can use a real GEOS-FP
-// spatial sampler or an explicitly supplied vector. Only manual debug tracers
-// create dye; precipitation, heat and pollution values never create sources.
-// A transport visualization, not a concentration or atmospheric model.
+// Attached on the main globe for sites with documented ON-SITE combustion (sites.json
+// effects.plume, from the onset year). Wind = the real GEOS-FP spatial field when
+// available. Dye is released only at the facility, scaled by the measured NO2
+// site-minus-nearby signal (relative). Precipitation and heat never create dye.
+// A transport visualization (purple), not a concentration or atmospheric model.
 import { attachFluidCPU } from "./fluid.js";
 import { analysisDeltaSeconds, windForcingGrid } from "./flowfield.js";
 import { WEATHER_DYE_FRAGMENT_SHADER } from "./smoke-policy.js";
@@ -151,8 +152,12 @@ export function attachFluid(viewer, site, opts = {}) {
       gl.bindTexture(gl.TEXTURE_2D,forcing.tex);gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,16,16,gl.RGBA,gl.FLOAT,forcingPixels);
     }
     run(P.wind, vel.write, { velocity: vel.read, windField:forcing, useField:sampleField?1:0, wind, k: Math.min(1, dt * 1.2) }); vel.swap();
-    // Dye only comes from an explicit debug tracer. Annual precipitation/NO2
-    // do not create edge-water dye, emissions or random momentum splats.
+    // Dye only at the facility (centre), carried by the analysed wind. No edge
+    // water dye and no random momentum splats.
+    if (W.pollution > 0 && frame % 2 === 0) {
+      const push = 18 + Math.min(40, sp * 0.6);
+      splat(0.5, 0.5, W.windE * push, W.windN * push, [0, W.pollution * 0.55 * Math.min(2, stepScale), 0], 0.0009);
+    }
     // solver
     run(P.curl, crl, { velocity: vel.read });
     run(P.vorticity, vel.write, { velocity: vel.read, curl: crl, strength: CURL, dt }); vel.swap();
@@ -181,7 +186,7 @@ export function attachFluid(viewer, site, opts = {}) {
       if (Number.isFinite(windTowardDeg)) { const th = windTowardDeg * Math.PI / 180; W.windE = Math.sin(th); W.windN = Math.cos(th); }
       else { W.windE = 0; W.windN = 0; }
       W.speed=Number.isFinite(windSpeed)&&windSpeed>=0?windSpeed:0;
-      W.pollution = W.moisture = 0;
+      W.pollution = Number.isFinite(pollution) ? Math.max(0, Math.min(1, pollution)) : 0; W.moisture = 0;
       W.projected = projected ? 1 : 0;
     },
     // wind only (time-varying GEOS-FP analysis wind); leaves the dye sources unchanged

@@ -70,3 +70,30 @@ test('incoming model progress preserves in-progress form inputs and explicit yea
   const next={...site,id:'ashburn'};controller.setState({site:next,siteId:next.id,year:2050});assert.equal(form.elements.namedItem('heatMw').value,'');assert.equal(form.elements.namedItem('year').value,'2050');
   controller.destroy();assert.equal(root.removed,true);
 });
+
+test('one calculation covers 2020–2035 by default with the same inputs, and results follow the timeline', async () => {
+  const { workbenchYears, yearRanges } = await import('../apps/web/js/evidence-workbench.js');
+  assert.deepEqual(workbenchYears(2025, 'through2035'), Array.from({ length: 16 }, (_, i) => 2020 + i));
+  assert.deepEqual(workbenchYears(2040, 'single'), [2040]);
+  assert.equal(yearRanges([2020, 2021, 2022, 2035, 2050, 2051]), '2020–2022, 2035, 2050–2051');
+  const body = buildWorkbenchRequest({ site, year: 2025, domain: 'heat', values: { heatMw: '25', effectiveHeightM: '20' }, span: 'through2035', ...source });
+  assert.equal(body.years.length, 16); assert.ok(body.years.every((r) => r.heatMw === 25)); assert.deepEqual(validateScreeningRequest(body), []);
+  const late = buildWorkbenchRequest({ site, year: 2050, domain: 'heat', values: { heatMw: '25' }, span: 'through2035', ...source });
+  assert.ok(late.years.some((r) => r.year === 2050), 'the chosen year is always included');
+  const raw = { years: body.years.map((r) => ({ year: r.year, metrics: [{ label: 'Heat', value: 1, unit: 'W' }] })) };
+  assert.match(screeningResultsHtml(raw, 2031), /2031 · conditional screening/);
+  assert.match(screeningResultsHtml(raw, 2031), /same supplied inputs each year/);
+  assert.match(screeningResultsHtml(raw, 2050), /Calculate 2050 with the same inputs/);
+  assert.match(screeningResultsHtml(raw, 2012), /start in 2020/);
+});
+
+test('moving the timeline updates the scenario year even after it was typed', () => {
+  const nodes=Object.fromEntries(['[data-ew-form]','[data-ew-fields]','[data-ew-regional]','[data-ew-audit]','[data-ew-results]','[data-ew-variable]','[data-ew-status]','[data-ew-screening-map]'].map(k=>[k,fakeNode()])),controls=new Map();
+  const form=nodes['[data-ew-form]'];form.elements={namedItem(name){if(!controls.has(name))controls.set(name,{value:''});return controls.get(name);}};form.querySelectorAll=()=>[];form.reset=()=>{for(const input of controls.values())input.value='';};
+  const root=fakeNode();root.querySelector=s=>nodes[s];const doc={createElement:()=>root,querySelector:()=>null,head:null},events=new EventTarget();
+  const controller=attachEvidenceWorkbench({site,year:2025,futureState:{site,siteId:site.id,year:2025},document:doc,eventTarget:events,container:{append(){}}});
+  form.elements.namedItem('year').value='2030';root.events.get('input')({target:{name:'year'}});
+  controller.setState({site,siteId:site.id,year:2025});assert.equal(form.elements.namedItem('year').value,'2030','same year: the typed value stays');
+  controller.setState({site,siteId:site.id,year:2033});assert.equal(form.elements.namedItem('year').value,'2033','slider moved: the form follows');
+  controller.destroy();
+});

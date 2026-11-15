@@ -139,8 +139,9 @@ export function attachFluidCPU(viewer, site, { halfSizeM = 16000,sampleWind=null
     if(sampleField&&time-lastField>=.2){
       lastField=time;windForcingGrid(sampleField,site,{size:N,halfSizeM,units:scale,northFirst:true},forcing);
     }
-    // No random momentum or edge dye. Only explicit debug tracer injection
-    // creates dye; missing gridded samples contribute no invented wind.
+    // No random momentum or edge dye. Dye only at the facility (centre) for
+    // on-site combustion sites; missing gridded samples contribute no invented wind.
+    if (W.pollution > 0 && frame % 2 === 0) fluid.splat(N / 2, N / 2, 1.2, W.windE * 6, -W.windN * 6, [0, W.pollution * 0.5, 0]);
     fluid.step(dt, wind, [0.985, 0.988, 0.992],sampleField?forcing:null);
     if (frame % 2 === 0) render();
   }
@@ -165,7 +166,7 @@ export function attachFluidCPU(viewer, site, { halfSizeM = 16000,sampleWind=null
       if (Number.isFinite(windTowardDeg)) { const th = windTowardDeg * Math.PI / 180; W.windE = Math.sin(th); W.windN = Math.cos(th); }
       else { W.windE = 0; W.windN = 0; }
       W.speed=Number.isFinite(windSpeed)&&windSpeed>=0?windSpeed:0;
-      W.pollution = W.moisture = 0;
+      W.pollution = Number.isFinite(pollution) ? Math.max(0, Math.min(1, pollution)) : 0; W.moisture = 0;
       W.projected = !!projected;
     },
     setWind(towardDeg, speed) {

@@ -66,11 +66,13 @@ export function weatherDyePixel(heat,pollution,moisture,u,v,time,windE,windN,pro
   const edge=smooth(0,.09,Math.min(u,v,1-u,1-v));
   const smoke=p*corridor,total=Math.max(smoke+m*.35,.00001);
   const shade=.9+erosion*.1;
-  out[0]=(smoke*.52+m*.35*.74)/total*shade;
-  out[1]=(smoke*.61+m*.35*.81)/total*shade;
-  out[2]=(smoke*.67+m*.35*.86)/total*shade;
+  // Same violet palette as the GPU shader (dense core -> light lilac edge).
+  const k=clamp(smoke*.6,0,1),pr=.55+(.86-.55)*k,pg=.22+(.66-.22)*k,pb=.95+(1-.95)*k;
+  out[0]=(smoke*pr+m*.35*.74)/total*shade;
+  out[1]=(smoke*pg+m*.35*.81)/total*shade;
+  out[2]=(smoke*pb+m*.35*.86)/total*shade;
   if(projected){out[0]=out[0]*.94;out[2]=Math.min(1,out[2]+.025);}
-  out[3]=clamp((1-Math.exp(-(smoke*.35+m*.12)))*erosion*edge,0,.19);
+  out[3]=clamp((1-Math.exp(-(smoke*1.1+m*.12)))*(.55+.45*erosion)*edge,0,.62);
   return out;
 }
 
@@ -89,8 +91,9 @@ void main(){
   float erosion=smoothstep(0.28,0.72,0.65*wispNoise(vUv*23.0-visualTime*0.04*wind)+0.35*wispNoise(vUv*49.0+5.0-visualTime*0.08*wind));
   float edge=smoothstep(0.0,0.09,min(min(vUv.x,vUv.y),min(1.0-vUv.x,1.0-vUv.y)));
   float smoke=p*corridor,total=max(smoke+m*0.35,0.00001);
-  vec3 color=(smoke*vec3(0.52,0.61,0.67)+m*0.35*vec3(0.74,0.81,0.86))/total*(0.9+erosion*0.1);
+  // Violet reads clearly over green/brown satellite ground (orange/grey did not).
+  vec3 color=(smoke*mix(vec3(0.55,0.22,0.95),vec3(0.86,0.66,1.0),clamp(smoke*0.6,0.0,1.0))+m*0.35*vec3(0.74,0.81,0.86))/total*(0.9+erosion*0.1);
   if(projected>0.5){color.r*=0.94;color.b=min(1.0,color.b+0.025);}
-  float alpha=clamp((1.0-exp(-(smoke*0.35+m*0.12)))*erosion*edge,0.0,0.19);
+  float alpha=clamp((1.0-exp(-(smoke*1.1+m*0.12)))*(0.55+0.45*erosion)*edge,0.0,0.62);
   o=vec4(color,alpha);
 }`;

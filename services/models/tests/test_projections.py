@@ -119,3 +119,23 @@ class CommittedPlumeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless((plume.FIELDS_DIR / "abilene").is_dir(), "flow fields not built")
+class PreparedBoxTests(unittest.TestCase):
+    def test_points_inside_a_prepared_box_reuse_stored_winds(self):
+        import json
+        boxed = plume.prepared_box_frames(32.5029, -99.7834)
+        self.assertIsNotNone(boxed)
+        frames, box = boxed
+        self.assertEqual(box, "abilene")
+        self.assertGreaterEqual(len(frames), 100)
+        exact = {r["time"]: (r["u"], r["v"]) for r in json.loads((plume.FIELDS_DIR / "abilene" / "2025.json").read_text())["siteSeries"]}
+        compared = [(f, exact[f.time.strftime("%Y-%m-%dT%H:%MZ")]) for f in frames if f.time.strftime("%Y-%m-%dT%H:%MZ") in exact]
+        self.assertEqual(len(compared), 12)
+        for frame, (u, v) in compared:                      # 8-bit atlas: within one quantization step
+            self.assertLess(abs(frame.u - u), 0.32)
+            self.assertLess(abs(frame.v - v), 0.32)
+
+    def test_points_outside_every_box_need_a_download(self):
+        self.assertIsNone(plume.prepared_box_frames(10.0, 10.0))

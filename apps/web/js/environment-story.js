@@ -57,11 +57,27 @@ export function storyValuesHtml(summary,mode='trend'){
   return `<details class="est-values-table"><summary>See all values</summary><div class="est-table-scroll"><table><caption>${h(summary.meta.short)} · ${h(summary.meta.unit)} · ${mode==='trend'?'3-year averages':'annual averages'}</caption><thead><tr><th scope="col">Year</th><th scope="col">Site</th><th scope="col">Nearby</th></tr></thead><tbody>${points.map(p=>`<tr${p.year===summary.year?' class="est-table-selected"':''}><th scope="row">${p.year}</th><td>${h(f(p.site,summary.meta.digits))}</td><td>${h(f(p.ref,summary.meta.digits))}</td></tr>`).join('')}</tbody></table></div></details>`;
 }
 
+/** The 3-year view needs three qualifying years. When it cannot be filled but the
+ * selected year can, show that year instead of a blank, and say why. */
+export function effectiveStoryMode(summary, mode = 'trend') {
+  if (mode !== 'trend' || summary.future || summary.trailing) return { mode, fallback: null };
+  if (finite(summary.selected?.pairedSite) || finite(summary.selected?.pairedRef)) {
+    const missing = [summary.year - 2, summary.year - 1, summary.year].filter((y) => !finite(summary.annual.find((p) => p.year === y)?.local));
+    return { mode: 'year', fallback: `3-year average unavailable: ${missing.join(', ')} ${missing.length > 1 ? 'have' : 'has'} fewer than 9 matching months. Showing ${summary.year} only.` };
+  }
+  return { mode, fallback: null };
+}
+
 export function storyMetricHtml(summary, mode = 'trend') {
   const { meta, baseline, selected, trailing, change, selectedChange } = summary, compare = mode === 'trend' ? change : selectedChange;
   if(summary.future)return `<div class="est-empty"><span class="est-status">${summary.year} · Beyond this record</span><h3>No ${h(meta.short.toLowerCase())} forecast</h3><p>${finite(summary.lastYear)?`Observations end in <strong>${summary.lastYear}</strong>.`:'No observations are loaded.'} Regional climate scenarios are available separately.</p><div class="est-actions">${finite(summary.lastYear)?`<button class="est-primary" type="button" data-story-year="${summary.lastYear}">View ${summary.lastYear} data</button>`:''}<button type="button" data-story-evidence="climate-projection">Climate scenarios ↗</button></div></div>`;
   const period = mode === 'trend' ? `${summary.year - 2}–${summary.year}` : String(summary.year);
   const chosenSite=mode==='trend'?trailing?.pairedSite:selected?.pairedSite,chosenRef=mode==='trend'?trailing?.pairedRef:selected?.pairedRef;
+  // Never print a giant "Unknown": say what is missing and offer the nearest usable year.
+  if(!finite(chosenSite)&&!finite(chosenRef)){
+    const usable=summary.annual.filter((p)=>finite(p.pairedSite)&&p.year<=summary.year).at(-1);
+    return `<div class="est-measure-heading"><h3>${h(meta.short)}</h3><p>${period}</p></div><div class="est-empty"><h4>No usable ${h(meta.short)} values for ${period}</h4><p>${h(summary.coverage)}</p>${usable?`<div class="est-actions"><button class="est-primary" type="button" data-story-year="${usable.year}">View ${usable.year} (latest usable year)</button></div>`:''}</div>`;
+  }
   const status=compare&&compare.local!==0&&baseline.years.length>=2?(compare.local>0?meta.higher:meta.higher==='adverse'?'favorable':'adverse'):'uncertain';
   return `<div class="est-measure-heading"><h3>${h(meta.short)}</h3><p>${period}${mode==='trend'?' · 3-year average':' · Annual average'}</p></div>
     <div class="est-values"><div><span>At the site</span><strong>${h(f(chosenSite,meta.digits))}</strong></div><div><span>Nearby area</span><strong>${h(f(chosenRef,meta.digits))}</strong></div></div><p class="est-unit">${h(meta.unit||'Index value')}</p>
@@ -84,13 +100,28 @@ export function storyMethodHtml(summary, mode = 'trend') {
   </details>`;
 }
 
-export function storyWaterHtml(water, facility, year) {
+/** Prepared NASA Giovanni water context (data/water/<site>.json): one value per year plus an annual trend test. */
+export function storyGiovanniWaterHtml(product, year) {
+  if (!product?.variables) return '';
+  const rows = Object.values(product.variables).filter((v) => v.available);
+  if (!rows.length) return '';
+  const verdictText = { significant: 'Clear trend', borderline: 'Borderline trend', 'not significant': 'No clear trend' };
+  const card = (v) => {
+    const point = v.annual.filter((a) => a.year <= year && finite(a.value)).at(-1), tr = v.trend || {};
+    const trendLine = tr.status === 'ok' ? `${verdictText[tr.verdict] || tr.verdict}: ${f(tr.slopePerDecade, 2, true)} ${v.unit} per decade (${v.period?.start}–${v.period?.end}; MK p=${f(tr.pMannKendall, 3)}, t-test p=${f(tr.pTTest, 3)})` : `Trend not tested: ${(tr.reasons || []).join(' ')}`;
+    return `<div class="est-giovanni-row est-${tr.verdict === 'significant' ? 'clear' : tr.verdict === 'borderline' ? 'borderline' : 'none'}"><span>${h(v.label)}</span><strong>${point ? h(f(point.value, 2)) : 'No value'} <small>${h(v.unit)}${point && point.year !== year ? ` · ${point.year}` : ''}</small></strong><p>${h(trendLine)}</p></div>`;
+  };
+  return `<section class="est-giovanni" aria-label="Regional NASA water context"><h4>Regional water context · NASA Giovanni</h4>${rows.map(card).join('')}<details class="est-method"><summary>What these mean</summary>${rows.map((v) => note(`${v.label}: ${v.meaning}`)).join('')}${note(product.method)}${note(product.evidenceNote)}</details></section>`;
+}
+
+export function storyWaterHtml(water, facility, year, giovanni) {
   const allRecords = (facility?.water?.records || []).filter((r) => isWaterUseRecord(r) && finite(r.value) && r.unit && r.source?.url);
   const records = allRecords.filter((r) => r.year === year);
   const previousReport=allRecords.filter(r=>r.year<year).sort((a,b)=>b.year-a.year)[0];
   const recordHtml=r=>`<article class="est-water-record"><span>${h(r.metric==='reported-consumption'?'Reported consumption':'Reported water use')} · ${r.year}</span><strong>${h(r.approximation?r.approximation+' ':'')}${h(r.value>=1e6?f(r.value/1e6,3)+' million':f(r.value,0))}</strong><span>${h(r.unit)} · ${r.status==='reported-peak'?'reported peak rate · not a typical-day average':'annual total'}</span><details><summary>Source &amp; reporting scope</summary>${note(r.scope||'')}${note(r.note||'')}${sourceLink(r.source)}</details></article>`;
   return `<div class="est-measure-heading"><h3>Water</h3><p>${year} · Source-specific records</p></div>
     ${records.length?records.map(recordHtml).join(''):`<div class="est-empty"><h4>No reported facility total for ${year}</h4><p>Missing amounts stay unknown.</p>${previousReport?`<div class="est-actions"><button class="est-primary" type="button" data-story-year="${previousReport.year}">View ${previousReport.year} report</button></div>`:''}</div>`}
+    ${storyGiovanniWaterHtml(giovanni,year)}
     ${water.soil||water.rain?`<div class="est-water-readings">${water.soil?`<div><span>Surface soil moisture</span><strong>${h(f(water.soil.value,3))} <small>${h(water.soil.unit)}</small></strong>${note(`${water.soil.days} returned days · not groundwater level`)}</div>`:''}${water.rain?`<div><span>Mean rainfall</span><strong>${h(f(water.rain.value,2))} <small>${h(water.rain.unit)}</small></strong>${note(`${water.rain.days} returned days`)}</div>`:''}</div>`:''}
     ${water.station?`<p class="est-station">${h(water.station.name||water.station.id)} · <strong>${water.station.numeric}</strong> numeric observations. Parameters and units remain separate.</p>`:''}
     <div class="est-actions"><button type="button" data-story-evidence="land-water">Soil &amp; rainfall ↗</button><button type="button" data-story-evidence="water-quality">Water-quality records ↗</button></div>
@@ -133,33 +164,61 @@ function futureClimateHtml(group,future){
   const metric=group==='water'?'precipMmPerYear':'meanTempC',summary=climateMetric(future,metric),raw=futureProduct(future,'climate-projection');
   return `${climateModeControls(future)}${scenarioControls(future)}${summary?.available?`<p class="est-future-period">${h(summary.period?.label||`${summary.period?.start}–${summary.period?.end}`)} · regional climate scenario</p>${climateCard(summary,metric)}${group==='heat'?climateCard(climateMetric(future,'hotDays35C'),'hotDays35C'):''}${storyClimateComparisonHtml(future,metric)}<button type="button" class="est-evidence-link" data-story-future-map>Show scenario in 3D ↗</button><details class="est-method"><summary>Source &amp; model range</summary>${note(raw?.source?.name||summary.source?.name||'NASA NEX-GDDP-CMIP6')}${note(raw?.evidenceNote||'Conditional regional climate scenario. The range is model spread, not a confidence interval.')}${note(raw?.sampling?.note||'This is a period summary, not a forecast of a particular calendar year.')}${sourceLink({url:raw?.source?.access,title:'Climate source'})}</details>`:`<div class="est-empty"><h3>Loading regional climate scenarios</h3><p>${h(future.error||'Prepared Python model results load automatically for the study areas.')}</p><div class="est-actions"><button type="button" data-story-future-request="climate-projection"${future.pending?' disabled':''}>${future.pending?'Calculating…':'Calculate climate scenario'}</button></div></div>`}${storyDailyClimateHtml(future,group)}<p class="est-caveat">${group==='water'?'Rainfall is climate context. River levels, groundwater depletion and water quality are not predicted.':'Regional air temperature does not isolate heat produced by the data center.'} Values summarize the labelled period, not the selected individual year.</p>`;
 }
-function futureAirHtml(future){
-  const raw=futureProduct(future,'plume-scenario'),peak=raw?.peak,height=raw?.assumptions?.effectiveStackHeightM;
+/** One footprint (per-year for Colossus 1). Same χ/Q contract as before: no µg/m³ without a sourced emission. */
+export function dispersionCardHtml(raw){
+  if(!raw)return '';
+  const peak=raw?.peak,height=raw?.assumptions?.effectiveStackHeightM;
   const hasSourcedEmission=finite(raw?.emission?.rateGs)&&raw.emission.rateGs>0&&typeof raw.emission.source==='string'&&!!raw.emission.source.trim();
   const hasConcentration=hasSourcedEmission&&finite(peak?.concentrationUgM3)&&peak.concentrationUgM3>=0;
   const dilutionUnit=raw?.grid?.units==='s/m^3'?'s/m³':raw?.grid?.units||'unit not supplied';
   const unit=hasConcentration?'µg/m³':`${dilutionUnit} · χ/Q`;
   const receptorValue=r=>hasConcentration?(finite(r.concentrationUgM3)&&r.concentrationUgM3>=0?f(r.concentrationUgM3,2):'Unknown'):(finite(r.chiOverQ)?r.chiOverQ.toExponential(2):'Unknown');
-  const receptorTable=raw?.receptors?.length?`<details class="est-values-table"><summary>Nearby receptor values</summary><div class="est-table-scroll"><table><caption>${hasConcentration?'Source-only concentration · µg/m³':`Dilution per unit emission · ${h(dilutionUnit)}`}</caption><thead><tr><th>Location</th><th>${hasConcentration?'Contribution':'χ/Q'}</th></tr></thead><tbody>${raw.receptors.map(r=>`<tr><th scope="row">${h(r.name)}</th><td>${h(receptorValue(r))}</td></tr>`).join('')}</tbody></table></div></details>`:'';
-  return `<div class="est-measure-heading"><h3>Air dispersion scenario</h3><p>Conditional screening · not an annual air-quality forecast</p></div>${raw?`<article class="est-future-card"><h3>${hasConcentration?'Peak source contribution':'Peak dilution per unit emission'}</h3><strong>${hasConcentration?h(f(peak.concentrationUgM3,2)):finite(peak?.chiOverQ)?h(peak.chiOverQ.toExponential(2)):'Unknown'}<small>${h(unit)}</small></strong><p>${finite(peak?.distanceM)?`${h(f(peak.distanceM,0))} m from the source`:'Source footprint'} · assumed effective stack ${h(f(height,0))} m</p></article><button type="button" class="est-primary" data-story-future-map>Show dispersion in 3D ↗</button>${receptorTable}<details class="est-method"><summary>Inputs &amp; limitations</summary>${note(raw.evidenceNote)}${note(`Wind record: ${raw.frames?.first||'unknown'} to ${raw.frames?.last||'unknown'}. This footprint uses those winds; moving the future year does not create future weather.`)}${note(hasSourcedEmission?`Emission rate: ${raw.emission.rateGs} g/s. Source: ${raw.emission.source}`:'No sourced emission rate supplied. Dilution is not a measured pollution concentration.')}</details>`:`<div class="est-empty"><h4>Calculate a dispersion scenario</h4><p>Use the Node → Python model with an explicitly assumed 20 m effective stack and analysed winds.</p><div class="est-actions"><button type="button" class="est-primary" data-story-future-request="plume-scenario"${future.pending?' disabled':''}>${future.pending?'Calculating…':'Calculate dispersion'}</button></div></div>`}<p class="est-caveat">This shows where emissions could spread under the stated inputs. It does not predict changes in emissions or future background air quality.</p>`;
+  // Relative reading (issue #11): small χ/Q numbers are normal; share of the peak is what a viewer can compare.
+  const shareOfPeak=r=>finite(r.chiOverQ)&&finite(peak?.chiOverQ)&&peak.chiOverQ>0?`${f(100*r.chiOverQ/peak.chiOverQ,2)}%`:'—';
+  const receptorTable=raw?.receptors?.length?`<details class="est-values-table"><summary>Nearby receptor values</summary><div class="est-table-scroll"><table><caption>${hasConcentration?'Source-only concentration · µg/m³':`Dilution per unit emission · ${h(dilutionUnit)}`}</caption><thead><tr><th>Location</th><th>${hasConcentration?'Contribution':'χ/Q'}</th><th>Share of peak</th></tr></thead><tbody>${raw.receptors.map(r=>`<tr><th scope="row">${h(r.name)}</th><td>${h(receptorValue(r))}</td><td>${h(shareOfPeak(r))}</td></tr>`).join('')}</tbody></table></div></details>`:'';
+  return `<div class="est-measure-heading"><h3>Air dispersion scenario${Number.isInteger(raw.year)?` · ${raw.year} winds`:''}</h3><p>Conditional screening · not an annual air-quality forecast</p></div>${raw?`<article class="est-future-card"><h3>${hasConcentration?'Peak source contribution':'Peak dilution per unit emission'}</h3><strong>${hasConcentration?h(f(peak.concentrationUgM3,2)):finite(peak?.chiOverQ)?h(peak.chiOverQ.toExponential(2)):'Unknown'}<small>${h(unit)}</small></strong>${!hasConcentration&&finite(peak?.chiOverQ)?note('χ/Q is a dilution factor, so it is always a small number. It becomes a concentration only when multiplied by a sourced emission rate. Compare places by their share of the peak.'):''}<p>${finite(peak?.distanceM)?`${h(f(peak.distanceM,0))} m from the source`:'Source footprint'} · assumed effective stack ${h(f(height,0))} m</p></article><button type="button" class="est-primary" data-story-plume-map>Show dispersion in 3D ↗</button>${receptorTable}<details class="est-method"><summary>Inputs &amp; limitations</summary>${note(raw.evidenceNote)}${note(`Wind record: ${raw.frames?.first||'unknown'} to ${raw.frames?.last||'unknown'}${raw.frames?.used?` · ${raw.frames.used} analysed instants`:''}. This footprint uses those winds; future years have no analysed winds, so no footprint is shown for them.`)}${note(hasSourcedEmission?`Emission rate: ${raw.emission.rateGs} g/s. Source: ${raw.emission.source}`:'No sourced emission rate supplied. Dilution is not a measured pollution concentration.')}</details>`:''}<p class="est-caveat">This shows where emissions could spread under the stated inputs. It does not predict changes in emissions or future background air quality.</p>`;
+}
+/** Future years: GEOS-FP analyses end in 2026, so there is no future footprint. Only
+ * sites with documented on-site combustion (Colossus 1) get dispersion screening at all. */
+function futureAirHtml(future){
+  if(future.site&&future.site.effects?.plume!==true)return `<div class="est-measure-heading"><h3>Air dispersion</h3><p>Not applicable at this site</p></div>${note('Dispersion screening is shown only where on-site combustion is documented (Colossus 1 gas turbines). This campus draws grid power, so its electricity emissions occur at distant power plants rather than on site.')}`;
+  return `<div class="est-measure-heading"><h3>Air dispersion</h3><p>${future.year} · no analysed winds</p></div><div class="est-empty"><h4>No dispersion footprint for ${future.year}</h4><p>NASA GEOS-FP wind analyses cover 2018–2026. Each of those years has its own footprint; future years have no real weather to move emissions, so none is drawn.</p><div class="est-actions"><button class="est-primary" type="button" data-story-year="2025">View 2025 footprint</button></div></div>`;
 }
 function futureAgricultureHtml(future){
   const raw=futureProduct(future,'agriculture'),fields=[['meanTemperatureC','Growing-season temperature','°C'],['heatThresholdDays','Very hot days','days / season'],['dryThresholdDays','Dry days','days / season'],['precipitationMinusReferenceEt0Mm','Rain minus reference evaporation','mm / season']];
   const start=Number(raw?.futurePeriod?.start?.slice(0,4)),end=Number(raw?.futurePeriod?.end?.slice(0,4)),covered=raw&&future.year>=start&&future.year<=end;
   return `<div class="est-measure-heading"><h3>Agricultural climate exposure</h3><p>Heat, dryness and growing-season conditions</p></div>${raw?`<p class="est-future-period">Model period ${h(raw.futurePeriod?.start)} to ${h(raw.futurePeriod?.end)}</p>${!covered?note(`This result covers ${start}–${end}, not ${future.year}.`):''}${raw.comparisons?.map(model=>`<section class="est-agriculture-model"><h4>${h(model.model)}</h4>${fields.filter(([id])=>model.indicators?.[id]).map(([id,label,unit])=>{const row=model.indicators[id];return `<article class="est-future-mini"><span>${label}</span><strong>${h(f(row.futureMeanPerSeason,1))} <small>${unit}</small></strong><p>${h(f(row.change,1,true))} vs baseline · baseline ${h(f(row.baselineMeanPerSeason,1))}</p></article>`;}).join('')}</section>`).join('')||note('No complete model seasons were returned. Missing values stay unknown.')}<button type="button" class="est-evidence-link" data-story-future-map>Show exposure in 3D ↗</button><details class="est-method"><summary>Inputs &amp; thresholds</summary>${note(`Baseline ${raw.baselinePeriod?.start} to ${raw.baselinePeriod?.end}. Growing months ${(raw.settings?.growingMonths||[]).join(', ')}. Hot-day threshold ${raw.settings?.heatThresholdC}°C; dry-day threshold ${raw.settings?.dryDayThresholdMm} mm.`)}${(raw.warnings||[]).map(note).join('')}</details>`:''}${!covered?`<div class="est-actions">${future.year<=2049?`<button type="button" class="est-primary" data-story-future-request="agriculture"${future.pending?' disabled':''}>${future.pending?'Calculating…':'Calculate climate exposure'}</button>`:`<button type="button" data-story-year="2049">Explore supported 2045–2049 period</button>`}</div>`:''}<p class="est-caveat">${future.year>2049?'This agricultural model ends in 2049. ':''}Climate exposure does not predict crop yield, forest death or damage caused by a data center.</p>`;
 }
+/** Vegetation has no prepared greenness forecast after 2035. Show the sourced climate
+ * drivers of growing conditions instead of an empty view, clearly labelled. */
+export function vegetationDriversHtml(future){
+  const temp=climateMetric(future,'meanTempC'),hot=climateMetric(future,'hotDays35C'),rain=climateMetric(future,'precipMmPerYear');
+  const trendEnd=future.year>2035?note(`The greenness trend extension stops at 2035; ${future.year} has no vegetation forecast. Below: the regional climate that shapes growing conditions.`):'';
+  if(!temp?.available&&!rain?.available)return trendEnd;
+  return `<div class="est-measure-heading"><h3>Growing conditions</h3><p>${h(temp?.period?.label||'')} · regional climate scenario</p></div>${trendEnd}${scenarioControls(future)}${climateCard(temp,'meanTempC')}${climateCard(hot,'hotDays35C')}${climateCard(rain,'precipMmPerYear')}${note('These are climate drivers, not a vegetation or crop-yield prediction. Greenness response to heat and rainfall is not modelled here.')}`;
+}
+
 /** Actual future products remain separate from the observed annual chart. */
+/** Observed years: Colossus 1 shows that year's footprint (2018–2026 GEOS-FP winds). */
+export function observedDispersionHtml(future){
+  if(future.site?.effects?.plume!==true)return '';
+  const raw=futureProduct(future,'plume-scenario');
+  if(raw&&raw.year===future.year)return `<section class="est-dispersion">${dispersionCardHtml(raw)}</section>`;
+  if(future.year<2018)return note('Dispersion footprints start in 2018, when NASA GEOS-FP wind analyses begin.');
+  return '';
+}
+
 export function storyFutureHtml(group,future={},variable){
   const status=future.pending||future.error||future.status;
   const trend=future.trend?.variables?.[variable],meta=STORY_VARIABLES[variable];
-  const trendHtml=trend?.available&&finite(trend.value)&&future.year===trend.year?`<article class="est-trend-card"><span class="est-status">If the historical trend continues · ${future.year}</span><h3>${h(meta?.short||variable)}</h3><strong>${h(f(trend.value,meta?.digits||2))} <small>${h(meta?.unit||trend.unit)}</small></strong>${finite(trend.min)&&finite(trend.max)?note(`Trend-slope interval: ${f(trend.min,meta?.digits||2)} to ${f(trend.max,meta?.digits||2)} ${meta?.unit||trend.unit||''}. This is not a prediction interval.`):''}${finite(trend.local)?note(`Site minus nearby: ${f(trend.local,meta?.digits||2,true)} ${meta?.unit||trend.unit||''}.`):''}${note('Extrapolation through 2035 only; it assumes the observed trend continues. It does not establish a data-center effect.')}</article>`:'';
-  return `<section class="est-future" aria-label="Supported future model results"><span class="est-status">Future model results</span>${status?`<p class="est-future-status" role="status">${h(future.error||future.status||(future.pending?'Calculating model results…':''))}</p>`:''}${trendHtml}${group==='heat'||group==='water'?futureClimateHtml(group,future):group==='air'?futureAirHtml(future):futureAgricultureHtml(future)}</section>`;
+  const trendHtml=trend?.available&&finite(trend.value)&&future.year===trend.year?`<article class="est-trend-card"><span class="est-status">If the historical trend continues · ${future.year}</span><h3>${h(meta?.short||variable)}</h3><strong>${h(f(trend.value,meta?.digits||2))} <small>${h(meta?.unit||trend.unit)}</small></strong>${finite(trend.min)&&finite(trend.max)?note(`Trend-slope interval: ${f(trend.min,meta?.digits||2)} to ${f(trend.max,meta?.digits||2)} ${meta?.unit||trend.unit||''}. This is not a prediction interval.`):''}${finite(trend.local)?note(`Site minus nearby: ${f(trend.local,meta?.digits||2,true)} ${meta?.unit||trend.unit||''}.`):''}${['NDVI','LST_Day','LST_Night','AOD','NO2_OMI'].includes(variable)?note('On the globe: the map for this year is projected pixel by pixel from each pixel’s own significant NASA trend, starting from the latest real map. Pixels without a significant trend stay unchanged.'):''}${note('Extrapolation through 2035 only; it assumes the observed trend continues. It does not establish a data-center effect.')}</article>`:'';
+  return `<section class="est-future" aria-label="Supported future model results"><span class="est-status">Future model results</span>${status?`<p class="est-future-status" role="status">${h(future.error||future.status||(future.pending?'Calculating model results…':''))}</p>`:''}${trendHtml}${group==='heat'||group==='water'?futureClimateHtml(group,future):group==='air'?futureAirHtml(future):vegetationDriversHtml(future)+futureAgricultureHtml(future)}</section>`;
 }
 
 export function attachEnvironmentStory({ site, sites = [], seriesBySite = {}, varId = 'LST_Day', year = 2025, futureState, onSelectVariable, onSelectYear, onOpenEvidence, container, eventTarget = globalThis.window, document: doc = globalThis.document, evidenceResolver } = {}) {
   const initial = site || sites[0] || eventTarget?.CloudShadow?.state?.site;
   if (!doc || !eventTarget) throw new Error('The environmental story needs a document and event target.');
-  const state = { site: initial, year, variable: STORY_VARIABLES[varId] ? varId : 'LST_Day', activeGroup: STORY_VARIABLES[varId]?.group || 'heat', mode: 'trend', analyses: new Map(), observations: new Map(), waterResults: new Map(), facility: null, future:futureState||null, futureStates:new Map(futureState?.siteId?[[futureState.siteId,futureState]]:[]), destroyed: false };
+  const state = { site: initial, year, variable: STORY_VARIABLES[varId] ? varId : 'LST_Day', activeGroup: STORY_VARIABLES[varId]?.group || 'heat', mode: 'trend', analyses: new Map(), observations: new Map(), waterResults: new Map(), facility: null, future:futureState||null, futureStates:new Map(futureState?.siteId?[[futureState.siteId,futureState]]:[]), map: null, giovanni: new Map(), destroyed: false };
   const resolveEvidence = evidenceResolver || resolveSiteEvidence;
   const root = doc.createElement('section'); root.id = 'environmentStory'; root.className = 'environment-story'; root.setAttribute('aria-label', 'What changed here environmental evidence');
   let chartDialog=null;
@@ -170,9 +229,18 @@ export function attachEnvironmentStory({ site, sites = [], seriesBySite = {}, va
   function publishView() { eventTarget.dispatchEvent(new CustomEvent('cs:future-view',{detail:{group:state.activeGroup,siteId:state.site?.id,year:state.year}})); if (state.activeGroup !== 'water') eventTarget.dispatchEvent(new CustomEvent('cs:story-view', { detail: { mode: state.mode, variable: state.variable, siteId: state.site?.id, year: state.year, windowYears: 3 } })); }
   function refreshFacility() { if (resolveEvidence && state.site?.id) { try { state.facility = resolveEvidence(state.site.id, state.year); } catch { state.facility = null; } } }
   function openEvidence(action) { if (onOpenEvidence) onOpenEvidence(action); else eventTarget.CloudShadow?.environment?.openAction?.(action); }
-  function chartSection(focus,expanded=false){
+  function chartSection(focus,expanded=false,mode=state.mode){
     const wide=expanded&&(doc.documentElement?.clientWidth||eventTarget.innerWidth||720)>680;
-    return `<section class="est-chart-section"><div class="est-chart-heading"><h4>Change over time</h4>${expanded?'':'<button type="button" data-story-expand>Expand chart ↗</button>'}</div><p class="est-chart-unit">${h(focus.meta.unit)} · ${state.mode==='trend'?'3-year averages':'Annual averages'}</p><div class="est-chart-legend"><span class="est-site">Site</span><span class="est-nearby">Nearby area</span></div>${storyChartSvg(focus,state.mode,{expanded:wide})}<p class="est-chart-help">Click a year to inspect it. Gaps mean missing data.</p></section>`;
+    return `<section class="est-chart-section"><div class="est-chart-heading"><h4>Change over time</h4>${expanded?'':'<button type="button" data-story-expand>Expand chart ↗</button>'}</div><p class="est-chart-unit">${h(focus.meta.unit)} · ${mode==='trend'?'3-year averages':'Annual averages'}</p><div class="est-chart-legend"><span class="est-site">Site</span><span class="est-nearby">Nearby area</span></div>${storyChartSvg(focus,mode,{expanded:wide})}<p class="est-chart-help">Click a year to inspect it. Gaps mean missing data.</p></section>`;
+  }
+  const MAP_LABELS={none:'satellite imagery',HLS:'30 m satellite imagery',DIST:'land disturbance',LST_Day:'daytime surface heat',LST_Night:'night surface heat',NDVI:'greenness (NDVI)',NO2_OMI:'NO₂ · OMI long record',NO2:'NO₂ · TROPOMI recent',AOD:'particles (AOD)',AirTemp:'regional air temperature'};
+  /** One line that says what the map and this panel each show, so differences are explicit. */
+  function mapContextHtml(mode){
+    const kind=state.map?.kind||eventTarget.CloudShadow?.getMapLayer?.()||'none',date=state.map?.date;
+    const panelPeriod=state.activeGroup==='water'?`${state.year} records`:mode==='trend'?`${state.year-2}–${state.year} average`:`${state.year} annual average`;
+    if(!STORY_VARIABLES[kind])return `<p class="est-map-context">Map: ${h(MAP_LABELS[kind]||kind)}. Panel: ${state.activeGroup==='water'?'water records':h(STORY_VARIABLES[state.variable]?.label||state.variable)} · ${h(panelPeriod)}.</p>`;
+    const same=kind===state.variable;
+    return `<p class="est-map-context">${same?'Map and panel: same measurement':`Map: ${h(MAP_LABELS[kind])}`}${date?` · map is a single snapshot from ${h(date)}`:''}; panel shows ${same?'':h(STORY_VARIABLES[state.variable]?.label||'')+' as '}${h(panelPeriod)}.</p>`;
   }
   function updateDialog(){
     if(!chartDialog?.open)return;
@@ -198,20 +266,29 @@ export function attachEnvironmentStory({ site, sites = [], seriesBySite = {}, va
     if (state.destroyed) return;
     const focus=summary(state.variable),w=water(),measurements=Object.entries(STORY_VARIABLES).filter(([,meta])=>meta.group===state.activeGroup);
     const futureMode=state.activeGroup==='water'?state.year>new Date().getUTCFullYear():focus.future;
-    const future={...(state.future?.siteId===state.site?.id?state.future:{}),siteId:state.site?.id,year:state.year};
+    const future={...(state.future?.siteId===state.site?.id?state.future:{}),siteId:state.site?.id,site:state.site,year:state.year};
+    const {mode,fallback}=effectiveStoryMode(focus,state.mode);
     root.innerHTML=`<header class="est-header"><div><h2>Environment</h2><p>${h(state.site?.name||'Selected location')}</p></div><span class="est-year">${state.year}</span></header>
       <nav class="est-categories" aria-label="Environmental category">${[['air','Air'],['vegetation','Vegetation'],['heat','Heat'],['water','Water']].map(([group,title])=>`<button type="button" data-story-group="${group}" aria-pressed="${state.activeGroup===group}">${title}</button>`).join('')}</nav>
-      ${futureMode?storyFutureHtml(state.activeGroup,future,state.variable):state.activeGroup==='water'?storyWaterHtml(w,state.facility,state.year):`<div class="est-selected">
+      ${futureMode?'':mapContextHtml(mode)}
+      ${futureMode?storyFutureHtml(state.activeGroup,future,state.variable):state.activeGroup==='water'?storyWaterHtml(w,state.facility,state.year,state.giovanni?.get(state.site?.id)):`<div class="est-selected">
       ${measurements.length>1?`<label class="est-measure">Measurement<select data-story-variable>${measurements.map(([id,meta])=>`<option value="${id}"${id===state.variable?' selected':''}>${h(meta.label)}</option>`).join('')}</select></label>`:''}
-      ${!focus.future?`<div class="est-mode" role="group" aria-label="Time comparison"><button type="button" data-story-mode="year" aria-pressed="${state.mode==='year'}">One year</button><button type="button" data-story-mode="trend" aria-pressed="${state.mode==='trend'}">3-year average</button></div>`:''}
-      ${storyMetricHtml(focus,state.mode)}
-      ${!focus.future?`${chartSection(focus)}<p class="est-source">${focus.meta.regional?'Regional model estimate':'Satellite estimate'} · ${h(focus.meta.source)}</p>${storyValuesHtml(focus,state.mode)}`:''}
-      ${storyMethodHtml(focus,state.mode)}
+      ${!focus.future?`<div class="est-mode" role="group" aria-label="Time comparison"><button type="button" data-story-mode="year" aria-pressed="${mode==='year'}">One year</button><button type="button" data-story-mode="trend" aria-pressed="${mode==='trend'}">3-year average</button></div>`:''}
+      ${fallback?note(fallback):''}
+      ${storyMetricHtml(focus,mode)}
+      ${!focus.future?`${chartSection(focus,false,mode)}<p class="est-source">${focus.meta.regional?'Regional model estimate':'Satellite estimate'} · ${h(focus.meta.source)}</p>${storyValuesHtml(focus,mode)}`:''}
+      ${storyMethodHtml(focus,mode)}
+      ${state.activeGroup==='air'?observedDispersionHtml(future):''}
       ${state.activeGroup==='air'?'<button type="button" class="est-evidence-link" data-story-evidence="air-quality">Near-surface air records ↗</button>':''}
       <p class="est-caveat">Nearby change does not prove a data center caused it.</p></div>`}`;
     updateDialog();
   }
-  function setSite(next) { if (!next?.id) return; state.site = next; state.future=state.futureStates.get(next.id)||null; state.waterResults.clear(); state.facility = null; refreshFacility(); render(); publishView(); }
+  async function loadGiovanni(id) {
+    if (!id || state.giovanni.has(id) || !/^[a-z0-9_-]{1,40}$/.test(id) || !globalThis.fetch) return;
+    state.giovanni.set(id, null);
+    try { const r = await fetch(`data/water/${id}.json`); const product = r.ok ? await r.json() : null; if (product?.schemaVersion === 'water-evidence/1.0') { state.giovanni.set(id, product); if (state.site?.id === id) render(); } } catch { /* optional prepared product */ }
+  }
+  function setSite(next) { if (!next?.id) return; void loadGiovanni(next.id); state.site = next; state.future=state.futureStates.get(next.id)||null; state.waterResults.clear(); state.facility = null; refreshFacility(); render(); publishView(); }
   function setYear(value) { if (!finite(value) || state.year === Math.round(value)) return; state.year = Math.round(value); refreshFacility(); render(); publishView(); }
   function setVariable(value) { if (!STORY_VARIABLES[value]) return; state.variable = value; state.activeGroup = STORY_VARIABLES[value].group; render(); publishView(); }
   function setFutureState(value){if(!value?.siteId||state.destroyed)return;state.futureStates.set(value.siteId,value);if(state.futureStates.size>8)state.futureStates.delete(state.futureStates.keys().next().value);if(value.siteId===state.site?.id){state.future=value;render();}}
@@ -229,13 +306,14 @@ export function attachEnvironmentStory({ site, sites = [], seriesBySite = {}, va
   function setWaterEvidence(result) { if (!['land-water', 'water-quality'].includes(result?.kind)) return; state.waterResults.set(result.kind, result); render(); }
   function selectYear(value) { const next = Math.round(Number(value)); if (!Number.isFinite(next)) return; if (onSelectYear) onSelectYear(next); else eventTarget.CloudShadowTimeline?.setYear?.(next); if (state.year !== next) setYear(next); }
   const click = (event) => {
-    const el = event.target.closest?.('[data-story-group],[data-story-mode],[data-story-year],[data-story-evidence],[data-story-expand],[data-story-close],[data-story-future-request],[data-story-future-map],[data-climate-view]'); if (!el || !(root.contains(el)||chartDialog?.contains(el))) return;
+    const el = event.target.closest?.('[data-story-group],[data-story-mode],[data-story-year],[data-story-evidence],[data-story-expand],[data-story-close],[data-story-future-request],[data-story-future-map],[data-story-plume-map],[data-climate-view]'); if (!el || !(root.contains(el)||chartDialog?.contains(el))) return;
     if(el.hasAttribute('data-climate-view')){eventTarget.dispatchEvent(new CustomEvent('cs:future-options',{detail:{climateView:el.dataset.climateView,showScreening:false}}));return;}
     if(el.hasAttribute('data-story-expand')){expandChart();return;}
     if(el.hasAttribute('data-story-close')){chartDialog?.close();return;}
     if(el.hasAttribute('data-story-future-request')){eventTarget.dispatchEvent(new CustomEvent('cs:future-request',{detail:{kind:el.dataset.storyFutureRequest,siteId:state.site?.id,year:state.year}}));return;}
+    if(el.hasAttribute('data-story-plume-map')){const raw=futureProduct(state.future,'plume-scenario');if(raw)eventTarget.dispatchEvent(new CustomEvent('cs:environment-layer',{detail:{layer:'plume',enabled:true,siteId:state.site?.id,result:raw}}));return;}
     if(el.hasAttribute('data-story-future-map')){eventTarget.dispatchEvent(new CustomEvent('cs:future-view',{detail:{group:state.activeGroup,siteId:state.site?.id,year:state.year,enabled:true}}));return;}
-    if (el.dataset.storyGroup) { const group = el.dataset.storyGroup; state.activeGroup = group; if (group !== 'water') { state.variable = resolveStoryVariables(vars(), state.variable)[group]; onSelectVariable?.(state.variable); } render(); publishView(); }
+    if (el.dataset.storyGroup) { const group = el.dataset.storyGroup; state.activeGroup = group; if (group !== 'water') { state.variable = resolveStoryVariables(vars(), state.variable)[group]; onSelectVariable?.(state.variable); } else eventTarget.CloudShadow?.setMapLayer?.('none'); /* no satellite water layer: avoid a stale heat/air map beside water records */ render(); publishView(); }
     else if (el.dataset.storyMode) { state.mode = el.dataset.storyMode; render(); publishView(); }
     else if (el.dataset.storyYear) selectYear(el.dataset.storyYear);
     else if (el.dataset.storyEvidence) openEvidence(el.dataset.storyEvidence);
@@ -244,7 +322,7 @@ export function attachEnvironmentStory({ site, sites = [], seriesBySite = {}, va
   const key = (event) => { if (!event.target.classList?.contains('est-chart') || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return; event.preventDefault(); selectYear(state.year + (event.key === 'ArrowRight' ? 1 : -1)); (chartDialog?.open?chartDialog:root).querySelector('.est-chart')?.focus(); };
   const onSite = ({ detail }) => { if (detail?.site) setSite(detail.site); };
   const onYear = ({ detail }) => { if (detail?.year && (!detail.siteId || detail.siteId === state.site?.id)) setYear(detail.year); };
-  const onLayer = ({ detail }) => { if (STORY_VARIABLES[detail?.kind]) setVariable(detail.kind); };
+  const onLayer = ({ detail }) => { if (!detail?.kind) return; state.map = { kind: detail.kind, date: detail.date ?? null }; if (STORY_VARIABLES[detail.kind]) setVariable(detail.kind); else render(); };
   const onAnalysis = ({ detail }) => { if (detail) setAnalysis(detail.varId || detail.variable, detail.analysis, detail.siteId); };
   const onData = ({ detail }) => { if (detail?.siteId === state.site?.id) setWaterEvidence(detail.result); };
   const onFuture=({detail})=>setFutureState(detail?.state);
@@ -253,6 +331,6 @@ export function attachEnvironmentStory({ site, sites = [], seriesBySite = {}, va
   root.addEventListener('click', click); root.addEventListener('change', change); root.addEventListener('keydown', key);
   const listeners = [['cs:site', onSite], ['cs:location', onSite], ['cs:year', onYear], ['cs:map-layer', onLayer], ['cs:analysis', onAnalysis], ['cs:environment-data', onData], ['cs:future-state',onFuture], ['cs:facility-evidence', onFacility],['resize',onResize]];
   for (const [type, listener] of listeners) eventTarget.addEventListener(type, listener);
-  refreshFacility(); render(); publishView();
+  refreshFacility(); void loadGiovanni(state.site?.id); render(); publishView();
   return { setSite, setYear, setVariable, setAnalysis, setWaterEvidence, setFutureState, get state() { return state; }, destroy() { state.destroyed = true; for (const [type, listener] of listeners) eventTarget.removeEventListener(type, listener);if(chartDialog){if(chartDialog.open)chartDialog.close();chartDialog.remove();} root.remove(); } };
 }

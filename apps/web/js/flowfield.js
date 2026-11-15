@@ -12,7 +12,9 @@
 // Particles show where air moves; they are not pollutant concentrations.
 
 const SECONDS_PER_FRAME = 2.0;      // time-lapse: one analysis frame every 2 s
-const GLOBAL_ALTITUDE_M = 2_500_000; // above this camera height, show the global field
+// Above this camera height the site box (±3°×±4°) no longer fills the view, so the
+// global field takes over; otherwise zooming out shows an isolated "sector" of wind.
+const GLOBAL_ALTITUDE_M = 600_000;
 const TRAIL = 6;
 
 const cache = new Map();
@@ -103,15 +105,26 @@ const speedColor = (s) => {
 /** Particle-trail layer for one field. */
 class Particles {
   constructor(viewer, field, { count, altitude, timeLapse, bbox }) {
-    this.viewer = viewer; this.field = field; this.altitude = altitude; this.timeLapse = timeLapse; this.bbox = bbox;
+    this.viewer = viewer; this.field = field; this.altitude = altitude; this.timeLapse = timeLapse; this.baseTimeLapse = timeLapse; this.bbox = bbox; this.view = null;
     this.lines = viewer.scene.primitives.add(new Cesium.PolylineCollection());
     this.p = Array.from({ length: count }, () => this.spawn({}));
-    for (const p of this.p) p.line = this.lines.add({ positions: this.positions(p), width: 1.6, material: Cesium.Material.fromType("Color", { color: Cesium.Color.TRANSPARENT }) });
+    for (const p of this.p) p.line = this.lines.add({ positions: this.positions(p), width: bbox.global ? 2.0 : 1.6, material: Cesium.Material.fromType("Color", { color: Cesium.Color.TRANSPARENT }) });
+  }
+  /** Global particles spawn inside the visible area (dense flow at any zoom). */
+  viewBox() {
+    if (!this.bbox.global) return null;
+    const r = this.viewer.camera.computeViewRectangle?.(this.viewer.scene.globe.ellipsoid);
+    if (!r) return null;
+    const D = 180 / Math.PI;
+    let w = r.west * D, e = r.east * D;
+    if (e < w) e += 360;                                   // view crosses the dateline
+    return [w, Math.max(-85, r.south * D), e, Math.min(85, r.north * D)];
   }
   spawn(p) {
-    const [w, s, e, n] = this.bbox;
-    const lat = this.bbox.global ? Math.asin(2 * Math.random() - 1) * 180 / Math.PI * 0.95 : s + Math.random() * (n - s);
-    const lon = w + Math.random() * (e - w);
+    const view = this.view, [w, s, e, n] = view || this.bbox;
+    let lat, lon;
+    if (this.bbox.global && view) { lat = s + Math.random() * (n - s); lon = w + Math.random() * (e - w); if (lon > 180) lon -= 360; }
+    else { lat = this.bbox.global ? Math.asin(2 * Math.random() - 1) * 180 / Math.PI * 0.95 : s + Math.random() * (n - s); lon = w + Math.random() * (e - w); }
     p.trail = Array.from({ length: TRAIL }, () => [lon, lat]);
     p.age = 0; p.life = 3 + Math.random() * 4; p.speed = 0;
     return p;
@@ -119,6 +132,12 @@ class Particles {
   positions(p) { return p.trail.map(([lo, la]) => Cesium.Cartesian3.fromDegrees(lo, la, this.altitude)); }
   step(dt, t, frameCounter) {
     const R = 6_371_000;
+    if (this.bbox.global) {
+      if (frameCounter % 15 === 0 || !this.view) this.view = this.viewBox();
+      // Trail speed follows zoom so motion stays readable from regional to whole-Earth views.
+      const h = this.viewer.camera.positionCartographic.height;
+      this.timeLapse = this.baseTimeLapse * Math.max(0.25, Math.min(4, h / 2_500_000));
+    }
     for (const p of this.p) {
       p.age += dt;
       const [lon, lat] = p.trail[p.trail.length - 1];
@@ -146,7 +165,7 @@ class Particles {
 /** Clock deltas are already multiplied by the shared motion slider. Year/light
  * jumps are discontinuities, not wind time; never apply the multiplier twice. */
 export function analysisDeltaSeconds(delta,animating=true){return animating&&Number.isFinite(delta)&&delta>0&&delta<5?Math.min(delta,.25):0;}
-export const flowBudget=(quality)=>({high:{site:420,global:900},balanced:{site:220,global:500},low:{site:100,global:240}}[quality]||{site:220,global:500});
+export const flowBudget=(quality)=>({high:{site:420,global:1800},balanced:{site:220,global:1100},low:{site:100,global:600}}[quality]||{site:220,global:1100});
 export function resolveWindReadout(row={},phase='observed',analysis=null){
   const known=value=>typeof value==='number'&&Number.isFinite(value);
   if((phase==='observed'||phase==='present')&&analysis&&known(analysis.speed)&&known(analysis.towardDeg))return {...analysis,label:'GEOS-FP analysis',title:'NASA GEOS-FP assimilated model analysis at the displayed UTC time. Arrow points toward travel; not a local anemometer measurement. Motion is an illustrative time-lapse.'};
