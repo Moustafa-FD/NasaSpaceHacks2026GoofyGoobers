@@ -793,8 +793,8 @@ def build_bolts(seed=21):
     """Several jagged bolt variants along each power line (thin additive-bright segments + a soft
     glow sleeve), plus a flash light per line. Flickered in _key_bolts()."""
     rnd = random.Random(seed)
-    core = cs._emissive_material("/Game/CloudShadow/Materials/M_BoltCore", (0.75, 0.85, 1.0), 220.0)
-    glow = cs._emissive_material("/Game/CloudShadow/Materials/M_BoltGlow", (0.35, 0.5, 1.0), 25.0)
+    core = cs._emissive_material("/Game/CloudShadow/Materials/M_BoltCore2", (0.80, 0.88, 1.0), 900.0)
+    glow = cs._emissive_material("/Game/CloudShadow/Materials/M_BoltGlow2", (0.30, 0.48, 1.0), 60.0)
     cube = unreal.load_asset("/Engine/BasicShapes/Cube")
     made = 0
     for li, line in enumerate(POWER_LINES):
@@ -806,7 +806,7 @@ def build_bolts(seed=21):
             segs = []
             for i in range(len(pts) - 1):
                 segs += _fractal_bolt(pts[i], pts[i + 1], rnd)
-            for name, mat, thick in (("Core", core, 0.35), ("Glow", glow, 1.6)):
+            for name, mat, thick in (("Core", core, 1.4), ("Glow", glow, 6.0)):
                 h = cs._add_component(a, unreal.HierarchicalInstancedStaticMeshComponent, name)
                 h.set_static_mesh(cube)
                 h.set_material(0, mat)
@@ -869,11 +869,12 @@ def _key_bolts(seq, seed=33):
 VDB_DIR = "/Game/CloudShadow/VDB"
 SVT_MASTER = "/Engine/EngineMaterials/SparseVolumeMaterial"
 VOLUMES = {   # svt, albedo, density scale
-    "Dust": ("ground_explosion", (0.80, 0.67, 0.50), 4.0),
-    "Smoke": ("industrial_chimney_smoke", (0.24, 0.21, 0.18), 6.0),
-    "Steam": ("steam_plume", (0.95, 0.96, 0.98), 2.5),
+    "Dust": ("ground_explosion", (0.95, 0.82, 0.62), 0.9),
+    "Smoke": ("industrial_chimney_smoke", (0.42, 0.37, 0.32), 1.6),
+    "Steam": ("steam_plume", (1.0, 1.0, 1.0), 0.35),
 }
-HV_CVARS = {"r.HeterogeneousVolumes.MaxTraceDistance": 300000, "r.HeterogeneousVolumes.MaxShadowTraceDistance": 300000}
+HV_CVARS = {"r.HeterogeneousVolumes.MaxTraceDistance": 300000, "r.HeterogeneousVolumes.MaxShadowTraceDistance": 300000,
+            "r.HeterogeneousVolumes.IndirectLighting": 1}                 # sky light into the volumes, or cores go black
 
 
 def _vdb_material(kind):
@@ -922,7 +923,7 @@ def build_volumes():
     hx, hy = HALL_C
     _volume("FA_VDB_Dust", "Dust", *env._offset(hx, hy), env.GROUND_H, 300.0)
     for i, (e, n) in enumerate(((-70, -160), (10, 20), (80, 190))):            # rooftop cooling plant
-        _volume("FA_VDB_Steam_%d" % i, "Steam", *env._offset(hx + e, hy + n), env.GROUND_H + env.HALL_H, 40.0,
+        _volume("FA_VDB_Steam_%d" % i, "Steam", *env._offset(hx + e, hy + n), env.GROUND_H + env.HALL_H, 24.0,
                 yaw=180.0 + _data()["colossus2"]["wind"]["plumeTowardDeg"])
     wind = _data()["colossus1"]["wind"]["plumeTowardDeg"]
     for i, (e, n) in enumerate(((-40, -20), (30, 25))):                       # turbine stacks

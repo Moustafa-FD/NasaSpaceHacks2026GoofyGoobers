@@ -17,7 +17,9 @@ actor (FA_Rubble_k) whose visibility is keyed.
 Zone geometry comes from comparing NASA HLS 30 m imagery of 2021-07-04 and 2025-06-10 on a 250 m
 grid (new north hall + scraped land); the south hall predates 2021 and is left untouched.
 """
+import json
 import math
+import os
 import random
 
 import unreal
@@ -415,6 +417,48 @@ def build_hall(h):
     band.add_instances([unreal.Transform(location=_local(0, side * (sy / 2 + 0.3), HALL_H - 0.6), scale=unreal.Vector(sx + 1.2, 0.6, 1.2)) for side in (-1, 1)] +
                        [unreal.Transform(location=_local(side * (sx / 2 + 0.3), 0, HALL_H - 0.6), scale=unreal.Vector(0.6, sy + 1.2, 1.2)) for side in (-1, 1)],
                        False, False)
+    _hall_exterior(hall, sx, sy, white, grey, dark, cube)
+
+
+def _hall_exterior(hall, sx, sy, white, grey, dark, cube):
+    """What surrounds a real hyperscale hall: truck docks, a backup-generator yard with exhaust stacks,
+    a transformer pad and ground-level chillers. Child components, so they arrive with the hall."""
+    cyl = "/Engine/BasicShapes/Cylinder"
+
+    def hism(name, mesh, mat, xs):
+        h = _hism(hall, mesh, name)
+        h.set_material(0, mat)
+        h.add_instances(xs, False, False)
+
+    T = lambda e, n, z, s: unreal.Transform(location=_local(e, n, z), scale=unreal.Vector(*s))
+    # truck docks: dark doors with a canopy along the east wall
+    docks = [T(sx / 2 + 0.3, n, 2.4, (0.5, 3.6, 4.6)) for n in [-200 + 5.2 * i for i in range(78)]]
+    hism("Docks", "/Engine/BasicShapes/Cube", dark, docks)
+    hism("DockCanopy", "/Engine/BasicShapes/Cube", grey, [T(sx / 2 + 2.0, 0, 5.2, (3.4, 410.0, 0.3))])
+    # backup generator yard: two rows of genset containers + exhaust stacks (east of the hall)
+    gens, stacks = [], []
+    for row, e in enumerate((sx / 2 + 22, sx / 2 + 34)):
+        for i in range(30):
+            n = -235 + i * 16.0
+            gens.append(T(e, n, 1.7, (12.5, 3.2, 3.4)))
+            stacks.append(T(e - 4.0, n, 5.2, (0.7, 0.7, 3.6)))
+    hism("Gensets", "/Engine/BasicShapes/Cube", grey, gens)
+    hism("GenStacks", cyl, dark, stacks)
+    hism("GenPad", "/Engine/BasicShapes/Cube", white, [T(sx / 2 + 28, 0, 0.1, (30.0, 500.0, 0.2))])
+    # transformer pad (north end): blocks with radiator fins
+    tr, fins = [], []
+    for i in range(6):
+        e = -90 + i * 36.0
+        tr.append(T(e, sy / 2 + 26, 2.2, (7.0, 5.0, 4.4)))
+        for f in range(5):
+            fins.append(T(e - 3 + f * 1.5, sy / 2 + 29.3, 2.0, (0.25, 1.6, 3.6)))
+    hism("Transformers", "/Engine/BasicShapes/Cube", grey, tr)
+    hism("TransformerFins", "/Engine/BasicShapes/Cube", dark, fins)
+    hism("TransformerPad", "/Engine/BasicShapes/Cube", white, [T(0, sy / 2 + 26, 0.1, (230.0, 18.0, 0.2))])
+    # ground chillers along the west wall
+    ch = [T(-sx / 2 - 14, -230 + i * 14.5, 1.6, (9.0, 11.0, 3.2)) for i in range(32)]
+    hism("GroundChillers", "/Engine/BasicShapes/Cube", grey, ch)
+    hism("ChillerFans", cyl, dark, [T(-sx / 2 - 14 + d, -230 + i * 14.5, 3.3, (3.0, 3.0, 0.3)) for i in range(32) for d in (-2.5, 2.5)])
     hall.set_actor_hidden_in_game(True)
     hall.set_is_temporarily_hidden_in_editor(True)
 
