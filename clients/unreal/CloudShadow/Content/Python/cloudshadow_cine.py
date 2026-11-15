@@ -121,7 +121,7 @@ def camera_path():
         _key(480, _c2(-760, -560, 110), _c2(-260, -200, 10)),           # S6 POWER: grid into the halls
         _key(569, _c2(-640, -470, 140), _c2(-150, -120, 10), cut=True),
         _key(570, _c2(-207, -49, 10.0), _c2(-200, -40, 0.0)),             # S7 WATER: close dolly over the basin
-        _key(659, _c2(-203, -44, 6.5), _c2(-200, -40, 0.0), cut=True),
+        _key(659, _c2(-205, -47, 9.0), _c2(-200, -40, 0.0), cut=True),
         _key(660, _c1(900, -700, 120), (*PLUME_AT, C1_GROUND + 150)),   # S8 AIR: turbine plume over homes
         _key(779, _c1(620, -400, 180), (*PLUME_AT, C1_GROUND + 210)),
         _key(900, (-91.5, 32.5, 2.8e6), (-90.1, 35.3, 0.0)),            # S9 back to the planet: title
@@ -1044,7 +1044,7 @@ T3D = {
     "power": ("POWER", "hundreds of megawatts, around the clock", "low"),
     "water": ("WATER", "up to 1.3 million gallons a day to cool it", "low"),
     "air":   ("AIR", "NO2 up near the site  (NASA TROPOMI, borderline)", "low"),
-    "title": ("FOOTPRINT ATLAS", "the hidden footprint of data centers  |  NASA data", "mid"),
+    "title": ("IS IT JUST THIS CITY?", "or is it happening everywhere?", "mid"),   # the project name is shown elsewhere
 }
 T3D_DIST = 600.0            # cm in front of the lens: sharp (18 mm f/2.8 hyperfocal ~5.8 m), no motion blur
 T3D_GLOW = 120.0
@@ -1094,6 +1094,114 @@ def build_text3d():
 T3D_YAW = 0.0               # Text3D reads correctly from the lens at yaw 0 (180 = mirrored, checked in render)
 
 
+# ------------------------------------------------------------------ AIR gag: cartoon birds fly in, cough, drop
+# (a comedic visualization of "bad air"; the measured NO2 change stays labelled borderline on screen)
+BIRDS = [  # forward cm, height cm, entry frame, fall frame
+    (1500.0, 260.0, 662, 704), (1750.0, 420.0, 668, 712), (1350.0, 120.0, 674, 719),
+    (1900.0, 560.0, 664, 726), (1600.0, 330.0, 680, 733)]
+BIRD_FLAP = 3          # frames per half wing beat
+
+
+def build_birds():
+    for a in cs._actors().get_all_level_actors():
+        if a.get_actor_label().startswith("FA_Bird"):
+            cs._actors().destroy_actor(a)
+    cam = _find("CineCam_FootprintAtlas")
+    black = cs._emissive_material("/Game/CloudShadow/Materials/M_Bird_Black", (0.02, 0.02, 0.025), 0.0)
+    beak = cs._emissive_material("/Game/CloudShadow/Materials/M_Bird_Beak", (1.0, 0.55, 0.05), 0.4)
+    sphere, cube, cone = (unreal.load_asset("/Engine/BasicShapes/" + n) for n in ("Sphere", "Cube", "Cone"))
+    keep = unreal.AttachmentRule.KEEP_RELATIVE
+
+    def part(label, mesh, mat, parent, loc, scl, rot=unreal.Rotator(0, 0, 0)):
+        a = _spawn(unreal.StaticMeshActor, label, "CloudShadow/Cine/Birds")
+        smc = a.static_mesh_component
+        smc.set_mobility(unreal.ComponentMobility.MOVABLE)
+        if mesh:
+            smc.set_static_mesh(mesh)
+            smc.set_material(0, mat)
+        smc.set_cast_shadow(False)
+        if parent:
+            a.attach_to_actor(parent, "", keep, keep, keep, False)
+        a.root_component.set_relative_location(unreal.Vector(*loc), False, False)
+        a.root_component.set_relative_rotation(rot, False, False)
+        a.root_component.set_relative_scale3d(unreal.Vector(*scl))
+        a.set_actor_hidden_in_game(True)
+        return a
+
+    for i in range(len(BIRDS)):
+        body = part("FA_Bird_%d" % i, sphere, black, cam, (0, 0, -100000), (0.9, 0.45, 0.42))
+        part("FA_Bird_%d_Head" % i, sphere, black, body, (55, 0, 22), (0.55, 0.62, 0.62))
+        part("FA_Bird_%d_Beak" % i, cone, beak, body, (92, 0, 22), (0.16, 0.16, 0.3), unreal.Rotator(0, -90, 0))
+        part("FA_Bird_%d_Tail" % i, cube, black, body, (-60, 0, 5), (0.45, 0.35, 0.04))
+        for side, sgn in (("L", -1), ("R", 1)):
+            piv = part("FA_Bird_%d_Piv%s" % (i, side), None, None, body, (5, 18 * sgn, 12), (1.11, 2.22, 2.38))
+            part("FA_Bird_%d_Wing%s" % (i, side), cube, black, piv, (0, 38 * sgn, 0), (0.42, 0.78, 0.03))
+    log("Footprint Atlas: %d birds built" % len(BIRDS))
+
+
+def _key_xf(seq, actor, keys):
+    """keys: (frame, (x, y, z), (roll, pitch, yaw), (sx, sy, sz)); linear."""
+    b = seq.add_possessable(actor)
+    sec = b.add_track(unreal.MovieScene3DTransformTrack).add_section()
+    sec.set_range(0, TOTAL)
+    lin = unreal.MovieSceneKeyInterpolation.LINEAR
+    for f, loc, rot, scl in keys:
+        for c, v in zip(sec.get_all_channels(), (*loc, *rot, *scl)):
+            c.add_key(unreal.FrameNumber(int(f)), float(v), interpolation=lin)
+
+
+def _key_birds(seq):
+    f_end = 780
+    for i, (fwd, z0, f_in, f_fall) in enumerate(BIRDS):
+        body = _find("FA_Bird_%d" % i)
+        if not body:
+            continue
+        scl = (0.9, 0.45, 0.42)
+        y0, vy = 1300.0 + 120 * i, -26.0 - 3 * i            # enters from the right, flies left (cm/frame)
+        freeze = f_fall + 6                                   # cartoon beat: hangs in the air, then drops
+        keys = [(0, (fwd, y0, -100000), (0, 0, -90), scl)]
+        y = y0
+        for f in range(f_in, f_end + 1, 2):
+            if f < f_fall:
+                y = y0 + vy * (f - f_in)
+                z = z0 + 18 * math.sin((f - f_in) * 0.35)
+                rot = (8 * math.sin(f * 0.5), 0, -90)
+                if f >= f_fall - 8:                           # the cough: jerky shakes
+                    z += 25 * (1 if f % 4 else -1)
+                    rot = (15 * (1 if f % 4 else -1), 12, -90)
+            elif f < freeze:
+                z, rot = z, (0, 0, -90)                       # stiff, eyes wide
+                rot = (180, 0, -90)                           # flips feet-up
+            else:
+                t = (f - freeze) / FPS
+                z = z - 0 if False else z
+                y += vy * 0.15
+                zz = z - 0.5 * 2200.0 * t * t                 # comedic gravity
+                rot = (180 + 360 * t * 1.3, -50 * min(1.0, t * 3), -90)
+                keys.append((f, (fwd, y, zz), rot, scl))
+                continue
+            keys.append((f, (fwd, y, z), rot, scl))
+        if f_in > 1:
+            keys.insert(1, (f_in - 1, (fwd, y0, -100000), (0, 0, -90), scl))
+            keys.insert(2, (f_in, (fwd, y0, z0), (0, 0, -90), scl))
+        keys.sort(key=lambda k: k[0])
+        _key_xf(seq, body, keys)
+        for side, sgn in (("L", -1), ("R", 1)):
+            piv = _find("FA_Bird_%d_Piv%s" % (i, side))
+            if not piv:
+                continue
+            wk, ph = [], i
+            for f in range(f_in, f_end + 1, BIRD_FLAP):
+                if f < f_fall:
+                    a = 40 if ((f - f_in) // BIRD_FLAP + ph) % 2 else -30
+                elif f < f_fall + 6:
+                    a = 85                                    # wings stiff straight up
+                else:
+                    a = 85 + 25 * (1 if (f // BIRD_FLAP) % 2 else -1)   # flailing
+                wk.append((f, (5, 18 * sgn, 12), (a * sgn, 0, 0), (1.11, 2.22, 2.38)))
+            _key_xf(seq, piv, [(0, (5, 18 * sgn, 12), (0, 0, 0), (1.11, 2.22, 2.38))] + wk)
+
+
 # ------------------------------------------------------------------ per-beat state
 def apply(state):
     """Put the level in a slice's state: before/after (Google clip), sun, FX, grade, focus."""
@@ -1126,14 +1234,15 @@ def apply(state):
             a.set_is_temporarily_hidden_in_editor(not on)
             if hasattr(a, "niagara_component"):
                 (a.niagara_component.activate if on else a.niagara_component.deactivate)()
+    for a in cs._actors().get_all_level_actors():          # the slice's 3D text
+        lab = a.get_actor_label()
+        if lab.startswith("FA_T3D_"):
+            a.set_actor_hidden_in_game(lab[7:].rsplit("_", 1)[0] != state.get("t3d"))
     for a in cs._actors().get_all_level_actors():          # flows: every actor with the prefix
         lab = a.get_actor_label()
-        for a in cs._actors().get_all_level_actors():
-            lab = a.get_actor_label()
-            if lab.startswith("FA_T3D_"):
-                a.set_actor_hidden_in_game(lab[7:].rsplit("_", 1)[0] != state.get("t3d"))
         for prefix, on in (("FA_PowerFX", state["power"]), ("FA_WaterFX", state["water"]),
-                           ("FA_VDB_Steam", state["water"]), ("FA_VDB_Smoke", state.get("haze") == "smog")):
+                           ("FA_VDB_Steam", state.get("env") == "after"), ("FA_VDB_Smoke", state.get("haze") == "smog"),
+                           ("FA_Bird", state.get("haze") == "smog")):
             if lab.startswith(prefix):
                 a.set_actor_hidden_in_game(not on)
                 a.set_is_temporarily_hidden_in_editor(not on)
@@ -1302,6 +1411,7 @@ def build_sequence():
     _key_flows(seq)
     _key_bolts(seq)
     _key_volumes(seq)
+    _key_birds(seq)
     _key_dust(seq, impact)
     _key_plume(seq)
     _drop_probe()

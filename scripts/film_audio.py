@@ -121,6 +121,19 @@ def meadow(sec=5.6):
     return fade(norm(wind, 0.35) + norm(birds, 0.18), 0.4, 0.6)
 
 
+def birdsong(sec, r):
+    t = t_(sec)
+    out = np.zeros_like(t)
+    for _ in range(3):
+        at, ln = r.uniform(0, sec - 0.12), r.uniform(0.05, 0.1)
+        tt = t_(ln)
+        f = r.uniform(3200, 4600) + r.uniform(-1200, 1200) * tt / ln
+        ch = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.sin(np.pi * tt / ln) ** 2
+        i = int(at * SR)
+        out[i:i + len(ch)] += ch[: len(out) - i]
+    return norm(out, 0.6)
+
+
 def falling(sec=0.8):
     t = t_(sec)
     f = 1900 * (320 / 1900) ** (t / sec)
@@ -241,6 +254,29 @@ def score():
     return reverb(fade(out, 1.5, 2.0), 3.0, 0.35, 2600)
 
 
+# ------------------------------------------------------------------ AIR gag: birds cough and drop (cloudshadow_cine.BIRDS)
+BIRDS = [(662, 704), (668, 712), (674, 719), (664, 726), (680, 733)]   # (entry frame, fall frame)
+
+
+def cough(sec=0.22):
+    t = t_(sec)
+    x = band(noise(sec), lo=300, hi=2400) * np.exp(-t / 0.05) + 0.6 * np.sin(2 * np.pi * 180 * t) * np.exp(-t / 0.04)
+    return norm(x, 0.8)
+
+
+def slide_whistle(sec=1.1):
+    t = t_(sec)
+    f = 2100 * (300 / 2100) ** (t / sec)
+    x = np.sin(2 * np.pi * np.cumsum(f * (1 + 0.02 * np.sin(2 * np.pi * 6 * t))) / SR)
+    return fade(norm(x, 0.6), 0.02, 0.15)
+
+
+def boing(sec=0.35):
+    t = t_(sec)
+    f = 140 + 220 * np.exp(-t / 0.08) * np.abs(np.sin(2 * np.pi * 9 * t))
+    return fade(norm(np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.15), 0.7), 0.0, 0.05)
+
+
 # ------------------------------------------------------------------ the mix
 def build_sfx():
     fx = Track()
@@ -258,6 +294,14 @@ def build_sfx():
     fx.add(hum(3.0), s(570), 0.3)
     fx.add(steam(3.0), s(570), 0.7)
     fx.add(turbine(4.0), s(660), 0.65)
+    r2 = random.Random(11)
+    for k, (f_in, f_fall) in enumerate(BIRDS):
+        pan = r2.uniform(-0.5, 0.5)
+        fx.add(birdsong(0.5, r2), s(f_in + 4), 0.35, pan=pan)
+        for j in range(2):                                    # cough, cough
+            fx.add(cough(), s(f_fall - 8) + j * 0.17, 0.55, pan=pan)
+        fx.add(slide_whistle(), s(f_fall + 6), 0.32, pan=pan)
+        fx.add(boing(), s(f_fall + 6) + 1.05, 0.25, pan=pan)
     fx.add(riser(1.0), s(780) - 1.0, 0.6)
     fx.add(title_hit(), s(780), 0.95)
     return fx
