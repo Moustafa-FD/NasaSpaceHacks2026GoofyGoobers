@@ -17,3 +17,21 @@ When creating the project here:
 - Use HTTP/WS locally and HTTPS/WSS for a secured remote backend.
 - Follow the documented local-terrain and independent-data rules.
 - Do not claim a functional Unreal build until it has been created, compiled, and tested in the selected engine version.
+
+## Fab assets for the Footprint Atlas film (not in Git)
+
+The 2021 meadow in the intro film uses free Fab / Quixel assets. Their license allows use in the
+project and its rendered output, not redistribution, so they are git-ignored. To rebuild the film
+on another machine, first enable the **Procedural Vegetation Editor** plugin (already in the
+.uproject; restart the editor), then in **Window > Fab** add these to the project:
+
+| Kind | Fab listing |
+|---|---|
+| Trees (Nanite, wind) | Megaplants: Norway Maple Forest; Megaplants: English Oak; Megaplants: European Hornbeam |
+| Grass and flowers | Wild Grass; Grass Clumps; Goldenrods; Field Poppy; White Everlasting; Violet Wood Sorrel |
+| Ground | Ground Rubble (surface); Nordic Mossy Ground; Industrial Abandoned Factory Ground Patch (Gravel); Military Trenches Ground Patch (Rock) |
+
+They land in `Content/Fab/` and `Content/Megaplant_Library/`. Nanite Foliage (assemblies + voxels)
+is already enabled in `Config/DefaultEngine.ini`; without it the Megaplants render without leaves.
+Then run `import cloudshadow_env as env; env.build()` and `import cloudshadow_cine as c; c.build(); c.build_sequence()`
+in the editor Python console.

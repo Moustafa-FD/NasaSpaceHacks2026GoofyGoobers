@@ -39,3 +39,8 @@ clients/unreal/**/Content/CesiumSettings/
 
 # static web build output (npm run web:build)
 dist/
+
+# Fab / Quixel assets (Megascans, Megaplants): licensed for use in the project, not for redistribution
+# in a public repo. Download them from Fab into the project - list in clients/unreal/README.md.
+clients/unreal/**/Content/Fab/
+clients/unreal/**/Content/Megaplant_Library/
