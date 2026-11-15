@@ -19,6 +19,13 @@ export const ENVIRONMENT_ACTIONS = [
 
 const day = (date) => date.toISOString().slice(0, 10);
 const validNumber = (value) => typeof value === 'number' && Number.isFinite(value);
+/** A bounded source period, not an extrapolation beyond HighResMIP coverage. */
+export function futureRequestPeriod(year, now = new Date()) {
+  const first = now.getUTCFullYear() + 1, selected = Math.max(first, Math.trunc(year));
+  if (!Number.isFinite(selected) || selected > 2049 || first > 2049) throw new Error('This agricultural/daily-climate model supports future periods only through 2049. Select 2049 or earlier; climate ensemble scenarios remain available through 2100.');
+  const end = Math.min(2049, Math.max(first + 4, selected)), start = Math.max(first, end - 4);
+  return { start: `${start}-01-01`, end: `${end}-12-31` };
+}
 export function sitePoint(site) {
   if (!validNumber(site?.lat) || !validNumber(site?.lon) || Math.abs(site.lat) > 90 || Math.abs(site.lon) > 180) throw new Error('Select a valid map location.');
   return { latitude: site.lat, longitude: site.lon };
@@ -44,8 +51,8 @@ export function buildEnvironmentRequest(action, site, year = 2025, options = {})
     }
     case 'climate-projection': return { ...base, point, perWindow: 2 };
     case 'plume-scenario': return { ...base, ...(['ashburn', 'colossus1', 'colossus2', 'abilene', 'thedalles'].includes(site.id) ? { siteId: site.id } : { point }), effectiveHeightM: 20, landUse: 'urban' };
-    case 'climate': return { ...base, point, start: '2035-01-01', end: '2039-12-31', models: ['EC_Earth3P_HR', 'MRI_AGCM3_2_S'] };
-    case 'agriculture': return { ...base, point, baseline: { start: '2000-01-01', end: '2004-12-31' }, future: { start: '2035-01-01', end: '2039-12-31' }, models: ['EC_Earth3P_HR', 'MRI_AGCM3_2_S'], growingMonths: [4, 5, 6, 7, 8, 9], baseTemperatureC: 10, heatThresholdC: 35, dryDayThresholdMm: 1 };
+    case 'climate': return { ...base, point, ...futureRequestPeriod(year, now), models: ['EC_Earth3P_HR', 'MRI_AGCM3_2_S'] };
+    case 'agriculture': return { ...base, point, baseline: { start: '2000-01-01', end: '2004-12-31' }, future: futureRequestPeriod(year, now), models: ['EC_Earth3P_HR', 'MRI_AGCM3_2_S'], growingMonths: [4, 5, 6, 7, 8, 9], baseTemperatureC: 10, heatThresholdC: 35, dryDayThresholdMm: 1 };
     case 'facilities-sync': {
       const dx = .06 / Math.max(.2, Math.cos(site.lat * Math.PI / 180));
       return { ...base, bbox: [Math.max(-180, site.lon - dx), Math.max(-90, site.lat - .06), Math.min(180, site.lon + dx), Math.min(90, site.lat + .06)] };

@@ -101,7 +101,7 @@ export function attachEnvironmentPanel({ apiBase, site, year, sites, container, 
   const prepared = products || createStaticEnvironment(), findStations = stationLookup || createWaterStationLookup();
   const initialSite = site || eventTarget.CloudShadow?.state?.site || sites?.[0] || eventTarget.CloudShadow?.sites?.[0];
   const state = { site: initialSite, year: year ?? eventTarget.CloudShadowTimeline?.year ?? 2025, tab: 'climate', metric: 'meanTempC', scenario: 'ssp245', climate: null, plume: null, climateError: '', plumeError: '', api: 'Checking live data…', connected: false, domains: [], sources: [], action: 'series', requestText: '', requestError: '', requestYear: 2025, dirty: false, result: null, resultRun: null, trendUnit: null, seriesIndex: 0, pending: false, status: '', library: null, libraryKind: 'facilities', libraryQuery: '', stations: [], selectedStation: '', stationStatus: '', stationWarnings: [], layer: 'off', destroyed: false };
-  let loadToken = 0, jobController, discovery, browseController, stationController, downloadUrl;
+  let loadToken = 0, jobController, discovery, browseController, stationController, downloadUrl, runError = '', lastStatus = '';
   const shell = doc.createElement('details'); shell.id = 'environmentInspector'; shell.className = 'env-inspector panel-detail';
   shell.innerHTML = `<summary>Environmental evidence <span class="env-state">Prepared + live</span></summary><div class="env-body"><p class="env-location"></p><div class="env-tabs" role="tablist" aria-label="Environmental evidence">${[['climate', 'Climate'], ['plume', 'Plume'], ['live', 'Live data'], ['sources', 'Sources']].map(([id, title]) => `<button type="button" role="tab" id="env-tab-${id}" data-tab="${id}">${title}</button>`).join('')}</div><div class="env-content" role="tabpanel"></div></div>`;
   const host = container || doc.querySelector('#panel') || doc.body, story = host.querySelector?.('#story');
@@ -121,6 +121,8 @@ export function attachEnvironmentPanel({ apiBase, site, year, sites, container, 
     const el = content.querySelector('.env-live-status'); if (el) el.textContent = state.status || state.api;
     const go = content.querySelector('[data-action="run"]'); if (go) go.disabled = state.pending || !state.connected || !!state.requestError;
     const stop = content.querySelector('[data-action="stop"]'); if (stop) stop.hidden = !state.pending;
+    const statusDetail = { siteId: state.site?.id, kind: state.action, status: state.status || state.api, pending: state.pending, error: runError }, statusKey = JSON.stringify(statusDetail);
+    if (statusKey !== lastStatus) { lastStatus = statusKey; emit('cs:environment-status', statusDetail); }
   }
   function climateView() {
     return `<label>Climate measure<select data-env="metric">${Object.entries(metricNames).map(([key, title]) => `<option value="${key}" ${key === state.metric ? 'selected' : ''}>${title}</option>`).join('')}</select></label><label>Emission pathway<select data-env="scenario"><option value="ssp245" ${state.scenario === 'ssp245' ? 'selected' : ''}>SSP2-4.5 · intermediate</option><option value="ssp585" ${state.scenario === 'ssp585' ? 'selected' : ''}>SSP5-8.5 · very high</option></select></label>${state.climate ? climateSummaryHtml(state.climate, state) : note(state.climateError || 'Loading prepared climate evidence…')}${button('weather', 'Explore separate 30-year weather context')}${note('The existing timeline trend extension and these conditional climate scenarios are different products. Neither establishes facility causation.')}`;
@@ -186,6 +188,7 @@ export function attachEnvironmentPanel({ apiBase, site, year, sites, container, 
     if (!next?.id || !Number.isFinite(next.lat) || !Number.isFinite(next.lon)) return;
     const token = ++loadToken; jobController?.abort(); browseController?.abort(); stationController?.abort(); jobController = null; state.pending = false;
     if (state.layer !== 'off') layer(state.layer, false);
+    runError = '';
     Object.assign(state, { site: next, climate: null, plume: null, result: null, resultRun: null, trendUnit: null, library: null, climateError: '', plumeError: '', status: '', stations: [], selectedStation: '', stationStatus: '', stationWarnings: [] }); makeRequest(); render();
     await Promise.allSettled([
       prepared.climate(next.id).then((result) => { if (token !== loadToken || state.destroyed) return; state.climate = result; emitData('climate-projection', result, 'static'); if (state.tab === 'climate') render(); }).catch((error) => { if (token === loadToken && !state.destroyed) { state.climateError = error.message; if (state.tab === 'climate') render(); } }),
@@ -198,13 +201,13 @@ export function attachEnvironmentPanel({ apiBase, site, year, sites, container, 
     if (!state.dirty && !state.pending) makeRequest();
     if (state.tab === 'live' && (state.dirty || state.pending)) location.textContent = `${state.site?.name || 'Select a place'} · Timeline ${state.year}`; else render();
   }
-  async function runRequest() {
-    if (state.pending || !state.connected || state.requestError) return;
-    let payload; try { payload = JSON.parse(state.requestText); if (payload.kind === 'water-quality' && !/^USGS-\d{8,15}$/.test(payload.stationId)) throw new Error('Choose a nearby monitoring location, or enter a sourced USGS station ID.'); } catch (error) { state.status = error.message; updateStatus(); return; }
+  async function runRequest({ throwOnError = false } = {}) {
+    if (state.pending || !state.connected || state.requestError) { if (throwOnError) throw new Error(state.requestError || (state.pending ? 'A model job is already running for this place.' : 'The local environmental API is unavailable. Start the local web server to run Python models.')); return; }
+    let payload; try { payload = JSON.parse(state.requestText); if (payload.kind === 'water-quality' && !/^USGS-\d{8,15}$/.test(payload.stationId)) throw new Error('Choose a nearby monitoring location, or enter a sourced USGS station ID.'); } catch (error) { runError = error.message; state.status = error.message; updateStatus(); if (throwOnError) throw error; return; }
     const context = { ...state.site }, controller = new AbortController(), reuse = !content.querySelector('[data-env="fresh"]')?.checked;
     const input = environmentSeries(state.result).find((s) => s.id === payload.input?.variable && (!payload.input?.model || s.model === payload.input.model));
     const trendUnit = payload.input?.series?.unit || input?.unit;
-    jobController?.abort(); jobController = controller; state.pending = true; state.status = 'Requesting environmental evidence…'; updateStatus();
+    jobController?.abort(); jobController = controller; runError = ''; state.pending = true; state.status = 'Requesting environmental evidence…'; updateStatus();
     try {
       const response = await api.run(payload, { signal: controller.signal, reuse, context: { siteId: context.id }, onProgress: (run) => { if (jobController === controller) { state.status = `${run.status} · ${Number.isFinite(run.progress) ? run.progress : 0}% · ${String(run.stage || '').replaceAll('-', ' ')}`; updateStatus(); } } });
       if (state.destroyed || jobController !== controller || state.site.id !== context.id) return;
@@ -212,7 +215,8 @@ export function attachEnvironmentPanel({ apiBase, site, year, sites, container, 
       if (payload.kind === 'climate-projection') state.climate = response.result;
       if (payload.kind === 'plume-scenario') state.plume = response.result;
       emitData(payload.kind, response.result, 'api', response.run.id, context);
-    } catch (error) { if (jobController === controller) state.status = error.name === 'AbortError' ? 'Stopped waiting. Preparation may finish in the background.' : `${error.message}${Array.isArray(error.details) ? ` ${error.details.join('; ')}` : ''}`; }
+      return response;
+    } catch (error) { if (jobController === controller) { runError = error.name === 'AbortError' ? '' : error.message; state.status = error.name === 'AbortError' ? 'Stopped waiting. Preparation may finish in the background.' : `${error.message}${Array.isArray(error.details) ? ` ${error.details.join('; ')}` : ''}`; } if (throwOnError) throw error; }
     finally { if (!state.destroyed && jobController === controller) { state.pending = false; render(); } }
   }
   async function browse(kind, offset = 0) {
@@ -233,6 +237,23 @@ export function attachEnvironmentPanel({ apiBase, site, year, sites, container, 
     finally { if (!state.destroyed && controller === jobController) { state.pending = false; render(); } }
   }
   function chooseAction(action) { state.tab = 'live'; state.action = action; state.status = ''; makeRequest(); render(); if (action === 'water-quality' && !state.stations.length) void searchStations(); }
+  async function runAction(action, options = {}) {
+    if (!ENVIRONMENT_ACTIONS.some(([id]) => id === action)) throw new Error('Choose a supported environmental operation.');
+    if (state.pending) throw new Error('A model job is already running for this place.');
+    const siteId = state.site?.id;
+    if (!state.connected) await connect();
+    if (state.destroyed || state.site?.id !== siteId) return;
+    // An explicit supported period may differ from the global timeline; the
+    // returned result retains its own dates and never changes the slider.
+    state.action = action; state.tab = 'live'; runError = ''; state.status = '';
+    makeRequest();
+    if (Number.isFinite(options.year)) {
+      try { state.requestText = JSON.stringify(buildEnvironmentRequest(action, state.site, options.year), null, 2); state.requestError = ''; state.requestYear = options.year; }
+      catch (error) { state.requestError = error.message; }
+    }
+    render();
+    return runRequest({ throwOnError: true });
+  }
   function click(event) {
     const el = event.target.closest?.('button'); if (!el || !shell.contains(el)) return;
     if (el.dataset.tab) { state.tab = el.dataset.tab; render(); el.focus(); return; }
@@ -260,8 +281,8 @@ export function attachEnvironmentPanel({ apiBase, site, year, sites, container, 
   function change(event) {
     const el = event.target;
     switch (el.dataset.env) {
-      case 'metric': state.metric = el.value; render(); break;
-      case 'scenario': state.scenario = el.value; render(); break;
+      case 'metric': state.metric = el.value; emit('cs:future-options', { metric: state.metric }); render(); break;
+      case 'scenario': state.scenario = el.value; emit('cs:future-options', { scenario: state.scenario }); render(); break;
       case 'action': chooseAction(el.value); break;
       case 'series': state.seriesIndex = Number(el.value); if (state.action === 'trend-analysis') makeRequest(); render(); break;
       case 'plume-layer': layer('plume', el.checked); break;
@@ -273,8 +294,9 @@ export function attachEnvironmentPanel({ apiBase, site, year, sites, container, 
   const input = (event) => { if (event.target.dataset.env === 'request') { state.requestText = event.target.value; state.dirty = true; state.requestError = ''; updateStatus(); } if (event.target.dataset.env === 'library-query') state.libraryQuery = event.target.value; };
   const onSite = ({ detail }) => { if (detail?.site) void setSite(detail.site); };
   const onYear = ({ detail }) => { if (!detail?.siteId || detail.siteId === state.site?.id) setYear(detail.year); };
+  const onFutureOptions = ({ detail }) => { if (['ssp245', 'ssp585'].includes(detail?.scenario)) state.scenario = detail.scenario; if (Object.hasOwn(metricNames, detail?.metric)) state.metric = detail.metric; if (state.tab === 'climate') render(); };
   const keydown = (event) => { if (event.target.getAttribute?.('role') !== 'tab' || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return; const tabs = [...shell.querySelectorAll('[data-tab]')], index = tabs.indexOf(event.target), next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length; event.preventDefault(); state.tab = tabs[next].dataset.tab; render(); tabs[next].focus(); };
-  shell.addEventListener('click', click); shell.addEventListener('change', change); shell.addEventListener('input', input); shell.addEventListener('keydown', keydown); eventTarget.addEventListener('cs:site', onSite); eventTarget.addEventListener('cs:year', onYear);
+  shell.addEventListener('click', click); shell.addEventListener('change', change); shell.addEventListener('input', input); shell.addEventListener('keydown', keydown); eventTarget.addEventListener('cs:site', onSite); eventTarget.addEventListener('cs:year', onYear); eventTarget.addEventListener('cs:future-options', onFutureOptions);
   makeRequest(); render(); void connect(); if (initialSite) void setSite(initialSite);
-  return { setSite, setYear, get state() { return state; }, show(tab = 'climate') { state.tab = tab; shell.open = true; render(); }, openAction(action) { shell.open = true; chooseAction(action); shell.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, destroy() { state.destroyed = true; loadToken++; jobController?.abort(); discovery?.abort(); browseController?.abort(); stationController?.abort(); if (state.layer !== 'off') layer(state.layer, false); eventTarget.removeEventListener('cs:site', onSite); eventTarget.removeEventListener('cs:year', onYear); shell.remove(); if (downloadUrl) URL.revokeObjectURL(downloadUrl); } };
+  return { setSite, setYear, runAction, get state() { return state; }, show(tab = 'climate') { state.tab = tab; shell.open = true; render(); }, openAction(action) { shell.open = true; chooseAction(action); shell.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, destroy() { state.destroyed = true; loadToken++; jobController?.abort(); discovery?.abort(); browseController?.abort(); stationController?.abort(); if (state.layer !== 'off') layer(state.layer, false); eventTarget.removeEventListener('cs:site', onSite); eventTarget.removeEventListener('cs:year', onYear); eventTarget.removeEventListener('cs:future-options', onFutureOptions); shell.remove(); if (downloadUrl) URL.revokeObjectURL(downloadUrl); } };
 }
