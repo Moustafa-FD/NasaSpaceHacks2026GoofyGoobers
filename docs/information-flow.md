@@ -58,7 +58,8 @@ Moving the slider sends one `cs:year` event, so the map, the panel and the 3D sc
 
 **Water on the map:** the Water button (and the Water tab in both interfaces) shows **worldwide yearly rainfall** from NASA MERRA-2 (bias-corrected monthly precipitation summed per calendar year, ~50 km grid, 2003–2025; `scripts/water_global.py`).
 - With *Show change* on (default), each place is coloured by how much wetter (teal) or drier (brown) that year was than its own 2005–2024 normal (±25%). Example: 2012 shows the US drought, with Memphis 27% below normal. With it off, absolute mm/year on one scale (0–1800) everywhere, so sites compare directly (normals: Memphis ≈ 1,340, Ashburn ≈ 1,060, Abilene ≈ 660 mm/year).
-- 2027–2100: the 2005–2024 normal in mm/year worldwide; the study-site area (~5° box) is scaled by the NASA POWER NEX-GDDP-CMIP6 ensemble's change at the site (10-year mean, selected pathway; `scripts/water_maps.py`). Climate projections exist only at the study sites, and the change is small (Memphis +0.5% by 2050 under SSP2-4.5).
+- 2027–2035: each cell continues its own measured 2003–2025 rainfall trend (Sen's slope; Mann-Kendall with Hamed-Rao; Benjamini-Hochberg q < 0.10 across cells, `trend.png`). Only about 7% of cells worldwide have a significant trend, and none within ~2° of Memphis or Ashburn, so most of the map stays clear and the legend says so.
+- After 2035: **no water map**. The legend explains that a 23-year rainfall trend is not extended further; regional climate scenarios (NEX-GDDP-CMIP6) remain in the panel.
 - GLDAS root-zone soil moisture remains in the layer list.
 
 **Wind trails in future years** (2027–2100) show the NASA GEOS-FP winds of the latest complete analysed year (2025) as a labelled reference pattern ("GEOS-FP 2025 pattern"). No wind forecast exists, so the pattern does not change between future years.

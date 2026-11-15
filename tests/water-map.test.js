@@ -1,12 +1,11 @@
 // Water map: worldwide yearly rainfall (MERRA-2) with wetter/drier-than-normal colouring;
-// future years use the normal, scaled at each study site by the CMIP6 ensemble change.
+// 2027–2035 continue each cell's significant measured trend; no water map after 2035.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { waterPlan, siteFactor, waterColor, anomalyColor, WATER_SCALE } from '../apps/web/js/water-map.js';
+import { waterPlan, projectedRain, waterColor, anomalyColor, WATER_SCALE } from '../apps/web/js/water-map.js';
 
 const json = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
-const sites = json('../data/cloudshadow/sites.json').sites;
 
 test('worldwide grids exist for every observed year plus the normal', () => {
   const ix = json('../data/cloudshadow/watermaps/global/index.json');
@@ -16,22 +15,24 @@ test('worldwide grids exist for every observed year plus the normal', () => {
   assert.equal(ix.grid.nx * ix.grid.ny, 576 * 361);
 });
 
-test('every study site has CMIP6 rainfall factors to 2100 for three pathways', () => {
-  for (const s of sites) {
-    const doc = json(`../data/cloudshadow/watermaps/${s.id}.json`);
-    for (const scen of ['ssp126', 'ssp245', 'ssp370']) assert.ok(doc.projection.scenarios[scen].byYear['2100'] > 0.5, `${s.id} ${scen}`);
-  }
-});
-
-test('years map to observed grids; future years use the normal scaled at the study site', () => {
-  const ix = { years: Array.from({ length: 23 }, (_, i) => 2003 + i) };
+test('years: observed 2003–2025, trend projection 2027–2035, nothing after 2035', () => {
+  const ix = { years: Array.from({ length: 23 }, (_, i) => 2003 + i), trend: { projectionThrough: 2035 } };
   assert.deepEqual(waterPlan(ix, 2015), { kind: 'observed', file: '2015.png', year: 2015 });
+  assert.equal(waterPlan(ix, 2025).file, '2025.png');
   assert.equal(waterPlan(ix, 2026).file, '2025.png');
   assert.equal(waterPlan(ix, 2001).file, '2003.png');
-  assert.equal(waterPlan(ix, 2050).kind, 'projected');
-  const doc = json('../data/cloudshadow/watermaps/colossus1.json');
-  assert.equal(siteFactor(doc, 2050, 'ssp370').factor, doc.projection.scenarios.ssp370.byYear['2050']);
-  assert.equal(siteFactor(doc, 2026), null, 'no projection for the present year');
+  assert.equal(waterPlan(ix, 2030).kind, 'projected');
+  assert.equal(waterPlan(ix, 2036).kind, 'none');
+  assert.equal(waterPlan(ix, 2080).kind, 'none');
+});
+
+test('projected rainfall follows the cell trend line only where it is significant', () => {
+  assert.equal(projectedRain(1000, 10, 2034.5, 2014.5), 1200);
+  assert.equal(projectedRain(1000, 0, 2030), null, 'no significant trend = no projection');
+  assert.equal(projectedRain(100, -20, 2035, 2014.5), 0, 'never below zero');
+  const ix = json('../data/cloudshadow/watermaps/global/index.json');
+  assert.equal(ix.trend.projectionThrough, 2035);
+  assert.ok(existsSync(new URL('../data/cloudshadow/watermaps/global/trend.png', import.meta.url)));
 });
 
 test('colour scales: absolute brown→teal; change from normal brown (drier) → teal (wetter)', () => {

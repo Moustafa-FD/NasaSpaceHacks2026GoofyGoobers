@@ -42,6 +42,16 @@
   2005,
   2024
  ],
+ "trend": {
+  "file": "trend.png",
+  "step": 0.5,
+  "zero": 128,
+  "nodata": 255,
+  "units": "mm/year per year",
+  "method": "Sen's slope; Mann-Kendall with Hamed-Rao correction; Benjamini-Hochberg q < 0.10 across cells (Wilks 2016); >= 18 complete years",
+  "projectionThrough": 2035,
+  "lineCentreYear": 2014.5
+ },
  "source": {
   "name": "NASA MERRA-2 bias-corrected precipitation (GIBS)",
   "layer": "MERRA2_Precipitation_Bias_Corrected_Monthly"

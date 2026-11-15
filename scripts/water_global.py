@@ -17,11 +17,16 @@ from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import precompute as pc  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from services.models.trends import stats  # noqa: E402
 
 LAYER, CMAP = "MERRA2_Precipitation_Bias_Corrected_Monthly", "cm_MERRA2_Precipitation_Bias_Corrected_Monthly.xml"
 Z = 2                              # 1024 px around the world: ~0.35 deg per pixel, finer than the 0.5 deg grid
 NX, NY = 576, 361                  # MERRA-2 grid: lon -180..179.375 step 0.625, lat -90..90 step 0.5
 STEP, NODATA = 20, 255             # 20 mm/year per level, up to 5,080 mm/year
+TSTEP, TZERO = 0.5, 128            # trend.png: (level - 128) x 0.5 mm/year per year; 128 = no significant trend
+ALPHA, FDR_Q, MIN_YEARS = 0.05, 0.10, 18
+PROJECT_TO = 2035
 FIRST, LAST, NORMAL = 2003, 2025, (2005, 2024)
 OUT = os.path.join(pc.DATA, "watermaps", "global")
 
@@ -37,7 +42,8 @@ def main():
         for i in range(NX):
             lon = -180 + i * 0.625
             cells.append(tuple(int(c) for c in pc.world_px(lat, lon, Z)) if abs(lat) < 85 else None)
-    months = [d for d in pc.expand(catalog[LAYER]["intervals"]) if FIRST <= d.year <= LAST]
+    # Monthly layer: keep first-of-month dates only (the catalog also lists stray daily dates in 2025).
+    months = [d for d in pc.expand(catalog[LAYER]["intervals"]) if FIRST <= d.year <= LAST and d.day == 1]
 
     def month(d):
         tiles = {}
@@ -75,9 +81,29 @@ def main():
         vals = [annual[y][k] for y in range(NORMAL[0], NORMAL[1] + 1) if y in annual and annual[y][k] is not None]
         normal.append(statistics.mean(vals) if len(vals) >= 15 else None)
     save(normal, os.path.join(OUT, "normal.png"))
+    # Per-cell rainfall trend: Sen's slope + Mann-Kendall (Hamed-Rao), Benjamini-Hochberg across cells.
+    tested = []
+    for k in range(len(cells)):
+        series = [(y, annual[y][k]) for y in sorted(annual) if annual[y][k] is not None]
+        if len(series) < MIN_YEARS or max(v for _, v in series) == min(v for _, v in series):
+            continue
+        t = [float(y) for y, _ in series]; v = [x for _, x in series]
+        p = stats.mann_kendall(t, v, alpha=ALPHA, hamed_rao=True).p_value
+        tested.append((k, stats.sens_slope(t, v, alpha=ALPHA).slope, min(1.0, max(0.0, p))))
+    q = stats.benjamini_hochberg([p for _, _, p in tested]) if tested else []
+    trend = [NODATA if normal[k] is None else TZERO for k in range(len(cells))]
+    significant = 0
+    for (k, slope, _), qk in zip(tested, q):
+        if qk < FDR_Q and slope != 0:
+            trend[k] = max(1, min(254, TZERO + int(round(slope / TSTEP)))); significant += 1
+    img = Image.new("L", (NX, NY)); img.putdata(trend); img.save(os.path.join(OUT, "trend.png"), optimize=True)
+    print("trend cells tested", len(tested), "significant", significant)
     json.dump({"schemaVersion": "water-global/1.0", "units": "mm/year", "encoding": f"8-bit gray, value x {STEP} mm/year, {NODATA} = no data",
                "grid": {"nx": NX, "ny": NY, "lon0": -180 - 0.3125, "lat0": 90 + 0.25, "dlon": 0.625, "dlat": 0.5, "rows": "north to south"},
                "step": STEP, "nodata": NODATA, "years": sorted(annual), "normalPeriod": list(NORMAL),
+               "trend": {"file": "trend.png", "step": TSTEP, "zero": TZERO, "nodata": NODATA, "units": "mm/year per year",
+                         "method": "Sen's slope; Mann-Kendall with Hamed-Rao correction; Benjamini-Hochberg q < 0.10 across cells (Wilks 2016); >= 18 complete years",
+                         "projectionThrough": PROJECT_TO, "lineCentreYear": (NORMAL[0] + NORMAL[1]) / 2},
                "source": {"name": "NASA MERRA-2 bias-corrected precipitation (GIBS)", "layer": LAYER}},
               open(os.path.join(OUT, "index.json"), "w", encoding="utf-8"), indent=1)
     print("years", min(annual), "-", max(annual), "normal cells", sum(v is not None for v in normal))

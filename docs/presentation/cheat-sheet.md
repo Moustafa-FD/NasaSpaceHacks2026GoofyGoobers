@@ -49,7 +49,7 @@ Python (data and statistics) → static JSON in Git → Node.js server and job A
 - **"Why is the plume purple only at Colossus 1?"** It is the only site with documented on-site gas turbines.
 - **"Why don't day-heat maps change much after 2026?"** Daytime surface heat has no significant trend at most pixels (0–6%). Night heat does (53–97%), so the Heat button shows night heat.
 - **"Why does a projected map change only in some places?"** Only pixels with a statistically significant trend move; the rest stay at their latest value. Night heat (most pixels) and greenness at the campus move clearly; soil water has no significant trend at any site, so it stays put.
-- **"How do you show water?"** Rainfall per year (mm) on one scale for every site: NASA MERRA-2 for 2003–2025, then NASA's CMIP6 scenarios applied to the observed pattern (delta-change method) to 2100.
+- **"How do you show water?"** Worldwide rainfall per year from NASA MERRA-2 (2003–2025), coloured wetter or drier than each place's normal. 2027–2035 continue each cell's measured trend where it is significant; there is no water map after 2035.
 - **"Where do I see the future in the new interface?"** The PROJECTED 2035 button next to Before/After: the measured trend continued, pixel by pixel.
 - **"Are the future wind trails a forecast?"** No. They replay NASA GEOS-FP 2025 winds as a reference pattern; nobody forecasts winds decades ahead.
 - **"Can I check another place?"** Yes: click anywhere on the globe for a live NASA trend analysis.
