@@ -176,3 +176,15 @@ export function projectRow(key, f, year, site) {
   }
   return null;
 }
+
+// Nearby city context for the 3D label: population = 2020 Census count; households = Census ACS 2020–2024 (QuickFacts).
+// Coordinates are the Census 2020 Gazetteer points already in data/cloudshadow/cities.json.
+export const CITY_FACTS = {
+  memphis: { name: "Memphis, TN", lat: 35.109018, lon: -89.966565, people: 633104, households: 253120 },
+  southaven: { name: "Southaven, MS", lat: 34.951005, lon: -89.977669, people: 54648, households: 21251 },
+  ashburn: { name: "Ashburn, VA", lat: 39.027296, lon: -77.471322, people: 46349, households: 17513 },
+  abilene: { name: "Abilene, TX", lat: 32.454514, lon: -99.738147, people: 125182, households: 46917 },
+  thedalles: { name: "The Dalles, OR", lat: 45.598386, lon: -121.152411, people: 16010, households: 6525 },
+};
+export const SITE_CITIES = { colossus1: ["memphis"], colossus2: ["memphis", "southaven"], ashburn: ["ashburn"], abilene: ["abilene"], thedalles: ["thedalles"] };
+export const cityLabel = (c) => `${c.name}\n${fmtN(c.people)} people · ${fmtN(c.households)} households`;

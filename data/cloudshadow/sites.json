@@ -167,7 +167,8 @@
         "plumeSource": {
           "lat": 34.9844,
           "lon": -90.0423,
-          "src": "US Census geocoder for the address in the Earthjustice notice of intent to sue (Feb 2026)"
+          "src": "US Census geocoder for the address in the Earthjustice notice of intent to sue (Feb 2026)",
+          "label": "Gas turbines powering Colossus 2 · Southaven, MS"
         }
       }
     },

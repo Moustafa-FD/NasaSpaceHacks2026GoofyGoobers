@@ -123,7 +123,13 @@ export function attachFluid(viewer, site, opts = {}) {
   // Close-up (low-poly scene): a smaller domain so the plume is detailed over the campus, raised to the scene's ground.
   const localHalfM = opts.localHalfM ?? 3500;
   let halfSizeM = globeHalfM, groundH = 0, local = false;
-  const ps = site.effects?.plumeSource, srcE = ps ? (ps.lon - site.lon) * 111320 * Math.cos(site.lat * Math.PI / 180) : 0, srcN = ps ? (ps.lat - site.lat) * 111320 : 0;
+  const offset = (p) => [(p.lon - site.lon) * 111320 * Math.cos(site.lat * Math.PI / 180), (p.lat - site.lat) * 111320];
+  // Source: documented off-site turbines (plumeSource), else the data-center hall the close-up scene identified
+  // (its marker, via "cs:campus-ready"), else the site coordinate.
+  const ps = site.effects?.plumeSource;
+  let [srcE, srcN] = ps ? offset(ps) : [0, 0];
+  const onHall = ({ detail: d }) => { if (!ps && d?.siteId === site.id && Number.isFinite(d.marker?.lat)) [srcE, srcN] = offset(d.marker); };
+  window.addEventListener("cs:campus-ready", onHall);
   const srcUV = () => [0.5 + srcE / (2 * halfSizeM), 0.5 + srcN / (2 * halfSizeM)];
 
   // full-screen quad
@@ -241,6 +247,6 @@ export function attachFluid(viewer, site, opts = {}) {
     },
     setWindField(sample){sampleField=typeof sample==='function'?sample:null;lastField=-Infinity;},
     injectTracer(x=.5,y=.5,amount=.15){splat(Math.max(0,Math.min(1,x)),Math.max(0,Math.min(1,y)),0,0,[0,0,Math.max(0,Math.min(1,amount))],.001);},
-    dispose() { alive = false; removeLoop();viewer.entities.remove(entity);viewer.entities.remove(upper); gl.getExtension("WEBGL_lose_context")?.loseContext(); },
+    dispose() { alive = false; removeLoop(); window.removeEventListener("cs:campus-ready", onHall);viewer.entities.remove(entity);viewer.entities.remove(upper); gl.getExtension("WEBGL_lose_context")?.loseContext(); },
   };
 }

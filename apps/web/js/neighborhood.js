@@ -25,7 +25,7 @@ const evidenceTransition=createEvidenceTransition({onChange:(state)=>{
     if(state.textures==='all')setLandscapeEvidence(Cesium,asset.shader,state.current,state.previous,state.mix);
     else if(!asset.shader.isDestroyed()){
       asset.shader.setUniform('u_evidenceMix',state.mix);
-      if(state.textures==='previous')clearLandscapeEvidencePrevious(Cesium,asset.shader);
+      if(state.textures==='previous')clearLandscapeEvidencePrevious(Cesium,asset.shader,state.current);
     }
   }
   const note=document.querySelector('#sceneEvidenceBlend');if(note)note.hidden=!state.previous||state.mix>=1;

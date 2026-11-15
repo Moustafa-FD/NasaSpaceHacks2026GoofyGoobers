@@ -51,7 +51,7 @@ test('evidence color is applied after artistic materials, only to ground/water a
   const block=LANDSCAPE_FRAGMENT_SHADER.slice(LANDSCAPE_FRAGMENT_SHADER.indexOf('if (u_evidenceActive'));
   assert.match(block,/kind > 2\.5 && kind < 4\.5/);assert.match(block,/lpEvidenceInside\(uv\)/);assert.match(block,/lpEvidenceInside\(oldUV\)/);
   assert.match(LANDSCAPE_FRAGMENT_SHADER,/greaterThanEqual\(uv,vec2\(0\.0\)\)/);assert.match(LANDSCAPE_FRAGMENT_SHADER,/lessThanEqual\(uv,vec2\(1\.0\)\)/);
-  assert.match(block,/pow\(evidence\.rgb,vec3\(2\.2\)\)/);assert.match(block,/if\(evidence\.a>0\.0\)/);
+  assert.match(block,/pow\(evidence\.rgb,vec3\(2\.2\)\)/);assert.match(block,/if\(evidence\.a>0\.0 && evidence\.a<0\.995\)/); // alpha 1 = Cesium placeholder, never a map pixel
   assert.doesNotMatch(block,/Noise|Hash|sin\(|material\.alpha|positionMC|discard/);
 });
 

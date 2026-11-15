@@ -171,7 +171,8 @@ test('paused environmental motion still crossfades evidence on wall time without
   assert.equal(shaders[0].values.u_evidence,currentTexture);assert.equal(shaders[0].values.u_evidencePrevious,previousTexture);
   evidence({active:true,rgba:b,width:1,height:1,bounds,key:'site:2006'});assert.equal(shaders[0].values.u_evidenceMix,.5,'same source key cannot restart the visual fade');
   setClock(1400);h.tickPatches();assert.equal(shaders[0].values.u_evidenceMix,1);assert.equal(shaders[0].values.u_evidencePreviousActive,0);
-  assert.deepEqual([...shaders[0].values.u_evidencePrevious.typedArray],[0,0,0,0]);assert.equal(shaders[0].values.u_evidence,currentTexture);
+  // The finished blend parks the current image in the previous slot (a blank there rendered one untinted frame per year).
+  assert.deepEqual([...shaders[0].values.u_evidencePrevious.typedArray],[...currentTexture.typedArray]);assert.equal(shaders[0].values.u_evidence,currentTexture);
 });
 
 test('cached rapid scrubs coalesce to one upload pair per animation frame and keep the last displayed raster as the previous year',async(t)=>{

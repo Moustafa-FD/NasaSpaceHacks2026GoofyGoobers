@@ -80,9 +80,13 @@ export function setLandscapeEvidence(Cesium,shader,evidence,previous=null,mix=1)
   shader.setUniform('u_evidencePrevious',evidenceUniform(Cesium,previous));
   shader.setUniform('u_evidenceMix',mix);
 }
-export function clearLandscapeEvidencePrevious(Cesium,shader){
+/** End of a blend. The previous slot keeps the *current* image (not a blank): at the next year change the
+ * previous flag switches on at once but Cesium uploads the new texture a frame later, and a blank slot made
+ * the whole low-poly ground render untinted for that frame (a bright pop on every year change). */
+export function clearLandscapeEvidencePrevious(Cesium,shader,current=null){
   if(shader.isDestroyed?.())return;
-  shader.setUniform('u_evidencePreviousActive',0);shader.setUniform('u_evidencePrevious',evidenceUniform(Cesium,null));
+  shader.setUniform('u_evidencePreviousActive',0);shader.setUniform('u_evidencePrevious',evidenceUniform(Cesium,current));
+  if(current)shader.setUniform('u_evidencePreviousBounds',new Cesium.Cartesian4(...(current.bounds||[-180,-90,180,90])));
 }
 const wrapGrass=(value)=>((value%GRASS_PERIOD)+GRASS_PERIOD)%GRASS_PERIOD;
 /** Source snapshots use local equirectangular metres. Recover a shared global
@@ -327,13 +331,15 @@ void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material) {
         vec2 uv=lpEvidenceUV(geo,u_evidenceBounds);
         if(lpEvidenceInside(uv)) {
             vec4 evidence=texture(u_evidence,uv);
-            if(evidence.a>0.0) {
+            // Map pixels are never fully opaque (alpha ≤ 235/255, evidence-map.js). Alpha 1 means Cesium's 1×1 white
+            // placeholder while a new year's texture uploads; using it turned the whole ground white for a frame.
+            if(evidence.a>0.0 && evidence.a<0.995) {
                 vec3 evidenceColor=pow(evidence.rgb,vec3(2.2));
                 float evidenceAlpha=evidence.a*u_evidenceMix;
                 vec2 oldUV=lpEvidenceUV(geo,u_evidencePreviousBounds);
                 if(u_evidencePreviousActive>0.5 && u_evidenceMix<1.0 && lpEvidenceInside(oldUV)) {
                     vec4 previous=texture(u_evidencePrevious,oldUV);
-                    if(previous.a>0.0) {
+                    if(previous.a>0.0 && previous.a<0.995) {
                         evidenceColor=mix(pow(previous.rgb,vec3(2.2)),evidenceColor,u_evidenceMix);
                         evidenceAlpha=mix(previous.a,evidence.a,u_evidenceMix);
                     }

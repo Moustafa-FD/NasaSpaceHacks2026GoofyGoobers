@@ -3,8 +3,9 @@
 //   Water: blue ripples (reported households' use) · Power: glowing power lines flowing in (reported MW). Water and Power show nothing before the start year.
 // Deliberately exaggerated visualizations of the numbers in the panel (the help card says so), not measured concentrations. Driven by "cs:theme" (ui-shell.js) and "cs:year" (timeline.js).
 import { sceneGround } from "./fluid-gpu.js";
+import { CITY_FACTS, SITE_CITIES, cityLabel } from "./ui-facts.js";
 import { projectRow } from "./ui-facts.js";
-const V = { local: false, ground: 0, viewer: null, theme: null, site: null, facts: null, row: null, year: null, ents: [], electricity: false, t0: performance.now() };
+const V = { local: false, ground: 0, hall: null, viewer: null, theme: null, site: null, facts: null, row: null, year: null, ents: [], electricity: false, t0: performance.now() };
 const num = (x) => (x == null || x === "" ? null : +x);
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const pulse = (s = 1) => 0.5 + 0.5 * Math.sin(((performance.now() - V.t0) / 1000) * s);
@@ -60,7 +61,8 @@ function build() {
   const C = globalThis.Cesium; if (!V.viewer || !C) return;
   derive();
   const mapShown = V.theme === "heat" && V.mapOn && !V.local;
-  const key = [V.theme, V.site?.id, V.local, Math.round(V.ground), mapShown, V.electricity].join("|");
+  const hall = V.hall?.siteId === V.site?.id ? V.hall : null;
+  const key = [V.theme, V.site?.id, V.local, Math.round(V.ground), mapShown, V.electricity, hall?.lat, hall?.lon].join("|");
   if (key === builtKey && V.ents.length) return; // same scene: callbacks pick up the new year
   builtKey = key;
   for (const e of V.ents) V.viewer.entities.remove(e); V.ents = [];
@@ -68,7 +70,9 @@ function build() {
   const add = (spec) => V.ents.push(V.viewer.entities.add(spec));
   // In the low-poly close-up the ground is the team's terrain mesh, not the ellipsoid: lift everything onto it.
   const lift = V.local ? V.ground : 0; // ellipse `height` is absolute, so add the ground there too
-  const at = (h = 0) => C.Cartesian3.fromDegrees(V.site.lon, V.site.lat, h + lift);
+  // Centre on the data-center hall the scene identified (same point as its marker), not the rough site coordinate.
+  const cLon = hall?.lon ?? V.site.lon, cLat = hall?.lat ?? V.site.lat;
+  const at = (h = 0) => C.Cartesian3.fromDegrees(cLon, cLat, h + lift);
   const cb = (fn) => new C.CallbackProperty(fn, false);
   const spin = cb(() => ((performance.now() - V.t0) / 1000) * 0.03); // slow texture rotation keeps patchy glows alive
   const tint = (rgb, alpha) => cb(() => { const c = typeof rgb === "function" ? rgb() : rgb; return new C.Color(c[0] / 255, c[1] / 255, c[2] / 255, Math.max(0, alpha())); });
@@ -94,7 +98,14 @@ function build() {
   const ps = V.site.effects?.plumeSource, fluidAir = V.site.effects?.plume === true || !!ps;
   if (V.theme === "air" && fluidAir) {
     // The GPU fluid (fluid-gpu.js) draws the plume itself; mark only the source so the simulation stays the hero.
-    add({ position: C.Cartesian3.fromDegrees(ps?.lon ?? V.site.lon, ps?.lat ?? V.site.lat), ellipse: { semiMajorAxis: 650, semiMinorAxis: 650, height: 30 + lift, stRotation: spin,
+    if (ps) { // off-site turbines: name them and draw the power link to the data center, so the plume's origin is clear
+      add({ position: C.Cartesian3.fromDegrees(ps.lon, ps.lat, 140 + lift), label: { text: ps.label || "Gas turbines powering this data center", font: "600 15px Public Sans, sans-serif",
+        fillColor: C.Color.WHITE, showBackground: true, backgroundColor: C.Color.fromCssColorString("#2a1d45").withAlpha(0.85), backgroundPadding: new C.Cartesian2(8, 5),
+        verticalOrigin: C.VerticalOrigin.BOTTOM, disableDepthTestDistance: Number.POSITIVE_INFINITY } });
+      add({ polyline: { positions: [C.Cartesian3.fromDegrees(ps.lon, ps.lat, 40 + lift), C.Cartesian3.fromDegrees(cLon, cLat, 40 + lift)], width: 6,
+        material: new C.PolylineDashMaterialProperty({ color: C.Color.fromCssColorString("#ffc24d").withAlpha(0.9), dashLength: 24 }) } });
+    }
+    add({ position: C.Cartesian3.fromDegrees(ps?.lon ?? cLon, ps?.lat ?? cLat), ellipse: { semiMajorAxis: 650, semiMinorAxis: 650, height: 30 + lift, stRotation: spin,
       material: mat(WHITE.glow, RGB.violet, () => (D.on ? 0.75 : 0.18) * (0.8 + 0.2 * pulse(2.2))) } });
   }
   if (V.theme === "air" && !fluidAir) {
@@ -105,6 +116,11 @@ function build() {
       add({ position: pos, ellipse: { semiMajorAxis: R, semiMinorAxis: R, height: h + lift, stRotation: spin, material: mat(WHITE.glow, RGB.haze, () => (0.3 + 0.65 * D.k) * (0.8 + 0.2 * pulse(0.7))) } });
     }
   }
+  // City context box above each nearby city (all themes): population and households (Census).
+  for (const id of SITE_CITIES[V.site.id] || []) { const c = CITY_FACTS[id];
+    add({ position: C.Cartesian3.fromDegrees(c.lon, c.lat, 600 + lift), label: { text: cityLabel(c), font: "600 14px Public Sans, sans-serif", fillColor: C.Color.fromCssColorString("#17201d"),
+      showBackground: true, backgroundColor: C.Color.fromCssColorString("#f7f4ee").withAlpha(0.92), backgroundPadding: new C.Cartesian2(10, 6),
+      verticalOrigin: C.VerticalOrigin.BOTTOM, disableDepthTestDistance: Number.POSITIVE_INFINITY, distanceDisplayCondition: new C.DistanceDisplayCondition(0, 400000) } }); }
   const rep = V.facts?.rep, hasRep = rep && !rep.missing, shown = cb(() => D.started);
   if (V.theme === "water" && hasRep) {
     // Text-only figures (e.g. a county share) have no household count: show a mid-size symbolic ripple.
@@ -132,9 +148,18 @@ function init(cs) {
   V.electricity = document.body.classList.contains('electricity-active');
   window.addEventListener('cs:electricity', ({ detail }) => { if (typeof detail?.active === 'boolean') { V.electricity = detail.active; build(); } });
   window.addEventListener("cs:theme", ({ detail: d }) => { Object.assign(V, { theme: d.theme, site: d.site, facts: d.facts, year: d.year, mapOn: !!d.mapOn }); build(); });
+  window.addEventListener("cs:campus-ready", ({ detail: d }) => {
+    if (!d?.marker || !Number.isFinite(d.marker.lat)) return;
+    V.hall = { siteId: d.siteId, lat: d.marker.lat, lon: d.marker.lon, groundHeight: d.marker.groundHeight };
+    if (V.local && Number.isFinite(d.marker.groundHeight)) V.ground = d.marker.groundHeight;
+    build();
+  });
   window.addEventListener("cs:scene-mode", (e) => {
-    V.local = !!e.detail?.active; V.ground = 0; build();
-    if (V.local) setTimeout(() => { if (!V.local) return; V.ground = sceneGround(V.viewer, V.site?.lat ?? 0, V.site?.lon ?? 0) ?? 0; build(); }, 1500);
+    V.local = !!e.detail?.active; V.ground = 0;
+    const hallGround = V.hall?.siteId === V.site?.id ? V.hall.groundHeight : null;
+    if (V.local && Number.isFinite(hallGround)) V.ground = hallGround;
+    build();
+    if (V.local && !Number.isFinite(hallGround)) setTimeout(() => { if (!V.local) return; V.ground = sceneGround(V.viewer, V.site?.lat ?? 0, V.site?.lon ?? 0) ?? 0; build(); }, 1500);
   });
   window.addEventListener("cs:year", ({ detail: d }) => { if (V.site && d?.siteId && d.siteId !== V.site.id) return; V.row = d?.row; V.year = d?.year ?? V.year; build(); });
 }
