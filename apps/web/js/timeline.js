@@ -104,9 +104,12 @@ function setGround(year) {
   layer._csKey = key; layer._csFade=0;layer.alpha = 0;layer.show=false;
   T.layers.push(layer);
   let last = performance.now(), elapsed = 0;
-  const dur = 450;
+  const dur = 450, born = last;
   const step = (t) => {
     if (!viewer.imageryLayers.contains(layer)) return;
+    // Hold the old year fully visible until the new tiles have loaded (max 2.5 s): fading early let the bare
+    // globe show through for a moment, read as a bright pop on each year change.
+    if (elapsed === 0 && viewer.scene?.globe?.tilesLoaded === false && t - born < 2500) { last = t; layer.alpha = 0.001; layer.show = true; requestAnimationFrame(step); return; }
     const speed = getMotionSpeed();
     elapsed += Math.min(100, t - last) * speed; last = t;
     // Manual scrubbing remains responsive when environmental motion is paused.
@@ -272,7 +275,7 @@ function schedulePlayback() {
     if (T.mapBusy) { schedulePlayback(); return; }
     if (T.year >= LAST) { togglePlay(); return; }
     setYear(T.year + 1); schedulePlayback();
-  }, 1500 / speed);
+  }, 1500 / (T.yearSpeed ?? speed)); // yearSpeed (UI v3 speed slider) sets years/second independently of wind motion
 }
 function paintPlayback() {
   const button = $("#tlPlay");
@@ -368,7 +371,8 @@ async function init(cs) {
     await loadSite(cs.state.site);
     if (!q.get("tour") && !q.get("embed") && q.get("view") !== "3d" && !T.localScene) cs.flyTo(cs.state.site.lat, cs.state.site.lon, 21, -40, 20, 0.1);
   }
-  window.CloudShadowTimeline = { setYear, get year() { return T.year; }, togglePlay };
+  window.CloudShadowTimeline = { setYear, get year() { return T.year; }, togglePlay,
+    setYearSpeed(x) { T.yearSpeed = Math.max(0.1, +x || 1); if (T.playing) schedulePlayback(); } };
   if (q.get("debug")) setTimeout(() => {
     console.log("CSDEBUG trend", T.ringVar, "annualRows", T.rows.size,
       "entities", viewer.entities.values.length, "prims", viewer.scene.primitives.length, "plumeRate", T.plume?.emissionRate,

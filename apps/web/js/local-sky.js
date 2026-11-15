@@ -88,6 +88,12 @@ void main() {
 export function attachLocalSky(viewer,site,sceneData={}){
   const C=sceneData.Cesium||globalThis.Cesium,scene=viewer.scene,center=sceneData.center||site;
   let active=false,destroyed=false,stage,manifest,loading,entry,applied,opacity=0,frames=0,changedAt=0;
+  // Decoded sky pictures. Switching the stage to a new URL samples Cesium's white default texture until it
+  // loads (a full-sky white flash on year change), so the sky only switches once its picture is decoded.
+  const decoded=new Map();
+  const preload=(environments)=>{if(typeof Image==='undefined')return;for(const e of environments){if(decoded.has(e.id))continue;decoded.set(e.id,null);
+    const img=new Image();img.crossOrigin='anonymous';img.src=e.image;(img.decode?img.decode():Promise.resolve()).then(()=>{if(destroyed)return;decoded.set(e.id,img);choose();}).catch(()=>{});}};
+  const pictureFor=(e)=>decoded.get(e.id)||e.image;
   let config=selectLocalSkyConfig(center),lastStateKey='';
   const frame=C.Transforms.eastNorthUpToFixedFrame(C.Cartesian3.fromDegrees(center.lon,center.lat));
   const inverse=C.Matrix4.inverseTransformation(frame,new C.Matrix4()),localCamera=new C.Cartesian3();
@@ -111,20 +117,22 @@ export function attachLocalSky(viewer,site,sceneData={}){
   function choose(){
     if(!manifest)return;
     const selected=manifest.environments.find((e)=>e.id===config.id)||manifest.environments.find((e)=>e.id==='clear')||manifest.environments[0];
-    if(entry===selected)return;entry=selected;applied=null;changedAt=frames;
-    if(stage){stage.uniforms.u_environment=entry.image;stage.uniforms.u_yaw=(Number(entry.yawDegrees)||0)/360;stage.uniforms.u_skyHorizonRow=horizonRow();}
+    if(entry===selected)return;
+    if(stage&&entry&&decoded.has(selected.id)&&!decoded.get(selected.id))return; // still decoding: keep the current sky
+    entry=selected;applied=null;changedAt=frames;
+    if(stage){stage.uniforms.u_environment=pictureFor(entry);stage.uniforms.u_yaw=(Number(entry.yawDegrees)||0)/360;stage.uniforms.u_skyHorizonRow=horizonRow();}
   }
   function allocate(){
     if(stage||!manifest||destroyed)return;choose();
     stage=scene.postProcessStages.add(new C.PostProcessStage({name:'footprint-local-hdri-sky-'+(++sequence),fragmentShader:LOCAL_SKY_FRAGMENT_SHADER,
-      uniforms:{u_environment:entry.image,u_rayBase:()=>rays.base,u_rayDx:()=>rays.dx,u_rayDy:()=>rays.dy,u_opacity:()=>opacity,u_yaw:(Number(entry.yawDegrees)||0)/360,u_skyHorizonRow:horizonRow()},
+      uniforms:{u_environment:pictureFor(entry),u_rayBase:()=>rays.base,u_rayDx:()=>rays.dx,u_rayDy:()=>rays.dy,u_opacity:()=>opacity,u_yaw:(Number(entry.yawDegrees)||0)/360,u_skyHorizonRow:horizonRow()},
       ...(C.PostProcessStageSampleMode?{sampleMode:C.PostProcessStageSampleMode.LINEAR}:{}),textureScale:1}));
     stage.enabled=false;
   }
   function ensure(){
     if(manifest){allocate();return Promise.resolve();}if(loading)return loading;
     const source=sceneData.skyManifest?Promise.resolve(validManifest(sceneData.skyManifest)):getManifest(sceneData.skyFetch||globalThis.fetch);
-    loading=source.then((value)=>{if(destroyed)return;manifest=value;choose();if(active){allocate();tick();}})
+    loading=source.then((value)=>{if(destroyed)return;manifest=value;preload(manifest.environments);choose();if(active){allocate();tick();}})
       .catch((error)=>{if(!destroyed)state(error.message);}).finally(()=>{loading=null;});
     return loading;
   }

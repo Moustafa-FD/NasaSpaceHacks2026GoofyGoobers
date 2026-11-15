@@ -20,9 +20,9 @@ const S = { site: null, rows: null, light: "golden", nightLights: null, clouds: 
   massing: [], orbit: null, fluid: null, windDir: 0, windSpeed: 3, precip: 0, heat: 0, meanT2M: null, preRender: null,
   localScene: false, year: 2025, lastTick: 0, lastClock:null,animationTime: 0, lastRow: null, phase: "observed",windSample:null };
 const QUALITY = {
-  high: { hdr: true, bloom: false, shadows: true, clouds: 14, rainRate: 380, fluidTexEvery: 1, resolution: 1, shadowSize: 2048 },
-  balanced: { hdr: false, bloom: false, shadows: true, clouds: 8, rainRate: 220, fluidTexEvery: 2, resolution: 0.85, shadowSize: 1024 },
-  low: { hdr: false, bloom: false, shadows: false, clouds: 3, rainRate: 90, fluidTexEvery: 3, resolution: 0.65, shadowSize: 1024 },
+  high: { hdr: true, bloom: false, shadows: true, clouds: 14, rainRate: 380, fluidTexEvery: 1, fluidDye: 512, resolution: 1, shadowSize: 2048 },
+  balanced: { hdr: false, bloom: false, shadows: true, clouds: 8, rainRate: 220, fluidTexEvery: 2, fluidDye: 256, resolution: 0.85, shadowSize: 1024 },
+  low: { hdr: false, bloom: false, shadows: false, clouds: 3, rainRate: 90, fluidTexEvery: 3, fluidDye: 256, resolution: 0.65, shadowSize: 1024 },
 };
 
 const enuAt = (lat, lon, h = 0) => Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(lon, lat, h));
@@ -88,13 +88,15 @@ function applyMotionSpeed() {
 }
 function emissionPolicyEligible(site, year) {
   const onset = /^\d{4}/.test(String(site?.onset || '')) ? Number(String(site.onset).slice(0, 4)) : null;
-  return site?.effects?.plume === true && onset !== null && year >= onset;
+  return (site?.effects?.plume === true || !!site?.effects?.plumeSource) && onset !== null && year >= onset;
 }
 function applySceneVisibility() {
   const visible = !S.localScene;
   for (const object of [S.clouds, S.rain]) if (object) object.show = visible;
   for (const block of S.massing) block.show = visible && S.year >= block._startYear;
-  S.fluid?.setVisible(visible);
+  // The fluid stays on in the close-up, re-scaled to the campus; sample the low-poly ground once it has drawn.
+  S.fluid?.setVisible(true);
+  if (S.fluid?.setLocal) { S.fluid.setLocal(S.localScene); if (S.localScene) setTimeout(() => S.localScene && S.fluid?.setLocal(true), 1500); }
 }
 window.addEventListener("cs:scene-mode", (event) => {
   S.localScene = !!event.detail?.active;
@@ -188,8 +190,8 @@ export function buildSite(site, rows) {
   // Pollution transport visualization (purple), only for sites with documented
   // on-site combustion (sites.json effects.plume). Moved by the real GEOS-FP wind
   // field; released only at the facility. Not a measured concentration.
-  if (site.effects?.plume === true && (typeof location === "undefined" || new URLSearchParams(location.search).get("fluid") !== "off"))
-    S.fluid = attachFluid(viewer, site, { texEvery: qq.fluidTexEvery, halfSizeM: 16000, timeLapse: 400 });
+  if ((site.effects?.plume === true || site.effects?.plumeSource) && (typeof location === "undefined" || new URLSearchParams(location.search).get("fluid") !== "off"))
+    S.fluid = attachFluid(viewer, site, { texEvery: qq.fluidTexEvery, dyeSize: qq.fluidDye, halfSizeM: 16000, timeLapse: 400 });
   S.windSample=null;
   setLight(S.light);
   applySceneVisibility();

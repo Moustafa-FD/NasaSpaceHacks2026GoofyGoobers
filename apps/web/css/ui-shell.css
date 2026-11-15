@@ -196,3 +196,8 @@ body.ui-v2.v2-landing-open #mapLegend { display: none !important; }
 @media (max-width: 1100px) { .v3-stat { bottom: calc(var(--lift) + 172px); } }
 @media (max-width: 640px) { .v3-stat { bottom: calc(var(--lift) + 306px); padding: 5px 14px 6px; } .v3-stat b { font-size: 21px; } .v3-stat span { font-size: 12px; } }
 @media (prefers-reduced-motion: reduce) { .v3-stat { transition: none; } }
+
+/* year-speed slider inside the timeline: small, beside the year */
+.v3-speed { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font: 600 12px var(--sans); color: inherit; opacity: .9; }
+.v3-speed input { width: 84px; accent-color: #e2a33b; }
+.v3-speed output { min-width: 32px; font-variant-numeric: tabular-nums; }

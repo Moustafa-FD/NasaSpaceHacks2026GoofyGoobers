@@ -91,6 +91,14 @@ function buildChrome() {
     panel.insertAdjacentHTML("afterbegin", `<div class="science-close"><b>Sources &amp; charts</b><button type="button">Close ✕</button></div>`);
     panel.querySelector(".science-close button").onclick = () => toggleScience(false);
   }
+  // Small year-speed control inside the timeline (shown with "All years").
+  const top = document.querySelector(".tl-top");
+  if (top && !$("#v3Speed")) {
+    top.insertAdjacentHTML("beforeend", `<label class="v3-speed" title="How fast Play moves through the years">Speed <input id="v3Speed" type="range" min="0" max="4" step="1" value="2" aria-label="Playback speed"><output id="v3SpeedOut">1×</output></label>`);
+    const SPEEDS = [0.25, 0.5, 1, 2, 4], sp = $("#v3Speed");
+    const apply = () => { const x = SPEEDS[+sp.value]; $("#v3SpeedOut").textContent = `${x}×`; window.CloudShadowTimeline?.setYearSpeed?.(x); };
+    sp.addEventListener("input", apply); apply();
+  }
   window.addEventListener("cs:year", (e) => { if (S.site && e.detail?.year != null && (!e.detail.siteId || e.detail.siteId === S.site.id)) renderStat(e.detail.year); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { toggleScience(false); $("#v3Photos").hidden = true; $("#v2HowCard").hidden = true; } });
 }
@@ -103,7 +111,9 @@ function setMinimized(min, label) {
   if (!min) $("#v3Pill").classList.remove("v3-hint");
 }
 // ~4.5 km range at 38° tilt ≈ 2.8 km camera height, inside neighborhood.js ENTER_HEIGHT (5,800 m) so the low-poly scene loads.
-const flyClose = () => S.cs && S.site && S.cs.flyTo(S.site.lat, S.site.lon, 4.5, -38, 20, 2.5);
+// With off-site turbines (Colossus 2 → Southaven), aim between site and source, looking north so the plume drifts into view.
+const flyClose = () => { if (!S.cs || !S.site) return; const ps = S.site.effects?.plumeSource;
+  S.cs.flyTo(ps ? (S.site.lat + ps.lat) / 2 : S.site.lat, ps ? (S.site.lon + ps.lon) / 2 : S.site.lon, ps ? 5.6 : 4.5, -38, ps ? 0 : 20, 2.5); };
 // The app's own site flight can start after ours; re-check once the flights settle.
 const ensureClose = () => { for (const t of [900, 3600]) setTimeout(() => { if ((S.cs?.viewer?.camera.positionCartographic.height ?? 0) > 5800) flyClose(); }, t); };
 const toggleScience = (open) => { document.body.classList.toggle("science-open", open); if (open) document.body.classList.remove("panel-collapsed"); };
@@ -114,12 +124,12 @@ async function loadFacts(site) {
     fetch(`data/series/${site.id}.json`).then((r) => r.json()).then((d) => d.vars).catch(() => ({})),
     fetch(`data/unreal/timeline/${site.id}.json`).then((r) => r.json()).catch(() => ({ rows: [] })),
   ]);
-  S.rows = new Map(tl.rows.map((r) => [+r.Year, r]));
+  S.rows = new Map(tl.rows.map((r) => [+r.Year, r])); S.projections = tl.projections || {};
   const mean = (a) => { const v = a.filter((x) => x != null && isFinite(x)); return v.reduce((s, x) => s + x, 0) / v.length; };
   for (const key of ["air", "heat", "green"]) {
     const v = THEMES[key].rowVars.map((rv) => vars[rv] && measuredVerdict(key, Stats.analyze(vars[rv], site.onset), mean(vars[rv].ref), site.onset)).find(Boolean);
     const pub = PUBLISHED[site.id]?.[key], years = beforeAfterYears(key, S.rows, site.onset);
-    S.facts[key] = { verdict: v, published: pub, years: pub ? { ...years, before: pub.before.year, after: pub.after.year } : years };
+    S.facts[key] = { verdict: v, published: pub, rows: S.rows, projections: S.projections, years: pub ? { ...years, before: pub.before.year, after: pub.after.year } : years };
   }
   S.facts.water = { rep: reportedWater(site.id, site.ledger?.water), years: beforeAfterYears("water", S.rows, site.onset) };
   S.facts.power = { rep: reportedPower(site.ledger?.power, S.context.homesPerMW), years: beforeAfterYears("power", S.rows, site.onset) };
@@ -148,8 +158,8 @@ function render() {
     $("#v3Note").textContent = f.published.src[0];
   } else {
     const c = f.verdict.conf;
-    if (f.verdict.p >= 0.05) { // Heat only (see shown()): show the map, claim nothing
-      $("#v3Claim").textContent = "NASA's night-heat map of the area. Red = warmer than in 2005, blue = cooler.";
+    if (f.verdict.p >= 0.05) { // Heat/Air only (see shown()): show the picture, claim nothing
+      $("#v3Claim").textContent = key === "heat" ? "NASA's night-heat map of the area. Red = warmer than in 2005, blue = cooler." : "Satellite NO₂ around the site, compared with the land nearby. The number below shows each year's gap.";
       $("#v3Conf").innerHTML = `No clear change at the site itself yet, so we don't claim one. ${esc(T.why)}`;
       $("#v3Note").textContent = `Data: ${T.source}`;
     } else {
@@ -248,7 +258,7 @@ async function openSite(id) {
   // Themes without Clear/Strong evidence (or a documented figure) are not offered for this site.
   const ok = Object.keys(THEMES).filter((k) => shown(k, S.facts[k]));
   document.querySelectorAll(".v3-tab").forEach((b) => { b.hidden = !ok.includes(b.dataset.theme); });
-  const pref = q.get("theme") in THEMES ? q.get("theme") : site.effects?.plume ? "air" : (site.watchFor?.[0] || "").startsWith("LST") ? "heat" : "green";
+  const pref = q.get("theme") in THEMES ? q.get("theme") : site.effects?.plume || site.effects?.plumeSource ? "air" : (site.watchFor?.[0] || "").startsWith("LST") ? "heat" : "green";
   S.theme = ok.includes(pref) ? pref : ok[0];
   S.side = q.get("side") === "before" ? "before" : "after";
   if (S.cs && S.cs.state?.site?.id !== id) S.cs.selectSite(id);

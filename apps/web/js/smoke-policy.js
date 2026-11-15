@@ -80,20 +80,37 @@ export const WEATHER_DYE_FRAGMENT_SHADER=`uniform sampler2D dye;
 uniform vec2 windDirection;
 uniform float visualTime;
 uniform float projected;
+uniform vec2 dyeTexel;
+uniform vec2 source;
 float wispHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float wispNoise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.0-2.0*f);float a=wispHash(i),b=wispHash(i+vec2(1,0)),c=wispHash(i+vec2(0,1)),d=wispHash(i+vec2(1,1));return a+(b-a)*u.x+(c-a)*u.y+(a-b-c+d)*u.x*u.y;}
+float wispFbm(vec2 p){float s=0.0,a=0.5;for(int i=0;i<4;i++){s+=a*wispNoise(p);p=p*2.03+vec2(1.7,9.2);a*=0.5;}return s;}
 void main(){
   vec3 d=max(texture(dye,vUv).xyz,0.0);
   float p=min(d.y,1.6),m=min(d.z,1.6),speed=length(windDirection);
-  vec2 wind=speed>0.001?windDirection/speed:vec2(0,1),center=vUv-0.5;
+  vec2 wind=speed>0.001?windDirection/speed:vec2(0,1),center=vUv-(source.x+source.y>0.0?source:vec2(0.5));
   float along=dot(center,wind),across=dot(center,vec2(-wind.y,wind.x)),width=0.025+max(0.0,along)*0.25;
   float corridor=speed>0.001?exp(-across*across/(width*width))*smoothstep(-0.07,0.015,along)*(1.0-smoothstep(0.15,0.48,along)):exp(-dot(center,center)/0.0064);
-  float erosion=smoothstep(0.28,0.72,0.65*wispNoise(vUv*23.0-visualTime*0.04*wind)+0.35*wispNoise(vUv*49.0+5.0-visualTime*0.08*wind));
+  // Domain-warped fbm: the warp drifts downwind so wisps roll and stretch instead of sliding as a fixed pattern.
+  vec2 q=vUv*14.0-visualTime*0.05*wind;q+=1.6*vec2(wispFbm(q+visualTime*0.03),wispFbm(q+vec2(5.2,1.3)-visualTime*0.03));
+  float erosion=smoothstep(0.25,0.75,wispFbm(q));
   float edge=smoothstep(0.0,0.09,min(min(vUv.x,vUv.y),min(1.0-vUv.x,1.0-vUv.y)));
   float smoke=p*corridor,total=max(smoke+m*0.35,0.00001);
   // Violet reads clearly over green/brown satellite ground (orange/grey did not).
-  vec3 color=(smoke*mix(vec3(0.55,0.22,0.95),vec3(0.86,0.66,1.0),clamp(smoke*0.6,0.0,1.0))+m*0.35*vec3(0.74,0.81,0.86))/total*(0.9+erosion*0.1);
+  // Light from the north-west using normals from the dye gradient: denser folds get shadow and highlights.
+  float dl=texture(dye,vUv-vec2(dyeTexel.x,0)).y,dr=texture(dye,vUv+vec2(dyeTexel.x,0)).y,db=texture(dye,vUv-vec2(0,dyeTexel.y)).y,dt=texture(dye,vUv+vec2(0,dyeTexel.y)).y;
+  vec3 n=normalize(vec3(dl-dr,db-dt,0.12));float light=clamp(dot(n,normalize(vec3(-0.5,0.6,0.62)))*0.55+0.6,0.55,1.15);
+  // Three-stop violet ramp (deep indigo core → violet → pale lilac rim) for a richer, glowing plume.
+  float k=clamp(smoke*0.7,0.0,1.0);
+  vec3 ramp=mix(mix(vec3(0.88,0.74,1.0),vec3(0.62,0.3,0.98),smoothstep(0.0,0.5,k)),vec3(0.36,0.12,0.78),smoothstep(0.5,1.0,k));
+  vec3 color=(smoke*ramp+m*0.35*vec3(0.74,0.81,0.86))/total*(0.82+erosion*0.18)*light;
+  // Bloom (as in Dobryakov's demo, here inside the texture): a 12-tap golden-angle blur gives a soft halo.
+  float glow=0.0;for(int i=0;i<12;i++){float a=float(i)*2.39996,r=sqrt(float(i)+0.5)*5.5;glow+=texture(dye,vUv+vec2(cos(a),sin(a))*r*dyeTexel).y;}
+  glow=max(glow/12.0-0.08,0.0)*corridor;
+  color+=vec3(0.7,0.45,1.0)*glow*0.6;
   if(projected>0.5){color.r*=0.94;color.b=min(1.0,color.b+0.025);}
-  float alpha=clamp((1.0-exp(-(smoke*1.1+m*0.12)))*(0.55+0.45*erosion)*edge,0.0,0.62);
+  float alpha=clamp((1.0-exp(-(smoke*1.4+m*0.12)))*(0.45+0.55*erosion)*edge+glow*0.35*edge,0.0,0.75);
+  // Dither to avoid banding in the thin edges after 8-bit copy.
+  color+=(wispHash(vUv*512.0+visualTime)-0.5)/255.0;
   o=vec4(color,alpha);
 }`;
