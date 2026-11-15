@@ -15,29 +15,44 @@ function extentFor(snapshot, options) {
   return options.extentM || [-r,-r,r,r];
 }
 
-/** Continuous bilinear RGB field, softly sampled from mapped land-use masks.
- * Water deliberately has no blue ground swatch: only polygon water is blue.
+function colorNoise(x,y){
+  const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy,fade=(t)=>t*t*t*(t*(t*6-15)+10);
+  const at=(a,b)=>{let h=Math.imul(a,374761393)^Math.imul(b,668265263);h=Math.imul(h^(h>>>16),0x7feb352d);h=Math.imul(h^(h>>>15),0x846ca68b);return ((h^(h>>>16))>>>0)/4294967296;};
+  const u=fade(fx),v=fade(fy);return (at(ix,iy)*(1-u)+at(ix+1,iy)*u)*(1-v)+(at(ix,iy+1)*(1-u)+at(ix+1,iy+1)*u)*v;
+}
+function splineWeights(t){const t2=t*t,t3=t2*t;return [(1-t)**3/6,(3*t3-6*t2+4)/6,(-3*t3+3*t2+3*t+1)/6,t3/6];}
+
+/** Continuous natural-ground tint, softly sampled from mapped land-use masks.
+ * A rotating disk kernel and bounded appearance-only warp break straight color
+ * bands; nonnegative cubic B-spline weights remove control-grid derivative seams.
+ * Geometry/classification never moves. Roads/buildings bypass this sampler, and
+ * water deliberately has no blue ground swatch: only polygon water is blue.
  */
 export function createTerrainColorSampler(snapshot, landscape, options = {}) {
   const [west,south,east,north] = extentFor(snapshot, options);
   const spacing = Math.max(20, options.colorSpacingM ?? 110), blend = Math.max(0, options.blendM ?? 65);
   const cols = Math.max(1,Math.ceil((east-west)/spacing)), rows = Math.max(1,Math.ceil((north-south)/spacing));
-  const dx = (east-west)/cols, dy = (north-south)/rows, field = [];
-  const samples = [[0,0,4],[-1,0,2],[1,0,2],[0,-1,2],[0,1,2],[-1,-1,1],[-1,1,1],[1,-1,1],[1,1,1]];
-  for (let j=0;j<=rows;j++) for (let i=0;i<=cols;i++) {
-    const x=west+i*dx,y=south+j*dy, color=[0,0,0];
-    for (const [ox,oy,w] of samples) {
-      const kind=landscape?.groundKindAt?.(x+ox*blend,y+oy*blend) || 'unknown';
-      const c=PALETTE[kind] || PALETTE.unknown;
-      for (let k=0;k<3;k++) color[k]+=c[k]*w/16;
+  const dx=(east-west)/cols,dy=(north-south)/rows,stride=cols+3,field=new Float32Array((cols+3)*(rows+3)*3),warp=Math.max(0,Math.min(80,options.colorWarpM??blend*.55));
+  // Mercator is used only to anchor low-frequency appearance noise between local
+  // patches. All map geometry and classifications stay in the original local ENU.
+  const lat=clamp(snapshot.center?.lat||0,-85,85)*Math.PI/180,secant=1/Math.cos(lat),originX=(snapshot.center?.lon||0)*Math.PI/180*6378137,originY=6378137*Math.log(Math.tan(Math.PI/4+lat/2));
+  const samples=[[0,0,4],...Array.from({length:8},(_,i)=>{const a=i*2.399963229728653,r=Math.sqrt((i+.5)/8)*1.35;return [Math.cos(a)*r,Math.sin(a)*r,1.5];})];
+  // The one-node halo gives the spline continuous slopes at the patch boundary.
+  for(let j=-1;j<=rows+1;j++)for(let i=-1;i<=cols+1;i++){
+    const x=west+i*dx,y=south+j*dy,gx=originX+x*secant,gy=originY+y*secant,color=[0,0,0];
+    const wx=(colorNoise(gx/620+13,gy/620-7)*.7+colorNoise(gx/270-41,gy/270+23)*.3-.5)*2*warp,wy=(colorNoise(gx/620-21,gy/620+31)*.7+colorNoise(gx/270+17,gy/270-37)*.3-.5)*2*warp,angle=colorNoise(gx/950+5,gy/950+19)*Math.PI*2,c=Math.cos(angle),s=Math.sin(angle);
+    for(const [ox,oy,w] of samples){
+      const kind=landscape?.groundKindAt?.(x+wx+(ox*c-oy*s)*blend,y+wy+(ox*s+oy*c)*blend)||'unknown';
+      const swatch=PALETTE[kind] || PALETTE.unknown;
+      for (let k=0;k<3;k++) color[k]+=swatch[k]*w/16;
     }
-    field.push(color);
+    field.set(color,((j+1)*stride+i+1)*3);
   }
   return (x,y) => {
     const u=clamp((x-west)/dx,0,cols),v=clamp((y-south)/dy,0,rows);
-    const i=Math.min(cols-1,Math.floor(u)),j=Math.min(rows-1,Math.floor(v)),a=u-i,b=v-j;
-    const c0=field[j*(cols+1)+i],c1=field[j*(cols+1)+i+1],c2=field[(j+1)*(cols+1)+i],c3=field[(j+1)*(cols+1)+i+1];
-    return [0,1,2].map((k) => Math.pow((c0[k]*(1-a)+c1[k]*a)*(1-b)+(c2[k]*(1-a)+c3[k]*a)*b,2.2)).concat(1);
+    const i=Math.min(cols-1,Math.floor(u)),j=Math.min(rows-1,Math.floor(v)),a=splineWeights(u-i),b=splineWeights(v-j),color=[0,0,0,1];
+    for(let yy=0;yy<4;yy++)for(let xx=0;xx<4;xx++){const weight=a[xx]*b[yy],offset=((j+yy)*stride+i+xx)*3;for(let k=0;k<3;k++)color[k]+=field[offset+k]*weight;}
+    for(let k=0;k<3;k++)color[k]=Math.pow(clamp(color[k],0,1),2.2);return color;
   };
 }
 

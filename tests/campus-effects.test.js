@@ -44,9 +44,15 @@ test("local sources are bounded, lazy, pause via the existing clock, and clean u
     assert.equal(live.length,3); assert.ok(live.every((source)=>source.show&&source.emissionRate===4));
     assert.ok(live.reduce((sum,source)=>sum+source.emissionRate*source.maximumParticleLife,0)<=225);
     assert.ok(live.every((source)=>source.modelMatrix.z>109&&source.modelMatrix.z<111),'terrain elevation plus six-meter stack must not use building height');
-    const particle={velocity:new Cartesian3(),age:4,life:12,color:{alpha:0}};
+    const particle={velocity:new Cartesian3(),age:4,life:12,startColor:{alpha:.38},endColor:{alpha:0}};
     live[0].updateCallback(particle);
     assert.ok(Math.abs(particle.velocity.x-5.6)<1e-8); assert.ok(Math.abs(particle.velocity.y)<1e-8); assert.equal(particle.velocity.z,2.6);
+    assert.equal('color' in particle,false,'real Cesium particles expose startColor/endColor rather than color');
+    const renderedAlpha=()=>particle.startColor.alpha*(1-particle.age/particle.life)+particle.endColor.alpha*particle.age/particle.life;
+    assert.ok(renderedAlpha()>0&&renderedAlpha()<=.3,'the color interpolation used by the billboard must receive visible alpha');
+    particle.age=0;live[0].updateCallback(particle);assert.equal(renderedAlpha(),0);
+    particle.age=6;live[0].updateCallback(particle);assert.equal(renderedAlpha(),.3);
+    particle.age=12;live[0].updateCallback(particle);assert.equal(renderedAlpha(),0);
     effects.setActive(false); assert.ok(live.every((source)=>!source.show&&source.emissionRate===0));
     effects.setYear(2030,{WS10M:2,PlumeTowardDeg:0},'projected'); effects.setActive(true);
     assert.ok(live.every((source)=>source.emissionRate===3));

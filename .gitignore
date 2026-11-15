@@ -39,3 +39,6 @@ clients/unreal/**/Content/CesiumSettings/
 
 # static web build output (npm run web:build)
 dist/
+
+# Local streamed map cache and unfinished working artifacts
+tmp/

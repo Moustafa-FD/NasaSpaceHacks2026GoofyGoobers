@@ -110,15 +110,16 @@ function buildEffects() {
   };
   updateWindVec(); T._updateWindVec = updateWindVec;
   T.wind = viewer.scene.primitives.add(new Cesium.ParticleSystem({
-    image: SMOKE, startColor: Cesium.Color.WHITE.withAlpha(0.0), endColor: Cesium.Color.WHITE.withAlpha(0.0),
+    image: SMOKE, startColor: Cesium.Color.fromCssColorString("#b1c4ce").withAlpha(0.0), endColor: Cesium.Color.fromCssColorString("#b1c4ce").withAlpha(0.0),
     startScale: 1, endScale: 1, minimumParticleLife: 6, maximumParticleLife: 9, minimumSpeed: 0, maximumSpeed: 1,
     imageSize: new Cesium.Cartesian2(180, 60), sizeInMeters: true, emissionRate: 18, lifetime: 16,
     emitter: new Cesium.BoxEmitter(new Cesium.Cartesian3(26000, 26000, 1400)),
     modelMatrix: enuAt(lat, lon, 1500),
     updateCallback: (p, dt) => {
       Cesium.Cartesian3.clone(windVec, p.velocity);
-      const k = p.age / p.life, a = Math.sin(Math.PI * k) * 0.055;
-      p.color = Cesium.Color.fromAlpha(Cesium.Color.fromCssColorString("#b1c4ce"), a, p.color);
+      const k = Math.max(0, Math.min(1, p.age / p.life)), a = k > 0 && k < 1 ? Math.sin(Math.PI * k) * 0.055 : 0;
+      // ParticleSystem renders a lerp of these documented Particle colors.
+      p.startColor.alpha = p.endColor.alpha = a;
     },
   }));
 
@@ -135,7 +136,8 @@ function buildEffects() {
         // rise + drift with the (time-lapsed) NASA POWER wind
         const target = Cesium.Cartesian3.add(windVec, Cesium.Cartesian3.multiplyByScalar(up, 8, new Cesium.Cartesian3()), new Cesium.Cartesian3());
         Cesium.Cartesian3.lerp(p.velocity, target, Math.min(1, dt * 0.6), p.velocity);
-        p.color.alpha = plumeParticleAlpha(p.age, p.life);
+        const alpha = plumeParticleAlpha(p.age, p.life);
+        p.startColor.alpha = p.endColor.alpha = alpha;
       },
     }));
   }

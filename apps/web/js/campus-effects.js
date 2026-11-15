@@ -59,10 +59,10 @@ export function attachCampusEffects(viewer, site, sceneData) {
         modelMatrix: C.Matrix4.multiplyByTranslation(frame, new C.Cartesian3(x, y, base + 6), new C.Matrix4()),
         updateCallback(particle) {
           C.Cartesian3.clone(wind, particle.velocity);
-          if (particle.color) {
-            const age = Math.max(0, Math.min(1, particle.age / Math.max(1, particle.life)));
-            particle.color.alpha = Math.sin(Math.PI * age) * 0.3;
-          }
+          const age = finite(particle.age) && finite(particle.life) && particle.life > 0 ? Math.max(0, Math.min(1, particle.age / particle.life)) : 0;
+          const alpha = age > 0 && age < 1 ? Math.sin(Math.PI * age) * 0.3 : 0;
+          // Cesium.Particle has startColor/endColor; its billboard lerps them.
+          particle.startColor.alpha = particle.endColor.alpha = alpha;
         },
       });
       systems.push(viewer.scene.primitives.add(source));

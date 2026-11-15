@@ -97,3 +97,46 @@ test('a grove remains a multi-crown silhouette instead of one enlarged tree', ()
   assert.ok(clustered.positions.values.some((v, i) => i % 3 === 0 && v > grove.width * 0.35));
   assert.ok(clustered.positions.values.some((v, i) => i % 3 === 0 && v < -grove.width * 0.35));
 });
+
+test('all grove distance variants preserve authored irregular crown positions, species, heights and colors', () => {
+  const groves = manifest.models.filter((m) => m.style === 'grove');
+  const kit = readFileSync(new URL('../apps/web/assets/low-poly/kit.glb', import.meta.url));
+  const jsonLength = kit.readUInt32LE(12), doc = JSON.parse(kit.toString('utf8', 20, 20 + jsonLength)), binaryStart = 28 + jsonLength;
+  assert.equal(groves.length, 4);
+  const layouts = new Set();
+  for (const grove of groves) {
+    assert.equal(grove.canopyCount, 9); assert.equal(grove.stemCount, 9);
+    assert.equal(grove.canopies.length, 9);
+    assert.equal(new Set(grove.canopies.map((c) => c.x)).size, 9, `${grove.id}: no planting columns`);
+    assert.equal(new Set(grove.canopies.map((c) => c.z)).size, 9, `${grove.id}: no planting rows`);
+    assert.deepEqual(new Set(grove.canopies.map((c) => c.shape)), new Set(['conifer', 'broadleaf']));
+    assert.ok(new Set(grove.canopies.map((c) => c.color.join(','))).size >= 3);
+    assert.ok(Math.max(...grove.canopies.map((c) => c.height)) - Math.min(...grove.canopies.map((c) => c.height)) > 1.5);
+    assert.ok(grove.triangles <= 342, `${grove.id}: denser-looking stand keeps its triangle budget`);
+    layouts.add(JSON.stringify(grove.canopies.map((c) => [c.x, c.z])));
+    const generated = generate(grove), positions = generated.positions.values, colors = generated.colors.values;
+    const authoredPositions = doc.meshes[grove.meshIndex].primitives.flatMap((primitive) => {
+      const a = doc.accessors[primitive.attributes.POSITION], view = doc.bufferViews[a.bufferView], offset = binaryStart + (view.byteOffset ?? 0) + (a.byteOffset ?? 0);
+      return Array.from({ length: a.count }, (_, i) => [0, 1, 2].map((j) => kit.readFloatLE(offset + (i * 3 + j) * 4)));
+    });
+    for (const canopy of grove.canopies) {
+      assert.ok(authoredPositions.some((p) => Math.abs(p[0] - canopy.x) < 2e-5 && Math.abs(p[1] - canopy.height) < 2e-5 && Math.abs(p[2] - canopy.z) < 2e-5), `${grove.id}: crown metadata matches a real authored mesh tip`);
+      const tips = [];
+      for (let i = 0; i < positions.length; i += 3) {
+        if (Math.abs(positions[i] - canopy.x) < 1e-7 && Math.abs(positions[i + 1] - canopy.height) < 1e-7 && Math.abs(positions[i + 2] - canopy.z) < 1e-7) tips.push(i / 3);
+      }
+      assert.equal(tips.length, canopy.shape === 'broadleaf' ? 5 : 6, `${grove.id}: crown top and broadleaf/conifer topology match source metadata`);
+      for (const tip of tips) assert.deepEqual(colors.slice(tip * 4, tip * 4 + 4), canopy.color.map((v) => v ** 2.2).concat(1));
+    }
+  }
+  assert.equal(layouts.size, 4, 'The four grove silhouettes have distinct layouts');
+});
+
+test('legacy grove metadata still uses irregular mixed crowns with bounded geometry', () => {
+  const source = manifest.models.find((m) => m.id === 'forest-grove');
+  const { canopies, ...legacy } = source;
+  const coarse = generate(legacy);
+  assert.ok(coarse.positions.values.every(Number.isFinite));
+  assert.ok(coarse.indices.count / 3 < source.triangles);
+  assert.ok(new Set(coarse.colors.values).size > 3);
+});

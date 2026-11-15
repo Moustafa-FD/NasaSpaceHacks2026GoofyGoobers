@@ -11,6 +11,36 @@ function hash(value) {
   return h >>> 0;
 }
 
+const GRASS_PERIOD=8192,EARTH=6378137;
+const wrapGrass=(value)=>((value%GRASS_PERIOD)+GRASS_PERIOD)%GRASS_PERIOD;
+/** Source snapshots use local equirectangular metres. Recover a shared global
+ * coordinate phase in double precision, then upload only its small periodic
+ * remainder: adjacent patches agree without metre-sized Float32 precision loss.
+ */
+export function grassCoordinateFrame(center={}){
+  const lat=(Number.isFinite(center.lat)?Math.max(-85,Math.min(85,center.lat)):0)*Math.PI/180;
+  const lon=(Number.isFinite(center.lon)?center.lon:0)*Math.PI/180;
+  return {origin:[wrapGrass(EARTH*lon),wrapGrass(EARTH*lat)],scale:[1/Math.cos(lat),1],period:GRASS_PERIOD};
+}
+export function grassWorldCoordinate(frame,east,north){return [wrapGrass(frame.origin[0]+east*frame.scale[0]),wrapGrass(frame.origin[1]+north*frame.scale[1])];}
+export function grassMaterialDomain(kind,rgb,flooded=false){return !flooded&&kind>2.5&&kind<3.5&&rgb[1]>rgb[0]*.94&&rgb[1]>rgb[2]*1.10;}
+export function grassDetailWeight(footprint){const t=Math.max(0,Math.min(1,(Math.max(0,footprint)*6.5-.24)/.56));return 1-t*t*(3-2*t);}
+export function groundMaterialDomain(kind,flooded=false){return !flooded&&kind>2.5&&kind<3.5;}
+const smooth=(low,high,value)=>{const t=Math.max(0,Math.min(1,(value-low)/(high-low)));return t*t*(3-2*t);};
+/** CPU reference for the fragment shader's continuous appearance weights.
+ * Input is LINEAR terrain color, not a measured soil/vegetation classification.
+ * Output order is green grass, dry turf/soil, neutral rock, pale warm sand.
+ */
+export function groundMaterialWeights(rgb){
+  const [r,g,b]=rgb,top=Math.max(r,g,b,.001);
+  const grass=smooth(-.02,.18,(g-r)/top)*smooth(.08,.35,(g-b)/top);
+  const warm=smooth(.05,.35,(r-b)/top),pale=smooth(.28,.58,top),rest=1-grass;
+  return [grass,rest*warm*(1-pale),rest*(1-warm),rest*warm*pale];
+}
+// Local display metres: centimetre blades, sub-metre grains, metre-sized turf
+// variation and broader colour patches. No building-sized grass/stone shapes.
+export const GROUND_MATERIAL_SCALES=Object.freeze({bladeLengthM:.08,grainM:.125,tuftM:.5,patchM:8,broadM:32});
+
 /** RG = unsigned 16-bit elevation, B = valid-sample mask, A = opaque.
  * Rows remain south→north. Shader performs manual bilinear interpolation after
  * decoding four NEAREST samples, avoiding byte-boundary interpolation errors.
@@ -96,23 +126,114 @@ void vertexMain(VertexInput vsInput, inout czm_modelVertexOutput vsOutput) {
 `;
 
 export const LANDSCAPE_FRAGMENT_SHADER = `
+float lpGrassHash(vec2 p) {
+    vec3 q=fract(vec3(p.x,p.y,p.x)*0.1031);
+    q+=dot(q,q.yzx+33.33);
+    return fract((q.x+q.y)*q.z);
+}
+float lpGrassNoise(vec2 p,float period) {
+    vec2 i=floor(p),f=fract(p);
+    f=f*f*(3.0-2.0*f);
+    float a=lpGrassHash(mod(i,period));
+    float b=lpGrassHash(mod(i+vec2(1.0,0.0),period));
+    float c=lpGrassHash(mod(i+vec2(0.0,1.0),period));
+    float d=lpGrassHash(mod(i+vec2(1.0),period));
+    return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);
+}
+vec4 lpGroundWeights(vec3 color) {
+    float top=max(max(color.r,color.g),max(color.b,0.001));
+    float grass=smoothstep(-0.02,0.18,(color.g-color.r)/top)
+               *smoothstep(0.08,0.35,(color.g-color.b)/top);
+    float warm=smoothstep(0.05,0.35,(color.r-color.b)/top);
+    float pale=smoothstep(0.28,0.58,top),rest=1.0-grass;
+    return vec4(grass,rest*warm*(1.0-pale),rest*(1.0-warm),rest*warm*pale);
+}
+vec2 lpGroundMaterial(vec2 local,vec4 weights) {
+    vec2 world=mod(u_grassOrigin+local*u_grassScale,8192.0);
+    // Geographic periodic phase agrees across streamed patches. Measure pixel
+    // footprint before wrapping so a period boundary cannot create an AA seam.
+    vec2 projected=fwidth(local*u_grassScale);
+    float metresPerPixel=max(projected.x,projected.y);
+    // Blended, differently oriented scales retain softly irregular material
+    // patches without tiling squares or parallel colour stripes.
+    float broad=0.65*lpGrassNoise(world/32.0,256.0)
+               +0.35*lpGrassNoise(vec2(world.x+world.y,world.y-world.x)/8.0,1024.0);
+    float surfaceFade=1.0-smoothstep(0.125,0.90,metresPerPixel);
+    float surface=0.5,grain=0.0;
+    if(surfaceFade>0.001) {
+        surface=mix(0.5,smoothstep(0.18,0.82,lpGrassNoise(world*2.0,16384.0)),surfaceFade);
+        float grainFade=1.0-smoothstep(0.025,0.11,metresPerPixel);
+        if(grainFade>0.001) grain=(lpGrassNoise(world*8.0,65536.0)-0.5)*grainFade;
+    }
+    vec2 q=world*vec2(5.5,6.5);
+    vec2 pixel=projected*vec2(5.5,6.5);
+    float footprint=max(pixel.x,pixel.y);
+    float fineFade=1.0-smoothstep(0.24,0.80,footprint);
+    float blade=0.0,bladeTone=0.0;
+    if(fineFade>0.001 && weights.x+weights.y>0.01) {
+        vec2 cell=mod(floor(q),vec2(45056.0,53248.0));
+        float seed=lpGrassHash(cell);
+        float other=lpGrassHash(cell+vec2(19.0,71.0));
+        vec2 center=vec2(0.35)+0.30*vec2(seed,other);
+        float angle=6.28318530718*lpGrassHash(cell+vec2(47.0,13.0));
+        vec2 axis=vec2(cos(angle),sin(angle)),delta=fract(q)-center;
+        vec2 bladeSpace=vec2(dot(delta,axis),dot(delta,vec2(-axis.y,axis.x)));
+        float aa=max(0.005,footprint*0.55);
+        blade=(1.0-smoothstep(0.13-aa,0.22+aa,abs(bladeSpace.x)))
+             *(1.0-smoothstep(0.012-aa,0.032+aa,abs(bladeSpace.y)));
+        bladeTone=blade*fineFade*(other*0.30-0.15);
+    }
+    // Each base colour keeps its hue; only physical surface character changes.
+    // Dry ground has sparse straw/grains, rock has chipped aggregate contrast,
+    // sand has softer fine grains. These are artistic material cues, not geology.
+    vec4 textureTone=vec4((surface-0.5)*0.16+bladeTone,
+                         (surface-0.5)*0.30+bladeTone*0.45+grain*0.16,
+                         (abs(surface-0.5)*2.0-0.5*surfaceFade)*0.30+grain*0.22,
+                         (surface-0.5)*0.12+grain*0.18);
+    float roughness=dot(weights,vec4(0.96,0.98,0.88,0.99))+(0.5-broad)*0.04;
+    // Softer lawn contrast avoids camouflage-sized islands beside small homes;
+    // dry soil and rock retain their stronger aggregate/color variation.
+    float broadContrast=mix(0.36,0.20,weights.x);
+    return vec2(1.0+broadContrast*(broad-0.5)+dot(weights,textureTone),clamp(roughness,0.82,1.0));
+}
 void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material) {
+    float viewDistance = length(v_lpLocal-u_viewCircle.xy);
+    float viewFade = 1.0-smoothstep(max(0.0,u_viewCircle.z-600.0),u_viewCircle.z,viewDistance);
+    float patchFade = 1.0-smoothstep(max(0.0,u_patchRadius-600.0),u_patchRadius,length(v_lpLocal));
+    float coverage = viewFade*patchFade*clamp(u_patchOpacity,0.0,1.0);
+    // Ordered screen dither keeps the main material opaque and depth-correct.
+    // Opposite retiring thresholds complement the arriving patch's coverage.
+    const mat4 bayer = mat4(0.0,8.0,2.0,10.0,12.0,4.0,14.0,6.0,3.0,11.0,1.0,9.0,15.0,7.0,13.0,5.0);
+    ivec2 pixel = ivec2(mod(floor(gl_FragCoord.xy),4.0));
+    float threshold = (bayer[pixel.x][pixel.y]+0.5)/16.0;
+    threshold = mix(threshold,1.0-threshold,u_patchRetiring);
+    if (coverage <= threshold) discard;
     float kind = v_lpKind;
     float health = v_lpHealth;
     float progress = smoothstep(2025.0,2035.0,u_year)*clamp(u_scenario,0.0,1.0);
     vec3 original = material.diffuse;
     bool green = original.g > original.r*0.94 && original.g > original.b*1.10;
+    float shoreAdvance = progress*(110.0+42.0*sin(v_lpLocal.y/850.0));
+    bool floodedGround = kind > 2.5 && kind < 3.5 && progress > 0.0001 && v_lpWaterDistance < shoreAdvance;
     if (kind > 0.5 && kind < 1.5 && green) {
         material.diffuse = mix(pow(vec3(0.40,0.24,0.10),vec3(2.2)),original,health);
         if (health < 0.13) discard; // Stylized bare canopy; brown trunk remains.
     } else if (kind > 1.5 && kind < 2.5) {
         vec3 crop = mix(vec3(0.66,0.46,0.15),vec3(0.26,0.43,0.13),smoothstep(0.25,0.85,health));
         material.diffuse = pow(mix(vec3(0.36,0.24,0.11),crop,smoothstep(0.05,0.35,health)),vec3(2.2));
-    } else if (kind > 2.5 && kind < 3.5 && green) {
-        material.diffuse = mix(pow(vec3(0.42,0.34,0.20),vec3(2.2)),original,0.55+0.45*health);
+    } else if (kind > 2.5 && kind < 3.5) {
+        // Classify the original blended land tint, before illustrative NDVI
+        // stress, so scrubbing years cannot turn an area into a different soil.
+        vec4 groundWeights=lpGroundWeights(original);
+        vec3 stressed=mix(pow(vec3(0.42,0.34,0.20),vec3(2.2)),original,0.55+0.45*health);
+        material.diffuse=mix(original,stressed,groundWeights.x);
+        if(!floodedGround) {
+            vec2 ground=lpGroundMaterial(v_lpLocal,groundWeights);
+            material.diffuse*=ground.x;
+            material.roughness=ground.y;
+            material.specular=min(material.specular,vec3(0.025));
+        }
     }
-    float shoreAdvance = progress*(110.0+42.0*sin(v_lpLocal.y/850.0));
-    bool floodedGround = kind > 2.5 && kind < 3.5 && progress > 0.0001 && v_lpWaterDistance < shoreAdvance;
     if ((kind > 3.5 && kind < 4.5) || floodedGround) {
         float ripple = 0.015*sin(v_lpLocal.x*0.032+v_lpLocal.y*0.021+u_year*0.7);
         vec3 water = pow(vec3(0.19,0.39,0.48)+ripple,vec3(2.2));
@@ -129,15 +250,22 @@ void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material) {
  * Destroy the CustomShader when its model leaves the scene to release texture.
  * Shoreline advance is an artistic color treatment, not a flood-volume solver.
  */
-export function createLandscapeShader(Cesium, elevation = null) {
+export function createLandscapeShader(Cesium, elevation = null, options = {}) {
   const texture = packElevationTexture(elevation);
   const extent = elevation?.extentM || [-3300,-3300,3300,3300];
+  const grassFrame=grassCoordinateFrame(options.center||elevation?.center);
   return new Cesium.CustomShader({
     mode: Cesium.CustomShaderMode.MODIFY_MATERIAL,
     uniforms: {
       u_health: { type: Cesium.UniformType.FLOAT, value: 1 },
       u_year: { type: Cesium.UniformType.FLOAT, value: 2025 },
       u_scenario: { type: Cesium.UniformType.FLOAT, value: 0 },
+      u_viewCircle: { type: Cesium.UniformType.VEC3, value: new Cesium.Cartesian3(0,0,1000000) },
+      u_patchRadius: { type: Cesium.UniformType.FLOAT, value: 1000000 },
+      u_patchOpacity: { type: Cesium.UniformType.FLOAT, value: 1 },
+      u_patchRetiring: { type: Cesium.UniformType.FLOAT, value: 0 },
+      u_grassOrigin: { type: Cesium.UniformType.VEC2, value: new Cesium.Cartesian2(...grassFrame.origin) },
+      u_grassScale: { type: Cesium.UniformType.VEC2, value: new Cesium.Cartesian2(...grassFrame.scale) },
       u_sitePhase: { type: Cesium.UniformType.FLOAT, value: hash(elevation?.siteId || 'landscape') / 4294967296 * Math.PI * 2 },
       u_demRange: { type: Cesium.UniformType.VEC2, value: new Cesium.Cartesian2(texture.min, texture.span) },
       u_demSize: { type: Cesium.UniformType.VEC2, value: new Cesium.Cartesian2(texture.width, texture.height) },

@@ -79,6 +79,23 @@ function delivery(color){
   s.box(0,1.42,3.64,1.88,.64,.04,'37505a');
   for(const x of [-1.1,1.1])for(const z of [-2.4,2.56])s.box(x,.08,z,.29,.88,1.04,'1b2930');return glb(s);
 }
+function truck(flatbed=false){
+  const s=shape(),paint=flatbed?'748e93':'aab9ac';
+  s.box(0,.55,-.7,2.45,.32,8.2,'34454b');
+  if(flatbed){
+    s.box(0,.86,-1.18,2.5,.24,7.3,'9b8e70');
+    for(const z of [-3.6,-1.5,.6]){s.box(0,1.1,z,2.05,1.1,1.65,'b2aa8e');s.box(0,2.15,z,2.1,.08,1.69,'6a817e');}
+  }else{
+    s.box(0,.88,-1.18,2.5,2.55,7.3,paint);
+    for(const x of [-1.26,1.26])for(const z of [-3.8,-2.5,-1.2,.1,1.4])s.box(x,1.05,z,.04,2.2,.055,'718786');
+    s.box(0,1.05,-4.85,2.35,2.1,.06,'879795');
+  }
+  s.box(0,.55,3.5,2.43,2.4,2.1,'d0d9cc');s.box(0,1.7,3.62,2.46,.9,1.82,'36535e');
+  s.box(0,1.7,4.57,2.1,.83,.05,'36535e');s.box(0,.66,4.62,2.5,.24,.14,'40535b');
+  for(const x of [-1.22,1.22])for(const z of [-3.7,-2.35,3.42])s.box(x,.08,z,.3,.98,1.1,'1b2930');
+  for(const x of [-.85,.85])s.box(x,.95,4.7,.44,.18,.05,'e2dfb9');
+  return glb(s);
+}
 function wing(s,polygon,y,thickness,color){
   let area=0;for(let i=0;i<polygon.length;i++){const a=polygon[i],b=polygon[(i+1)%polygon.length];area+=a[0]*b[1]-b[0]*a[1];}
   const points=area>0?[...polygon].reverse():polygon,top=points.map(([x,z])=>[x,y+thickness,z]),bottom=points.map(([x,z])=>[x,y,z]);
@@ -99,14 +116,25 @@ function jet(cargo=false){
 function lamp(){const s=shape();s.box(0,0,0,.13,6,.13,'536c71');s.box(0,5.8,.55,.13,.12,1.2,'536c71');s.box(0,5.7,1.1,.5,.16,.32,'e8d9a6');return glb(s);}
 function sign(){const s=shape();s.box(0,0,0,.07,2.6,.07,'6e8587');s.box(0,2.05,0,.9,.62,.1,'487b69');s.box(0,2.28,.06,.56,.055,.02,'e5e9d8');return glb(s);}
 let modelBuffers;
+export const ROAD_VEHICLE_SCALE=0.76;
 export function buildCityLifeModels(){
-  const prop=propPlane();return {cars:['8cb6b0','ba7567','c4aa75','d8dfd8','7696b3','728286'].map(car),vans:['c6d5c9','8ca4b4'].map(van),bus:bus(),delivery:['d8c8a3','9aaeb4'].map(delivery),plane:prop,planes:{prop,regional:jet(),cargo:jet(true)},lamp:lamp(),sign:sign()};
+  const prop=propPlane();return {cars:['8cb6b0','ba7567','c4aa75','d8dfd8','7696b3','728286'].map(car),vans:['c6d5c9','8ca4b4'].map(van),bus:bus(),delivery:['d8c8a3','9aaeb4'].map(delivery),trucks:[truck(),truck(true)],plane:prop,planes:{prop,regional:jet(),cargo:jet(true)},lamp:lamp(),sign:sign()};
 }
 export function createCityLifeModelPack(){
   const buffers=modelBuffers ||= buildCityLifeModels(), urls=[];
   const make=(buffer)=>{const url=URL.createObjectURL(new Blob([buffer],{type:'model/gltf-binary'}));urls.push(url);return url;};
-  const pack={cars:buffers.cars.map(make),vans:buffers.vans.map(make),bus:make(buffers.bus),delivery:buffers.delivery.map(make),planes:{prop:make(buffers.planes.prop),regional:make(buffers.planes.regional),cargo:make(buffers.planes.cargo)},lamp:make(buffers.lamp),sign:make(buffers.sign)};
+  const pack={cars:buffers.cars.map(make),vans:buffers.vans.map(make),bus:make(buffers.bus),delivery:buffers.delivery.map(make),trucks:buffers.trucks.map(make),planes:{prop:make(buffers.planes.prop),regional:make(buffers.planes.regional),cargo:make(buffers.planes.cargo)},lamp:make(buffers.lamp),sign:make(buffers.sign)};
   pack.plane=pack.planes.prop;
-  pack.vehicles=[...pack.cars.map((url)=>({url,kind:'car',length:4.2})),...pack.vans.map((url)=>({url,kind:'van',length:5.5})),{url:pack.bus,kind:'bus',length:10.5},...pack.delivery.map((url)=>({url,kind:'delivery',length:7.3}))];
+  pack.vehicles=[...pack.cars.map((url)=>({url,kind:'car',length:4.24,width:1.92,minRoadWidth:4,speed:10})),
+    ...pack.vans.map((url)=>({url,kind:'van',length:5.6,width:2.19,minRoadWidth:5,speed:9})),
+    {url:pack.bus,kind:'bus',length:10.6,width:2.67,minRoadWidth:7,speed:8},
+    ...pack.delivery.map((url)=>({url,kind:'delivery',length:7.5,width:2.49,minRoadWidth:6.5,speed:8.5})),
+    ...pack.trucks.map((url)=>({url,kind:'truck',length:9.7,width:2.74,minRoadWidth:8,speed:8}))];
+  // The user-facing stylized scale is also the physics scale. Lane checks,
+  // turn clearances and bumper headway cover the rendered mesh, not its
+  // previous larger dimensions. Aircraft keep their own authored scale.
+  pack.vehicles=pack.vehicles.map((vehicle)=>({...vehicle,authoredLength:vehicle.length,authoredWidth:vehicle.width,
+    length:vehicle.length*ROAD_VEHICLE_SCALE,width:vehicle.width*ROAD_VEHICLE_SCALE,minRoadWidth:vehicle.minRoadWidth*ROAD_VEHICLE_SCALE,scale:ROAD_VEHICLE_SCALE,
+    groundOffsetM:.015-.08*ROAD_VEHICLE_SCALE}));
   let destroyed=false;pack.destroy=()=>{if(destroyed)return;destroyed=true;for(const url of urls)URL.revokeObjectURL(url);};return pack;
 }

@@ -19,7 +19,7 @@ const S = { site: null, rows: null, light: "golden", nightLights: null, clouds: 
   massing: [], orbit: null, fluid: null, windDir: 0, windSpeed: 3, precip: 0, heat: 0, meanT2M: null, preRender: null,
   localScene: false, year: 2025, lastTick: 0, animationTime: 0, lastRow: null, phase: "observed" };
 const QUALITY = {
-  high: { hdr: true, bloom: true, shadows: true, clouds: 14, rainRate: 380, fluidTexEvery: 1, resolution: 1, shadowSize: 2048 },
+  high: { hdr: true, bloom: false, shadows: true, clouds: 14, rainRate: 380, fluidTexEvery: 1, resolution: 1, shadowSize: 2048 },
   balanced: { hdr: false, bloom: false, shadows: true, clouds: 8, rainRate: 220, fluidTexEvery: 2, resolution: 0.85, shadowSize: 1024 },
   low: { hdr: false, bloom: false, shadows: false, clouds: 3, rainRate: 90, fluidTexEvery: 3, resolution: 0.65, shadowSize: 1024 },
 };
@@ -64,7 +64,12 @@ export function init(v) {
   applyQuality();
   scene.preRender.addEventListener(tick);
   qualityController = new AdaptiveQuality({ quality: Q, now: performance.now(),
-    onSample: ({ fps }) => { sampledFps = fps; },
+    onSample: ({ fps }) => {
+      sampledFps = fps;
+      const button=document.querySelector('#tlQuality');
+      if(button){button.dataset.fps=fps.toFixed(1);button.dataset.tier=Q;
+        button.title=`Graphics: ${getQualityLabel()} · ${Math.round(fps)} FPS. Click to cycle Auto → High → Low → Auto.`;}
+    },
     onChange: ({ quality: next, fps }) => { if (!automaticQuality) return; Q = next; sampledFps = fps; applyQuality(); },
   });
   scene.postRender.addEventListener(() => qualityController.sample(performance.now(), automaticQuality && document.visibilityState === "visible" && getMotionSpeed() > 0 && !window.CloudShadowNeighborhood?.pending));

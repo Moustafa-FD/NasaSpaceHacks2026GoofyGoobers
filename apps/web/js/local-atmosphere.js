@@ -1,6 +1,7 @@
 // Local scenery atmosphere. Weather drives only qualitative cloud appearance;
 // the distance haze hides the finite scene boundary, not measured air pollution.
 import { sampleElevation } from './landscape.js';
+import { attachLocalSky } from './local-sky.js';
 
 const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 const finite=(v)=>typeof v==='number'&&Number.isFinite(v);
@@ -130,6 +131,7 @@ export function attachLocalAtmosphere(viewer,site,sceneData={}) {
   const clouds=[],localCamera=new C.Cartesian3(),scratch=new C.Cartesian3(),fogColor=new C.Cartesian3(...lastState.fogColor);
   const boundaryCenter=new C.Cartesian2(0,0);
   let boundaryRadius=radius,boundaryCircle=0;
+  const sky=attachLocalSky(viewer,site,sceneData);
 
   function nativeFog(activeValue) {
     const fog=scene.fog;
@@ -218,17 +220,17 @@ export function attachLocalAtmosphere(viewer,site,sceneData={}) {
   return {
     setActive(value){
       if(destroyed)return;
-      active=!!value;previousTime=null;nativeFog(active);
+      active=!!value;previousTime=null;nativeFog(active);sky.setActive(active);
       if(active)tick();else{
         if(collection)collection.show=false;if(stage)stage.enabled=false;
         lastState={...lastState,active:false,cloudAlpha:0,fogStrength:0,boundaryStrength:0};sceneData.onAtmosphere?.(lastState);
       }
     },
-    setYear(year,row={},phase='observed'){if(!destroyed){weather=localWeatherPolicy(row,phase);if(active)tick();}},
-    setQuality(value){if(!destroyed){quality=['low','medium','balanced','high'].includes(value)?value:'high';if(active)tick();}},
+    setYear(year,row={},phase='observed'){if(!destroyed){weather=localWeatherPolicy(row,phase);sky.setYear(year,row,phase);if(active)tick();}},
+    setQuality(value){if(!destroyed){quality=['low','medium','balanced','high'].includes(value)?value:'high';sky.setQuality(value);if(active)tick();}},
     destroy(){
       if(destroyed)return;
-      active=false;nativeFog(false);destroyed=true;
+      active=false;nativeFog(false);destroyed=true;sky.destroy();
       if(typeof stop==='function')stop();else scene.preRender.removeEventListener(tick);
       if(stage){stage.enabled=false;scene.postProcessStages.remove(stage);if(typeof stage.isDestroyed==='function'&&!stage.isDestroyed())stage.destroy();}
       if(collection){collection.show=false;scene.primitives.remove(collection);if(typeof collection.isDestroyed==='function'&&!collection.isDestroyed())collection.destroy();}
