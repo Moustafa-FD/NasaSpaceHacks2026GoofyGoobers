@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { annualStorySeries, resolveStoryVariables, storyBaseline, summarizeStoryMetric, summarizeStoryWater } from '../apps/web/js/environment-story-data.js';
-import { attachEnvironmentStory, storyChartData, storyChartSvg, storyMethodHtml, storyMetricHtml, storyValuesHtml, storyWaterHtml } from '../apps/web/js/environment-story.js';
+import { attachEnvironmentStory, storyChartData, storyChartSvg, storyMethodHtml, storyMetricHtml, storyValuesHtml, storyWaterHtml, storyFutureHtml, storyClimateComparisonHtml, storyDailyClimateHtml } from '../apps/web/js/environment-story.js';
+import { summarizeFutureClimate, summarizeFutureProduct, summarizeFutureTrend } from '../apps/web/js/future-data.js';
 import { resolveSiteEvidence } from '../apps/web/js/site-evidence.js';
 import { storyFormat } from '../apps/web/js/environment-story-data.js';
 
@@ -168,14 +169,87 @@ test('the readable value table retains zeros and missing-year gaps in the chosen
   assert.equal(storyValuesHtml(summary,'trend'),'');
 });
 
-test('future view has four plain category controls and one actionable no-forecast message',()=>{
+test('future view has four plain category controls and an actionable supported-model pane',()=>{
   class Element extends EventTarget{innerHTML='';setAttribute(){}remove(){}}
   const container={append(node){this.node=node;}},eventTarget=new EventTarget(),doc={createElement:()=>new Element()};
   const controller=attachEnvironmentStory({site,year:2039,varId:'NDVI',seriesBySite:{[site.id]:{NDVI:series()}},container,eventTarget,document:doc});
   const html=container.node.innerHTML;
   assert.equal((html.match(/data-story-group=/g)||[]).length,4);
-  assert.equal((html.match(/No greenness forecast/g)||[]).length,1);
+  assert.match(html,/Agricultural climate exposure/);
   assert.doesNotMatch(html,/est-cards|No annual site forecast|Coverage or baseline is incomplete|<svg/);
-  assert.match(html,/View 2010 data/);assert.match(html,/data-story-evidence="climate-projection"/);
+  assert.match(html,/data-story-future-request="agriculture"/);assert.doesNotMatch(html,/No greenness forecast/);
+  controller.destroy();
+});
+
+const preparedClimate=JSON.parse(readFileSync(new URL('../data/cloudshadow/projections/thedalles.json',import.meta.url)));
+function futureState(year=2050,scenario='ssp245'){
+  return {siteId:'thedalles',year,scenario,climate:summarizeFutureProduct('climate-projection',preparedClimate,{year,scenario}),products:{'climate-projection':preparedClimate}};
+}
+test('main future heat and water panes show the actual Python climate values, periods and model ranges',()=>{
+  for(const scenario of ['ssp245','ssp585'])for(const year of [2039,2050,2090]){
+    const future=futureState(year,scenario),heat=storyFutureHtml('heat',future),water=storyFutureHtml('water',future);
+    const temp=summarizeFutureClimate(preparedClimate,{year,scenario,metric:'meanTempC'}),rain=summarizeFutureClimate(preparedClimate,{year,scenario,metric:'precipMmPerYear'});
+    assert.match(heat,new RegExp(storyFormat(temp.value,1).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+    assert.ok(water.includes(storyFormat(rain.value,0)));assert.ok(heat.includes(temp.period.label));assert.ok(water.includes(rain.period.label));
+    assert.match(heat,/Very hot days/);assert.match(heat,/Model range/);assert.match(water,/River levels, groundwater depletion and water quality are not predicted/);
+    assert.doesNotMatch(heat+water,/No .* forecast/);
+    assert.match(heat,new RegExp(`value="${scenario}" selected`));
+  }
+  assert.notEqual(storyFutureHtml('heat',futureState(2090,'ssp245')),storyFutureHtml('heat',futureState(2090,'ssp585')));
+  const table=storyClimateComparisonHtml(futureState(),'meanTempC');assert.match(table,/1995–2014 · baseline/);assert.match(table,/2041–2060/);assert.match(table,/2081–2100/);
+});
+test('future zero rainfall is a value while missing products expose computation, not invented numbers',()=>{
+  const zero=structuredClone(preparedClimate);zero.metrics.precipMmPerYear.ssp245_2041_2060.value={median:0,min:0,max:0};
+  const html=storyFutureHtml('water',{year:2050,scenario:'ssp245',products:{'climate-projection':zero}});
+  assert.match(html,/<strong>0<small>mm \/ year/);assert.match(html,/Model range <b>0 to 0/);
+  const absent=storyFutureHtml('heat',{year:2050,scenario:'ssp245'});assert.match(absent,/data-story-future-request="climate-projection"/);assert.doesNotMatch(absent,/est-future-card/);
+});
+test('future air exposes the actual source-screening output without claiming future ambient concentrations',()=>{
+  const raw=JSON.parse(readFileSync(new URL('../data/cloudshadow/plumes/colossus1.json',import.meta.url)));
+  const html=storyFutureHtml('air',{year:2050,products:{'plume-scenario':raw}});
+  assert.ok(html.includes(raw.peak.chiOverQ.toExponential(2)));assert.ok(html.includes(raw.receptors[0].chiOverQ.toExponential(2)));
+  assert.match(html,/not an annual air-quality forecast/);assert.match(html,/Show dispersion in 3D/);assert.match(html,/No sourced emission rate supplied/);assert.match(html,/2018/);
+});
+test('air concentration needs a positive sourced emission and receptor units match the selected result',()=>{
+  const raw=JSON.parse(readFileSync(new URL('../data/cloudshadow/plumes/colossus1.json',import.meta.url)));
+  raw.peak.concentrationUgM3=42;raw.receptors[0].concentrationUgM3=7;
+  for(const emission of [undefined,{rateGs:1,source:''},{rateGs:1,source:'  '},{rateGs:0,source:'Permit'},{rateGs:-1,source:'Permit'},{rateGs:'1',source:'Permit'}]){
+    raw.emission=emission;const html=storyFutureHtml('air',{year:2050,products:{'plume-scenario':raw}});
+    assert.doesNotMatch(html,/µg\/m³|Peak source contribution/);assert.match(html,/Peak dilution per unit emission/);assert.match(html,/s\/m³ · χ\/Q/);
+    assert.ok(html.includes(raw.receptors[0].chiOverQ.toExponential(2)));
+  }
+  raw.emission={rateGs:1,source:'Permit example'};
+  const sourced=storyFutureHtml('air',{year:2050,products:{'plume-scenario':raw}});
+  assert.match(sourced,/Peak source contribution/);assert.match(sourced,/<strong>42<small>µg\/m³/);assert.match(sourced,/Source-only concentration · µg\/m³/);assert.match(sourced,/Boxtown<\/th><td>7<\/td>/);
+});
+test('future vegetation shows supported exposure values and keeps mismatched model periods explicit',()=>{
+  const raw={futurePeriod:{start:'2035-01-01',end:'2039-12-31'},baselinePeriod:{start:'2000-01-01',end:'2004-12-31'},comparisons:[{model:'Example',indicators:{heatThresholdDays:{baselineMeanPerSeason:0,futureMeanPerSeason:0,change:0},dryThresholdDays:{baselineMeanPerSeason:2,futureMeanPerSeason:null,change:null}}}],settings:{growingMonths:[4,5,6],heatThresholdC:35,dryDayThresholdMm:1}};
+  const current=storyFutureHtml('vegetation',{year:2037,products:{agriculture:raw}});
+  assert.match(current,/Very hot days/);assert.match(current,/<strong>0 <small>days \/ season/);assert.match(current,/Unknown <small>days \/ season/);
+  assert.doesNotMatch(current,/data-story-future-request="agriculture"/);
+  const later=storyFutureHtml('vegetation',{year:2050,products:{agriculture:raw}});assert.match(later,/covers 2035–2039, not 2050/);assert.match(later,/supported 2045–2049/);assert.match(later,/data-story-year="2049"/);
+});
+test('future trend extensions show existing annual rows through 2035 and never carry them beyond the horizon',()=>{
+  const raw=JSON.parse(readFileSync(new URL('../data/cloudshadow/unreal/timeline/thedalles.json',import.meta.url)));
+  const trend=summarizeFutureTrend(raw,{year:2030,variable:'NDVI'}),html=storyFutureHtml('vegetation',{year:2030,trend},'NDVI');
+  assert.match(html,/If the historical trend continues · 2030/);assert.ok(html.includes(storyFormat(trend.variables.NDVI.value,3)));
+  assert.match(html,/not a prediction interval/);assert.doesNotMatch(storyFutureHtml('vegetation',{year:2050,trend},'NDVI'),/If the historical trend continues · 2050/);
+});
+test('daily climate summaries retain source models, require complete years and never sum partial rainfall',()=>{
+  const points=Array.from({length:365},(_,i)=>({date:new Date(Date.UTC(2035,0,i+1)).toISOString().slice(0,10),value:1}));
+  const raw={models:[{model:'Full',metrics:[{id:'precipitation_sum',units:'mm',series:points}]},{model:'Partial',metrics:[{id:'precipitation_sum',units:'mm',series:points.slice(1)}]}]};
+  const html=storyDailyClimateHtml({year:2035,products:{climate:raw}},'water');
+  assert.match(html,/Full<\/th><td>365<\/td><td>365\/365/);assert.match(html,/Partial<\/th><td>Unknown<\/td><td>364\/365/);assert.match(html,/not forecast weather on specific future days/);
+});
+test('future model results reach the main readout and old site products never replace the selected site',()=>{
+  class Element extends EventTarget{innerHTML='';setAttribute(){}remove(){}}
+  const container={append(node){this.node=node;}},eventTarget=new EventTarget(),doc={createElement:()=>new Element()};
+  const controller=attachEnvironmentStory({site:{id:'thedalles',name:'The Dalles'},year:2050,varId:'LST_Day',futureState:futureState(),container,eventTarget,document:doc});
+  assert.match(container.node.innerHTML,/Regional air temperature/);assert.match(container.node.innerHTML,/2041–2060/);
+  eventTarget.dispatchEvent(new CustomEvent('cs:future-state',{detail:{state:futureState(2090,'ssp585')}}));controller.setYear(2090);
+  assert.match(container.node.innerHTML,/2081–2100/);assert.match(container.node.innerHTML,/value="ssp585" selected/);
+  controller.setSite({id:'other',name:'Other'});assert.doesNotMatch(container.node.innerHTML,/est-future-card/);
+  eventTarget.dispatchEvent(new CustomEvent('cs:future-state',{detail:{state:futureState()}}));assert.doesNotMatch(container.node.innerHTML,/est-future-card/);
+  controller.setSite({id:'thedalles',name:'The Dalles'});assert.match(container.node.innerHTML,/est-future-card/);
   controller.destroy();
 });

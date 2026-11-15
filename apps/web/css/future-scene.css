@@ -1,0 +1,4 @@
+/* The future values are anchored in the Cesium scene, with the source cell
+   outlined geographically. No screen-covering tint or fog is used. */
+.environment-map-note{max-width:min(440px,calc(100vw - 32px));font-size:13px;line-height:1.5}
+@media(max-width:680px){.environment-map-note{font-size:12px;max-height:100px;overflow:auto}}
