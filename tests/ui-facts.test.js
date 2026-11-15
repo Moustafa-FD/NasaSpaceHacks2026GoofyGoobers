@@ -68,3 +68,11 @@ test("badge numbers per theme and year", async () => {
   const turb = { rep: reportedPower({ kind: "official", value: "x", short: "41 gas turbines permitted" }) };
   assert.deepEqual(statFor("power", turb, {}, 2026, { id: "colossus2", onset: "2025-03" }), { value: 41, text: "41", label: "gas turbines permitted" });
 });
+
+test("badge keeps a value across years: other NO₂ instrument, projected rows", async () => {
+  const { statFor } = await import("../apps/web/js/ui-facts.js");
+  const site = { id: "colossus1", onset: "2024-06" };
+  assert.equal(statFor("air", { years: { rowVar: "NO2" } }, { NO2_OMI_Local: 0.2, NO2_OMI_Surround: 2 }, 2015, site).text, "10%");
+  const st = statFor("green", { years: { rowVar: "NDVI" } }, { Phase: "projected", NDVI_Local: -0.19, NDVI_Site: 0.33, NDVI_Surround: null }, 2030, site);
+  assert.equal(st.text, "37%"); assert.match(st.label, /projected/);
+});

@@ -138,11 +138,15 @@ export function statFor(key, f, row, year, site) {
     const v = lead(r.short);
     return v == null ? null : { value: v, text: r.short.match(/^[\d.,]+%?/)[0], label: r.short.replace(/^[\d.,]+%?\s*/, "") };
   }
-  const rv = f.years?.rowVar, v = num(row?.[`${rv}_Local`]);
-  if (v == null) return null;
-  if (key === "heat") return { value: Math.abs(v), text: `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)} °C`, label: `nights ${v >= 0 ? "warmer" : "cooler"} than nearby` };
-  const p = pct(v, num(row[`${rv}_Surround`]));
+  // Use the panel's variable, else the theme's other one (TROPOMI NO₂ only exists 2024–26; OMI covers 2005 on).
+  const rv = [f.years?.rowVar, ...(THEMES[key].rowVars || [])].find((x) => x && num(row?.[`${x}_Local`]) != null);
+  if (!rv) return null;
+  const v = num(row[`${rv}_Local`]), proj = row.Phase === "projected" ? " (projected)" : "";
+  if (key === "heat") return { value: Math.abs(v), text: `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)} °C`, label: `nights ${v >= 0 ? "warmer" : "cooler"} than nearby${proj}` };
+  // Projected rows carry no surroundings value; Local = Site − Surround, so recover it.
+  const sur = num(row[`${rv}_Surround`]) ?? (num(row[`${rv}_Site`]) != null ? num(row[`${rv}_Site`]) - v : null);
+  const p = pct(v, sur);
   if (p == null) return null;
-  if (key === "green") return { value: Math.max(0, -p), text: `${Math.abs(p).toFixed(0)}%`, label: p < 0 ? "less green than nearby" : "greener than nearby" };
-  return { value: Math.max(0, p), text: `${Math.abs(p).toFixed(0)}%`, label: p >= 0 ? "more NO₂ than nearby" : "less NO₂ than nearby" };
+  if (key === "green") return { value: Math.max(0, -p), text: `${Math.abs(p).toFixed(0)}%`, label: `${p < 0 ? "less green than nearby" : "greener than nearby"}${proj}` };
+  return { value: Math.max(0, p), text: `${Math.abs(p).toFixed(0)}%`, label: `${p >= 0 ? "more NO₂ than nearby" : "less NO₂ than nearby"}${proj}` };
 }
