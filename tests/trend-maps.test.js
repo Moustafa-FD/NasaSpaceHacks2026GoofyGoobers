@@ -94,3 +94,19 @@ test('projected change since the latest map is exactly slope x years, and tile s
   assert.deepEqual([...out.slice(0, 3)], [204, 32, 46], '+1.5 projected = full red on the ±1.5 range');
   assert.equal(out[7] <= 56, true, 'no significant trend = faint neutral');
 });
+
+test('water is on the map: GLDAS soil moisture layer, Water button, Water tab, and a trend map per site', () => {
+  const html = readFileSync(new URL('../apps/web/index.html', import.meta.url), 'utf8');
+  assert.match(html, /data-map-layer="SoilMoisture"[^>]*>.*Water<\/button>/);
+  assert.match(html, /data-map-layer="LST_Night"[^>]*>.*Heat<\/button>/, 'Heat opens night heat');
+  assert.match(html, /<option value="latest">/, 'projected-change-only view is an explicit choice');
+  assert.match(readFileSync(new URL('../apps/web/js/environment-story.js', import.meta.url), 'utf8'), /setMapLayer\?\.\('SoilMoisture'\)/);
+  assert.match(readFileSync(new URL('../apps/web/js/layers.js', import.meta.url), 'utf8'), /GLDAS_Underground_Soil_Moisture_Monthly/);
+  const catalog = json('../data/cloudshadow/gibs_layers.json');
+  assert.ok(catalog.GLDAS_Underground_Soil_Moisture_Monthly?.intervals?.length);
+  for (const site of json('../data/cloudshadow/sites.json').sites) {
+    const raw = json(`../data/cloudshadow/trendmaps/${site.id}/SoilMoisture.json`);
+    assert.equal(raw.season, 'all months, median per year');
+    assert.equal(decodeTrendMap(raw).slope.length, raw.width * raw.height);
+  }
+});

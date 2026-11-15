@@ -48,6 +48,7 @@ Python (data and statistics) → static JSON in Git → Node.js server and job A
 - **"Why NO₂ from OMI and not TROPOMI?"** TROPOMI is sharper but only starts in Sep 2023; OMI goes back to 2004, which a trend needs.
 - **"Why is the plume purple only at Colossus 1?"** It is the only site with documented on-site gas turbines.
 - **"Why don't day-heat maps change much after 2026?"** Daytime surface heat has no significant trend at most pixels (0–6%). Night heat does (53–97%), so the Heat button shows night heat.
+- **"Why does a projected map change only in some places?"** Only pixels with a statistically significant trend move; the rest stay at their latest value. Night heat (most pixels) and greenness at the campus move clearly; soil water has no significant trend at any site, so it stays put.
 - **"Are the future wind trails a forecast?"** No. They replay NASA GEOS-FP 2025 winds as a reference pattern; nobody forecasts winds decades ahead.
 - **"Can I check another place?"** Yes: click anywhere on the globe for a live NASA trend analysis.
 

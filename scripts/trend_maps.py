@@ -32,8 +32,10 @@ import precompute as pc  # noqa: E402
 from services.models.trends import stats  # noqa: E402
 
 # variable -> (box half-size in degrees of latitude, max composites sampled per season)
-TARGETS = {"NDVI": (0.25, 4), "LST_Day": (0.5, 8), "LST_Night": (0.5, 8), "AOD": (0.8, 40), "NO2_OMI": (1.2, 40)}
+TARGETS = {"NDVI": (0.25, 4), "LST_Day": (0.5, 8), "LST_Night": (0.5, 8), "AOD": (0.8, 40), "NO2_OMI": (1.2, 40), "SoilMoisture": (1.2, 12)}
 SEASON = ((6, 15), (8, 15))  # the map's default view is mid-July
+# Soil water is judged on the whole year: two summer months are too noisy for a storage quantity.
+SEASONS = {"SoilMoisture": ((1, 1), (12, 31))}
 FIRST_YEAR, LAST_YEAR = 2003, 2026
 MIN_YEARS, RECENT_YEARS = 12, 3   # at least 12 valid years, 3 of them in the last 6
 ALPHA = 0.05      # per-pixel Mann-Kendall / Sen confidence level
@@ -44,8 +46,8 @@ FDR_Q = 0.10
 OUT = os.path.join(pc.DATA, "trendmaps")
 
 
-def season_dates(all_dates, year, cap):
-    lo, hi = date(year, *SEASON[0]), date(year, *SEASON[1])
+def season_dates(all_dates, year, cap, season=SEASON):
+    lo, hi = date(year, *season[0]), date(year, *season[1])
     picks = [d for d in all_dates if lo <= d <= hi]
     if len(picks) > cap:  # evenly spaced subsample of daily products
         step = len(picks) / cap
@@ -92,7 +94,7 @@ def build(site, vid, catalog):
     tiles = [(row, col) for row in range(gy0 // 256, (gy1 - 1) // 256 + 1) for col in range(gx0 // 256, (gx1 - 1) // 256 + 1)]
     all_dates = pc.expand(var["intervals"], var["start"])
     first = max(FIRST_YEAR, int(var["start"][:4]))
-    jobs = [(year, d, row, col) for year in range(first, LAST_YEAR + 1) for d in season_dates(all_dates, year, cap) for row, col in tiles]
+    jobs = [(year, d, row, col) for year in range(first, LAST_YEAR + 1) for d in season_dates(all_dates, year, cap, SEASONS.get(vid, SEASON)) for row, col in tiles]
     t0 = time.time()
     with ThreadPoolExecutor(16) as ex:
         decoded = list(ex.map(lambda j: (j, decode_tile(var, lut, j[1], j[2], j[3])), jobs))
@@ -127,7 +129,7 @@ def build(site, vid, catalog):
         "gx0": gx0, "gy0": gy0, "width": width, "height": height,
         "slopeEncoding": "int16-le base64; raw colormap units per year = value * slopeScale; 0 = no significant trend",
         "slopeScale": scale, "slope": base64.b64encode(packed).decode("ascii"),
-        "season": "Jun 15 - Aug 15 composites, median per year", "years": [first, LAST_YEAR],
+        "season": "all months, median per year" if vid in SEASONS else "Jun 15 - Aug 15 composites, median per year", "years": [first, LAST_YEAR],
         "method": {"test": "Mann-Kendall with Hamed-Rao autocorrelation correction", "slope": "Sen's slope",
                    "multipleTesting": "Benjamini-Hochberg across pixels", "alpha": ALPHA, "fdrQ": FDR_Q,
                    "fdrReference": "Wilks 2016, BAMS 97:2263 (alpha_FDR = 0.10 for correlated fields)",

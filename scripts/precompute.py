@@ -43,6 +43,8 @@ VARIABLES = {
                     start="2005-01-01", every=3, win=1, ring=(30, 70), scale=1e-15),
     "AOD": dict(layer="MODIS_Terra_Aerosol_Optical_Depth_3km", cmap="cm_MODIS_VIIRS_AOD.xml",
                 start="2003-01-01", every=3, win=2, min_site=3, ring=(15, 40)),  # 5x5 window: retrievals are patchy near water/bright roofs
+    "SoilMoisture": dict(layer="GLDAS_Underground_Soil_Moisture_Monthly", cmap="cm_GLDAS_Underground_Soil_Moisture_Monthly.xml",
+                         start="2003-01-01", every=1, win=0, ring=(30, 70)),
     "AirTemp": dict(layer="MERRA2_2m_Air_Temperature_Monthly", cmap="cm_MERRA2_2m_Air_Temperature_Monthly.xml",
                     start="2003-01-01", every=1, win=0, ring=(80, 200), offset=-273.15),
 }

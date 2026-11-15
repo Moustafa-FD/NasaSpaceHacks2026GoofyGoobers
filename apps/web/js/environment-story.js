@@ -233,7 +233,7 @@ export function attachEnvironmentStory({ site, sites = [], seriesBySite = {}, va
     const wide=expanded&&(doc.documentElement?.clientWidth||eventTarget.innerWidth||720)>680;
     return `<section class="est-chart-section"><div class="est-chart-heading"><h4>Change over time</h4>${expanded?'':'<button type="button" data-story-expand>Expand chart ↗</button>'}</div><p class="est-chart-unit">${h(focus.meta.unit)} · ${mode==='trend'?'3-year averages':'Annual averages'}</p><div class="est-chart-legend"><span class="est-site">Site</span><span class="est-nearby">Nearby area</span></div>${storyChartSvg(focus,mode,{expanded:wide})}<p class="est-chart-help">Click a year to inspect it. Gaps mean missing data.</p></section>`;
   }
-  const MAP_LABELS={none:'satellite imagery',HLS:'30 m satellite imagery',DIST:'land disturbance',LST_Day:'daytime surface heat',LST_Night:'night surface heat',NDVI:'greenness (NDVI)',NO2_OMI:'NO₂ · OMI long record',NO2:'NO₂ · TROPOMI recent',AOD:'particles (AOD)',AirTemp:'regional air temperature'};
+  const MAP_LABELS={none:'satellite imagery',HLS:'30 m satellite imagery',DIST:'land disturbance',LST_Day:'daytime surface heat',LST_Night:'night surface heat',SoilMoisture:'GLDAS soil moisture',NDVI:'greenness (NDVI)',NO2_OMI:'NO₂ · OMI long record',NO2:'NO₂ · TROPOMI recent',AOD:'particles (AOD)',AirTemp:'regional air temperature'};
   /** One line that says what the map and this panel each show, so differences are explicit. */
   function mapContextHtml(mode){
     const kind=state.map?.kind||eventTarget.CloudShadow?.getMapLayer?.()||'none',date=state.map?.date;
@@ -313,7 +313,7 @@ export function attachEnvironmentStory({ site, sites = [], seriesBySite = {}, va
     if(el.hasAttribute('data-story-future-request')){eventTarget.dispatchEvent(new CustomEvent('cs:future-request',{detail:{kind:el.dataset.storyFutureRequest,siteId:state.site?.id,year:state.year}}));return;}
     if(el.hasAttribute('data-story-plume-map')){const raw=futureProduct(state.future,'plume-scenario');if(raw)eventTarget.dispatchEvent(new CustomEvent('cs:environment-layer',{detail:{layer:'plume',enabled:true,siteId:state.site?.id,result:raw}}));return;}
     if(el.hasAttribute('data-story-future-map')){eventTarget.dispatchEvent(new CustomEvent('cs:future-view',{detail:{group:state.activeGroup,siteId:state.site?.id,year:state.year,enabled:true}}));return;}
-    if (el.dataset.storyGroup) { const group = el.dataset.storyGroup; state.activeGroup = group; if (group !== 'water') { state.variable = resolveStoryVariables(vars(), state.variable)[group]; onSelectVariable?.(state.variable); } else eventTarget.CloudShadow?.setMapLayer?.('none'); /* no satellite water layer: avoid a stale heat/air map beside water records */ render(); publishView(); }
+    if (el.dataset.storyGroup) { const group = el.dataset.storyGroup; state.activeGroup = group; if (group !== 'water') { state.variable = resolveStoryVariables(vars(), state.variable)[group]; onSelectVariable?.(state.variable); } else eventTarget.CloudShadow?.setMapLayer?.('SoilMoisture'); /* NASA GLDAS root-zone soil moisture: the map layer for water */ render(); publishView(); }
     else if (el.dataset.storyMode) { state.mode = el.dataset.storyMode; render(); publishView(); }
     else if (el.dataset.storyYear) selectYear(el.dataset.storyYear);
     else if (el.dataset.storyEvidence) openEvidence(el.dataset.storyEvidence);

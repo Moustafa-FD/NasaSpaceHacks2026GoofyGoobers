@@ -8,10 +8,13 @@ export const MAP_SCALES = Object.freeze({
   NO2_OMI:{min:0,max:10,delta:4,unit:'×10¹⁵ molecules/cm²',resolution:'~13 × 24 km'},
   AOD:{min:0,max:.8,delta:.3,unit:'AOD',resolution:'~3 km'},
   AirTemp:{min:-10,max:35,delta:4,unit:'°C',resolution:'~50 km'},
+  SoilMoisture:{min:0,max:50,delta:8,unit:'kg/m²',resolution:'~25 km'},
 });
+/** Layers where higher is 'more' of something good (greener, wetter): blue = more. */
+export const INVERTED_SCALE=new Set(['NDVI','SoilMoisture']);
 /** Colour range for 'projected change since the latest real map' (2027-2035): sized to
  * nine years of the observed per-pixel trends, so a real but small trend is visible. */
-export const PROJECTED_DELTAS=Object.freeze({LST_Day:1.5,LST_Night:1.5,NDVI:.15,AOD:.06,NO2_OMI:.6});
+export const PROJECTED_DELTAS=Object.freeze({LST_Day:1.5,LST_Night:1.5,NDVI:.15,AOD:.06,NO2_OMI:.6,SoilMoisture:4});
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const NEUTRAL=[229,229,217],COOL=[52,144,190],RED=[204,32,46],VEG_WARM=[218,78,48];
 /** Blue (low) to red (high); vegetation keeps blue = greener, orange = less green. */
@@ -119,7 +122,7 @@ export function createEvidenceProvider(C,{url,baselineUrl,lut,variable,offset=0,
       const slopes=projection?tileSlopes(projection.trend,x,y,z):null;
       // Projected tiles reuse one cached decode of the base map for every year.
       const cached=slopes?(await imagePixels(url.replace('{z}',z).replace('{x}',x).replace('{y}',y)).catch(()=>null))?.data:null;
-      current.data.set(recolorEvidence(cached||current.data,baseline?.data,lut,{scale:MAP_SCALES[variable],offset,factor,change,vegetation:variable==='NDVI',slopes,years:projection?.years||0,delta,cache:!!cached}));
+      current.data.set(recolorEvidence(cached||current.data,baseline?.data,lut,{scale:MAP_SCALES[variable],offset,factor,change,vegetation:INVERTED_SCALE.has(variable),slopes,years:projection?.years||0,delta,cache:!!cached}));
       ctx.putImageData(current,0,0);return canvas;
     });
   };
@@ -151,7 +154,7 @@ export async function evidenceTexture({center,url,baselineUrl,lut,variable,offse
   if(!Number.isFinite(center?.lat)||!Number.isFinite(center?.lon)||Math.abs(center.lat)>85.05)return {active:false,validPixelCount:0};
   const bounds=[center.lon-.35,Math.max(-85.05,center.lat-.35),center.lon+.35,Math.min(85.05,center.lat+.35)],width=256,height=256,z=maximumLevel;
   const plan=texturePlan(bounds,width,height,z),tiles=plan.tiles.map(tile=>({...tile,pixels:null}));
-  await Promise.all(tiles.map(async tile=>{const expand=template=>template.replace('{z}',z).replace('{x}',tile.x).replace('{y}',tile.y);try{const [a,b]=await Promise.all([imagePixels(expand(url)),change?imagePixels(expand(baselineUrl)):null]);tile.pixels=recolorEvidence(a.data,b?.data,lut,{scale:MAP_SCALES[variable],offset,factor,change,vegetation:variable==='NDVI',slopes:projection?tileSlopes(projection.trend,tile.x,tile.y,z):null,years:projection?.years||0,delta,cache:true});}catch{tile.pixels=null;}}));
+  await Promise.all(tiles.map(async tile=>{const expand=template=>template.replace('{z}',z).replace('{x}',tile.x).replace('{y}',tile.y);try{const [a,b]=await Promise.all([imagePixels(expand(url)),change?imagePixels(expand(baselineUrl)):null]);tile.pixels=recolorEvidence(a.data,b?.data,lut,{scale:MAP_SCALES[variable],offset,factor,change,vegetation:INVERTED_SCALE.has(variable),slopes:projection?tileSlopes(projection.trend,tile.x,tile.y,z):null,years:projection?.years||0,delta,cache:true});}catch{tile.pixels=null;}}));
   const loadedTileCount=tiles.filter(tile=>tile.pixels!==null).length,failedTileCount=tiles.length-loadedTileCount;
   if(!loadedTileCount)throw new Error('NASA source tiles could not be loaded');
   const rgba=new Uint8Array(width*height*4);for(let i=0;i<plan.offsets.length;i++){const pixels=tiles[plan.tileOf[i]].pixels;if(pixels){const o=plan.offsets[i],j=i*4;rgba[j]=pixels[o];rgba[j+1]=pixels[o+1];rgba[j+2]=pixels[o+2];rgba[j+3]=pixels[o+3];}}

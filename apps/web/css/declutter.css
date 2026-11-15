@@ -70,3 +70,4 @@ body.globe-lifted #globe { bottom: 150px !important; }
 /* Brand: the Footprint Atlas logo (globe + wordmark), sized to the top bar. */
 #topbar .brand-logo { display: block; height: 38px; width: auto; }
 @media (max-width: 680px) { #topbar .brand-logo { height: 30px; } }
+.layer-dot.water { background: #70bedb; }

@@ -353,8 +353,12 @@
     }
     // Projected years in change mode: projected change since the latest real map (the
     // prediction itself), on a colour range sized to the trends, instead of vs. 2005.
-    const projectedChange=change&&!!a.projectYear&&Number.isFinite(PROJECTED_DELTAS[kind]);
-    const baseline=change?(projectedChange?{layer:a.layer,date:a.date}:overlaySpec(kind,$('#baselineYear').value+'-07-15')):null;
+    // Projected years continue the same comparison as observed years (vs. the chosen baseline
+    // year), so 2027 picks up where 2026 left off and the trend builds on it. Choosing
+    // "latest map" as the baseline shows only the projected change, on a trend-sized scale.
+    const baseChoice=$('#baselineYear').value,latestBase=baseChoice==='latest';
+    const projectedChange=change&&!!a.projectYear&&latestBase&&Number.isFinite(PROJECTED_DELTAS[kind]);
+    const baseline=change?(projectedChange?{layer:a.layer,date:a.date}:overlaySpec(kind,`${latestBase?new Date().getUTCFullYear():baseChoice}-07-15`)):null;
     const delta=projectedChange?PROJECTED_DELTAS[kind]:null;
     let b=compare?overlaySpec(kind,$('#dateB').value||today):null;
     if(b&&VARS[kind]){
@@ -378,6 +382,7 @@
       NO2: ["Recent NO₂", "A more detailed satellite NO₂ record available since September 2023."],
       AOD: ["Particles / haze", "Aerosol optical depth shows how much sunlight airborne particles block."],
       AirTemp: ["Air temperature", "Regional air temperature from MERRA-2 reanalysis."],
+      SoilMoisture: ["Water", "Root-zone soil moisture from NASA's GLDAS land model (monthly, ~25 km). Blue is wetter, orange drier."],
       HLS: ["Satellite · HLS", "NASA high-resolution surface imagery. Available image dates vary."],
       DIST: ["Land disturbance", "Mapped vegetation disturbance, which can include clearing, construction, and fire."],
     };
@@ -395,8 +400,8 @@
       $("#mapLegendTitle").textContent = spec.projectYear ? `${label} · PROJECTED ${spec.projectYear}` : label;
       $("#mapLegend").classList.toggle("map-projected", !!spec.projectYear);
       const delta=payload?.delta,scale=delta?{...MAP_SCALES[kind],delta}:MAP_SCALES[kind],change=payload?payload.change:$('#mapChange').checked;
-      document.querySelector('#mapColorScale .evidence-ramp')?.classList.toggle('veg',kind==='NDVI');
-      const base=payload?.baseline||overlaySpec(kind,$('#baselineYear').value+'-07-15');
+      document.querySelector('#mapColorScale .evidence-ramp')?.classList.toggle('veg',kind==='NDVI'||kind==='SoilMoisture');
+      const base=payload?.baseline||overlaySpec(kind,`${$('#baselineYear').value==='latest'?new Date().getUTCFullYear():$('#baselineYear').value}-07-15`);
       const shown=spec.projectYear?`${spec.projectYear} (projected)`:spec.date;
       const changeText=delta?`Projected change ${base.date.slice(0,4)} → ${spec.projectYear}`:`${shown} minus ${base.date}`;
       $('#mapLegendDetail').textContent = `${change?changeText:shown} · ${scale.resolution} native data${spec.fallbackNote?` · ${spec.fallbackNote}`:''}${spec.projectNote?` · ${spec.projectNote}`:''}`;
@@ -404,7 +409,7 @@
       $('#mapColorScale').hidden=false;
       $('#mapScaleLow').textContent=change?`−${scale.delta}`:scale.min;
       $('#mapScaleHigh').textContent=(change?`+${scale.delta}`:scale.max)+' '+scale.unit;
-      $('#mapScaleMeaning').textContent=delta?(kind==='NDVI'?'Blue: projected to get greener · orange: projected to lose green · neutral: no significant trend':'Blue: projected decrease · red: projected increase · neutral: no significant trend'):kind==='NDVI'?(change?'Blue: greener · red: less green':'Blue: greener · red: sparse vegetation'):(change?'Blue: lower · red: higher':'Blue: lower · red: higher');
+      $('#mapScaleMeaning').textContent=kind==='SoilMoisture'?(delta?'Blue: projected to get wetter · orange: projected to get drier · neutral: no significant trend':change?'Blue: wetter · orange: drier':'Blue: wet soil · orange: dry soil'):delta?(kind==='NDVI'?'Blue: projected to get greener · orange: projected to lose green · neutral: no significant trend':'Blue: projected decrease · red: projected increase · neutral: no significant trend'):kind==='NDVI'?(change?'Blue: greener · red: less green':'Blue: greener · red: sparse vegetation'):(change?'Blue: lower · red: higher':'Blue: lower · red: higher');
       const tm=payload?.projection?.trend?.stats;
       $('#mapResolution').textContent=spec.projectYear&&tm?`Trend extension, not a forecast: ${Math.round(tm.significantShare*100)}% of the ${(tm.tested/1000).toFixed(0)}k pixels near the site have a significant ${payload.projection.trend.years.join('–')} July trend (Mann-Kendall, Hamed-Rao, false-discovery q < 0.10); the rest stay at their latest value. Outside the site box the map is the latest real snapshot. Not proof of a facility effect.`:spec.projectYear?'Trend extension, not a forecast: each pixel near the site continues its own significant NASA July trend from the latest real map; pixels without one stay unchanged. Not proof of a facility effect.':'Colour-class estimates from NASA imagery. Transparent = no data. Comparison is between snapshots, not a long-term trend or proof of a facility effect.';
     }
@@ -491,7 +496,7 @@
     for (const [id, v] of Object.entries(VARS)) {
       const b = document.createElement("button"); b.className = "tab" + (state.varId === id ? " active" : "");
       const star = !state.live && state.site.watchFor?.includes(id) ? '<span class="star" title="Most relevant for this site">★ watch</span>' : "";
-      const labels = { LST_Day: "Heat · day", LST_Night: "Heat · night", NDVI: "Vegetation", NO2: "NO₂ · recent", NO2_OMI: "NO₂ · long record", AOD: "Particles / haze", AirTemp: "Air temperature" };
+      const labels = { LST_Day: "Heat · day", LST_Night: "Heat · night", NDVI: "Vegetation", SoilMoisture: "Water · soil moisture", NO2: "NO₂ · recent", NO2_OMI: "NO₂ · long record", AOD: "Particles / haze", AirTemp: "Air temperature" };
       b.innerHTML = `${labels[id] || v.label}${star}`; b.onclick = () => { state.varId = id; renderTabs(); runAnalysis(); };
       $("#varTabs").appendChild(b);
     }
