@@ -47,6 +47,8 @@ Python (data and statistics) → static JSON in Git → Node.js server and job A
 - **"Is the heat from the data center or climate change?"** We subtract the surrounding ring. Ashburn's night heat is +0.25 °C/decade **beyond** its surroundings, and the regional warming is reported separately.
 - **"Why NO₂ from OMI and not TROPOMI?"** TROPOMI is sharper but only starts in Sep 2023; OMI goes back to 2004, which a trend needs.
 - **"Why is the plume purple only at Colossus 1?"** It is the only site with documented on-site gas turbines.
+- **"Why don't day-heat maps change much after 2026?"** Daytime surface heat has no significant trend at most pixels (0–6%). Night heat does (53–97%), so the Heat button shows night heat.
+- **"Are the future wind trails a forecast?"** No. They replay NASA GEOS-FP 2025 winds as a reference pattern; nobody forecasts winds decades ahead.
 - **"Can I check another place?"** Yes: click anywhere on the globe for a live NASA trend analysis.
 
 Diagrams: [simple, 4 steps](colossus1-how-it-works.png) · [full architecture](architecture.png) · full detail: [technical-details.md](../technical-details.md)

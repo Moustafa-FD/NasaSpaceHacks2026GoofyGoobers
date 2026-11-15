@@ -56,6 +56,10 @@ Moving the slider sends one `cs:year` event, so the map, the panel and the 3D sc
 | **Trend extension** | 2027–2035 | **Projected map, pixel by pixel**: the latest real same-season map plus each pixel's own significant NASA trend × years ahead (heat day/night, greenness, NO₂, haze). Dashed purple legend "PROJECTED <year>". Outside the site box: latest real map | Sen's-slope trend line and 95% CI band, which widens each year | Ground follows the trend value; the projection look is stylized | PROJECTED · IF THE TREND CONTINUES |
 | **Climate scenarios** | 2036–2100 | No annual map | Regional NEX-GDDP-CMIP6 period summaries (SSP2-4.5 / SSP5-8.5, 5-model spread) | Climate context only; no facility effect | Regional scenario, not a facility forecast |
 
+**Wind trails in future years** (2027–2100) show the NASA GEOS-FP winds of the latest complete analysed year (2025) as a labelled reference pattern ("GEOS-FP 2025 pattern"). No wind forecast exists, so the pattern does not change between future years.
+
+**Heat button:** the top Heat button shows **night** surface heat. Night heat has a significant trend over 53–97% of pixels at every site; daytime heat has one over 0–6%, so its projected map barely changes. Daytime heat is still in the layer list.
+
 Two rules hold in every era:
 - **Never fabricate data.** A year with no data says why ("No dispersion footprint for 2050", "Dispersion footprints start in 2018") and never reuses another year's result unlabelled.
 - **Never attribute change from proximity alone.** Satellite change near a facility is evidence, not proof.

@@ -57,8 +57,10 @@ test('GEOS trails use the shared clock once, hide locally, pause and release lis
   viewer.clock.shouldAnimate=true;window.dispatchEvent(new CustomEvent('cs:scene-mode',{detail:{active:true}}));
   assert.ok(layers.every(layer=>!layer.show));viewer.clock.currentTime=.3;viewer.scene.preRender.raise();assert.equal(layers[0].steps.length,1);
   const before=flow.state.t;viewer.clock.currentTime=10000;viewer.scene.preRender.raise();assert.equal(flow.state.t,before,'year/light jumps do not advect weather');
+  const shown=layers.length;
   await flow.setYear({id:'a',lat:.5,lon:.5},2035,'projected');
-  assert.ok(layers.every(layer=>layer.disposed));assert.equal(flow.state.siteField,null);
+  assert.ok(layers.slice(0,shown).every(layer=>layer.disposed),'the previously shown year is removed');
+  assert.equal(flow.state.referenceYear,2025,'future years load the labelled reference year');assert.ok(flow.state.siteField,'reference-year trails are drawn');
   flow.dispose();assert.equal(viewer.scene.preRender.listeners.size,0);
 });
 
@@ -68,8 +70,10 @@ test('site/year changes ignore late product loads and never retain previous-year
   const gate=new Promise(resolve=>{release=resolve;});
   const flow=attachFlow(viewer,{loadIndex:async()=>({products:[{id:'a',kind:'site',site:'a',year:2025}]}),loadField:()=>gate,createLayer:()=>{layers.push({});return {dispose(){},show:true};}});
   const old=flow.setYear({id:'a',lat:0,lon:0},2025,'observed');await Promise.resolve();
-  await flow.setYear({id:'a',lat:0,lon:0},2035,'projected');release(field());await old;
-  assert.equal(layers.length,0);assert.equal(flow.state.siteField,null);assert.match(states.at(-1).reason,/No GEOS-FP forecast/);flow.dispose();
+  const future=flow.setYear({id:'a',lat:0,lon:0},2035,'projected');release(field());await old;await future;
+  assert.equal(flow.state.referenceYear,2025,'future years show the latest complete analysed year as a reference');
+  assert.match(states.find(s=>s.year===2035).reason,/no wind forecast exists/);
+  assert.equal(layers.length,1,'one layer: the reference year, not a stale late load of the old request');flow.dispose();
 });
 
 test('CPU fluid: precipitation never makes dye; pollution dye starts only at the facility; pauses and disposes',t=>{
@@ -120,4 +124,30 @@ test('globe FX builds bounded cloud/rain primitives without weather rectangles o
   assert.equal(viewer.clock.currentTime,123);
   context.hooks.state.localScene=true;const localLight=viewer.scene.light;
   context.hooks.setLight('night');assert.equal(viewer.scene.light,localLight);assert.equal(localLight.intensity,.35);
+});
+
+test('reference wind year: latest complete analysed year for the site, never a future year', async () => {
+  const { referenceWindYear } = await import('../apps/web/js/flowfield.js');
+  const index={products:[2018,2025,2026].map(year=>({kind:'site',site:'a',year})).concat([{kind:'site',site:'b',year:2024}])};
+  assert.equal(referenceWindYear(index,'a',2026),2025);
+  assert.equal(referenceWindYear(index,'a',2030),2026);
+  assert.equal(referenceWindYear({products:[]},'a',2026),null);
+});
+
+test('scrubbing through future years keeps one set of reference-year trails', async (t) => {
+  const viewer=browser(t);let built=0;
+  const flow=attachFlow(viewer,{loadIndex:async()=>({products:[{id:'s',kind:'site',site:'a',year:2025}]}),loadField:async()=>field(),createLayer:()=>{built++;return {show:true,dispose(){},step(){}};}});
+  await flow.setYear({id:'a',lat:.5,lon:.5},2030,'projected');
+  await flow.setYear({id:'a',lat:.5,lon:.5},2031,'projected');
+  await flow.setYear({id:'a',lat:.5,lon:.5},2060,'climate');
+  assert.equal(built,1,'layers built once');assert.equal(flow.state.year,2060);assert.equal(flow.state.referenceYear,2025);
+  await flow.setYear({id:'a',lat:.5,lon:.5},2025,'observed');
+  assert.equal(built,2,'an observed year rebuilds from its own analysis');
+  flow.dispose();
+});
+
+test('future-year wind readout names the reference year', async () => {
+  const { resolveWindReadout } = await import('../apps/web/js/flowfield.js');
+  const r = resolveWindReadout({}, 'climate', { speed: 3, towardDeg: 10, reference: true, referenceYear: 2025 });
+  assert.equal(r.label, 'GEOS-FP 2025 pattern'); assert.match(r.title, /No wind forecast exists/);
 });

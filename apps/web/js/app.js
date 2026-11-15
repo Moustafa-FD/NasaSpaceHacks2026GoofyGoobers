@@ -372,7 +372,7 @@
     const descriptions = {
       none: ["Satellite", "Satellite imagery shows the real-world landscape."],
       LST_Day: ["Heat", "Daytime surface temperature: the warmth of ground and roofs, not the air."],
-      LST_Night: ["Night heat", "Nighttime surface temperature, measured after sunset."],
+      LST_Night: ["Heat (night)", "Night-time surface temperature (~10:30 pm). Stored heat from roofs and paving shows most clearly at night; daytime heat is in the layer list."],
       NDVI: ["Vegetation", "Greenness (NDVI) shows vegetation cover. It does not measure crop yield."],
       NO2_OMI: ["Air pollution", "Nitrogen dioxide (NO₂) in the atmospheric column. This is a regional satellite view, not street-level exposure."],
       NO2: ["Recent NO₂", "A more detailed satellite NO₂ record available since September 2023."],
@@ -384,7 +384,7 @@
     const [label, note] = descriptions[kind] || descriptions.none;
     $("#layerSummary").textContent = label;
     $("#layerNote").textContent = note;
-    const family = ({ HLS: "none", LST_Night: "LST_Day", NO2: "NO2_OMI", AOD: "NO2_OMI" })[kind] || kind;
+    const family = ({ HLS: "none", LST_Day: "LST_Night", NO2: "NO2_OMI", AOD: "NO2_OMI" })[kind] || kind;
     document.querySelectorAll("[data-map-layer]").forEach((button) => {
       const active = button.dataset.mapLayer === family;
       button.classList.toggle("active", active); button.setAttribute("aria-pressed", String(active));

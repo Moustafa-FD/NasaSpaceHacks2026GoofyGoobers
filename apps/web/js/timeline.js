@@ -344,9 +344,10 @@ async function init(cs) {
   viewer.scene.preRender.addEventListener(syncGroundVisibility);
   FLOW = attachFlow(viewer,{quality:FX.quality()});
   window.addEventListener("cs:wind", (e) => {
-    const w = e.detail; if (!w || w.siteId !== T.site?.id || w.year!==T.year || phaseOf(T.year)==='projected') return;
+    const w = e.detail; if (!w || w.siteId !== T.site?.id || w.year!==T.year || (phaseOf(T.year)==='projected'&&!w.reference)) return;
     T.analysedWind=w;
-    T.target.windDir = w.towardDeg; T.target.windSpeed = w.speed;
+    // A reference-year pattern labels the trails only; local effects keep the year's own climatology.
+    if(!w.reference){T.target.windDir = w.towardDeg; T.target.windSpeed = w.speed;}
     renderWind();
   });
   window.addEventListener('cs:wind-state',({detail})=>{
