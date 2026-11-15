@@ -62,6 +62,8 @@ Sites (tentative, team to confirm): **Ashburn, VA** (39.04, −77.49), inside th
 
 ## 3b. Giovanni results for all five sites (real NASA data)
 
+**Implementation audit, 2026-11-15:** the 25 CSV/provenance exports described below were not present in this local checkout or its five worktrees. The new offline exporter (`python -m services.models.trends.export_web --giovanni-dir PATH`) can publish them once supplied; it does not reconstruct a time series from this table. The groundwater unit in the historical notes below also needs verification against the actual export: NASA's [GRACE-DA product description](https://data.nasa.gov/dataset/groundwater-and-soil-moisture-conditions-from-grace-and-grace-fo-data-assimilation-l4-7-da-427e7) describes groundwater/soil-moisture **condition percentiles**. A percentile is not a storage amount in mm or a groundwater level. The exporter requires explicit source units for `gws_inst` and never assumes the mm label below. Public regional products currently include the real bundled POWER precipitation, temperature, humidity and wind histories, with Python annual trend tests and an honest per-site inventory.
+
 After the GES DISC licence was accepted, `python -m services.models.trends.giovanni` downloaded 25 area-averaged series (5 sites × 5 variables; site box ±0.25°) in about 8 minutes. Giovanni quota use stayed at 0%. Trends below use **annual values with the Hamed-Rao correction and the autocorrelation-adjusted t-test**. Monthly seasonal Mann-Kendall assumes years are independent, and it overstated significance for storage variables (Ashburn groundwater: monthly p < 1e-16, annual p ≈ 0.05).
 
 | Variable (Giovanni ID) | Ashburn | Colossus 1 / 2 (Memphis) | Abilene | The Dalles |

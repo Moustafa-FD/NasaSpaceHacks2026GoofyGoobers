@@ -1,3 +1,5 @@
+import { validateScreeningRequest, type EnvironmentScreeningRequest } from "./screening.ts";
+export { SCREENING_INPUTS, validateScreeningRequest, type EnvironmentScreeningRequest } from "./screening.ts";
 export const ENVIRONMENT_VARIABLES = ["T2M", "PRECTOTCORR", "RH2M", "WS2M"] as const;
 export type EnvironmentVariable = typeof ENVIRONMENT_VARIABLES[number];
 export type BoundingBox = [number, number, number, number];
@@ -45,7 +47,7 @@ export interface PlumeScenarioRequest {
 }
 /** Part 2 conditional climate to 2100 (NASA NEX-GDDP-CMIP6 ensemble) for any land point. */
 export interface ClimateProjectionRequest { schemaVersion: "1.0"; kind: "climate-projection"; point: { latitude: number; longitude: number }; perWindow?: number }
-export type EnvironmentRequest = MeteorologyRequest | FacilitiesRequest | EmissionsRequest | AirQualityRequest | LandWaterRequest | ClimateRequest | AgricultureRequest | GroundEvidenceRequest | WaterQualityRequest | TrendAnalysisRequest | PlumeScenarioRequest | ClimateProjectionRequest;
+export type EnvironmentRequest = MeteorologyRequest | FacilitiesRequest | EmissionsRequest | AirQualityRequest | LandWaterRequest | ClimateRequest | AgricultureRequest | GroundEvidenceRequest | WaterQualityRequest | TrendAnalysisRequest | PlumeScenarioRequest | ClimateProjectionRequest | EnvironmentScreeningRequest;
 
 export interface EnvironmentRun {
   id: string;
@@ -69,7 +71,8 @@ export const ENVIRONMENT_DOMAINS = [
   { id: "land-surface-temperature", status: "catalogued_auth_required", description: "MODIS LST metadata; distinct from air temperature" },
   { id: "land-water", status: "live_model_adapter", description: "ERA5 daily rainfall, reference ET0 and soil moisture by depth; no inference of facility consumption or water chemistry" },
   { id: "water-quality", status: "live_ground_adapter", description: "USGS station temperature, conductance, pH, oxygen and turbidity where available; broader chemistry and facility-attribution models remain unsupported" },
-  { id: "noise", status: "ground_import_only", description: "Imports source-referenced acoustic records; no ground noise dataset acquired or propagation/impact model implemented" },
+  { id: "noise", status: "conditional_screening_and_ground_import", description: "Imports source-referenced acoustic records; explicit sourced sound power/distance can run free-field screening. No calibrated campus acoustic model or acquired ground noise dataset" },
+  { id: "environment-screening", status: "explicit_input_scenario_worker", description: "Additive heat/air passive-tracer, water accounting/complete-mixing and free-field noise screening. Requires explicit source-cited inputs; no inferred facility parameters, chemistry, hydrological depletion or validated attribution" },
   { id: "trend-analysis", status: "live_statistical_worker", description: "Part 2: Sen's slope + CI, seasonal/Hamed-Rao Mann-Kendall, autocorrelation-adjusted t-test, control-region difference; for a completed series run or an inline series. Statistical change only, not attribution" },
   { id: "air-dispersion-screening", status: "live_scenario_worker", description: "Part 2: Gaussian-plume chi/Q footprint from NASA GEOS-FP winds (2018+); concentrations only with a sourced emission rate. Screening, not regulatory (AERMOD); no chemistry or deposition" },
   { id: "climate-projection-2100", status: "live_scenario_worker", description: "Part 2: NASA NEX-GDDP-CMIP6 5-model ensemble, SSP2-4.5 and SSP5-8.5, 1995-2014 vs 2041-2060 and 2081-2100 (mean temperature, days >= 35 C, precipitation); model spread, not confidence intervals" },
@@ -81,6 +84,7 @@ export function validateEnvironmentRequest(input: unknown): string[] {
   if (input === null || typeof input !== "object" || Array.isArray(input)) return ["Body must be an object"];
   const value = input as Record<string, unknown>;
   if (typeof value.kind !== "string") return ["kind must be a string"];
+  if (value.kind === "environment-screening") return validateScreeningRequest(value);
   if (["facilities-sync", "emissions-sync", "air-quality", "land-water", "climate", "agriculture", "ground-evidence", "water-quality"].includes(value.kind)) return validateExpandedRequest(value);
   if (value.kind === "trend-analysis") return validateTrendRequest(value);
   if (value.kind === "plume-scenario" || value.kind === "climate-projection") return validateScenarioRequest(value);

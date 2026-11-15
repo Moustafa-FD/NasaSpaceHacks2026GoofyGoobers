@@ -1,6 +1,6 @@
 # Reading environmental change in Footprint Atlas
 
-The story beside the Cesium scene answers four questions: **what changed, where, by how much, and how clear is the evidence?** It uses the existing five case studies and NASA/Earth-observation inputs from the data pipeline. The project’s Earth System Trend Detective brief motivates these questions; the linked 2026 challenge detail page was unavailable during this implementation, so this document does not certify every submission requirement.
+The story beside the Cesium scene answers four questions: **what changed, where, by how much, and how clear is the evidence?** It uses the existing five case studies and NASA/Earth-observation inputs from the data pipeline. The [official Earth System Trend Detective challenge](https://www.spaceappschallenge.org/2026/challenges/earth-system-trend-detective/) was reviewed for the evidence refinements: regional variables, long time series, rates of change and significance tests remain the core investigation. Conditional future scenarios add context without replacing historical analysis.
 
 ## Observations, comparisons and maps
 

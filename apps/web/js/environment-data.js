@@ -9,6 +9,7 @@ export const ENVIRONMENT_ACTIONS = [
   ['plume-scenario', 'Relative plume screening', 'Assumed effective stack height; dilution only unless a sourced emission rate is supplied.'],
   ['climate', 'Daily climate scenarios (HighResMIP)', 'Two conditional model simulations through 2049; not a weather forecast.'],
   ['agriculture', 'Agricultural climate exposure', 'Explicit heat/dry-day thresholds; no crop yield, suitability or facility damage model.'],
+  ['environment-screening','Local impact scenarios','Explicitly sourced heat, air, water and noise inputs; conditional screening, not calibrated facility forecasts.'],
   ['facilities-sync', 'Refresh nearby mapped facilities', 'Real OSM elements; incomplete coverage and possible campus duplicates.'],
   ['emissions-epa', 'Acquire US reported emissions inventory', 'NEI sector candidates; annual inventory estimates, not ambient concentrations.'],
   ['emissions-npri', 'Acquire Canadian reported releases', 'NPRI sector candidates; preserves missing amounts, methods and source units.'],
@@ -53,6 +54,7 @@ export function buildEnvironmentRequest(action, site, year = 2025, options = {})
     case 'plume-scenario': return { ...base, ...(['ashburn', 'colossus1', 'colossus2', 'abilene', 'thedalles'].includes(site.id) ? { siteId: site.id } : { point }), effectiveHeightM: 20, landUse: 'urban' };
     case 'climate': return { ...base, point, ...futureRequestPeriod(year, now), models: ['EC_Earth3P_HR', 'MRI_AGCM3_2_S'] };
     case 'agriculture': return { ...base, point, baseline: { start: '2000-01-01', end: '2004-12-31' }, future: futureRequestPeriod(year, now), models: ['EC_Earth3P_HR', 'MRI_AGCM3_2_S'], growingMonths: [4, 5, 6, 7, 8, 9], baseTemperatureC: 10, heatThresholdC: 35, dryDayThresholdMm: 1 };
+    case 'environment-screening': return {...base,...(['ashburn','colossus1','colossus2','abilene','thedalles'].includes(site.id)?{siteId:site.id}:{point}),years:[{year:Math.max(2020,Math.min(2100,Math.trunc(year)))}]};
     case 'facilities-sync': {
       const dx = .06 / Math.max(.2, Math.cos(site.lat * Math.PI / 180));
       return { ...base, bbox: [Math.max(-180, site.lon - dx), Math.max(-90, site.lat - .06), Math.min(180, site.lon + dx), Math.min(90, site.lat + .06)] };

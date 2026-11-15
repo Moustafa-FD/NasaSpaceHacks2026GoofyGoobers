@@ -1,5 +1,6 @@
 // One shared model-output state for the dashboard and Cesium scene. Values keep
 // their model periods; selecting a year never manufactures an annual forecast.
+import {powerProjectionYear} from './power-projection.js';
 const finite = (value) => typeof value === 'number' && Number.isFinite(value);
 const number = (value) => finite(value) ? value : null;
 const median = (values) => { const a = values.filter(finite).sort((x, y) => x - y), i = Math.floor(a.length / 2); return a.length ? a.length % 2 ? a[i] : (a[i - 1] + a[i]) / 2 : null; };
@@ -70,6 +71,11 @@ export function summarizeDailyClimateYear(result, { year, metric = 'meanTempC' }
     period: { start: selectedYear, end: selectedYear, label: String(selectedYear) }, source: { name: 'HighResMIP / Open-Meteo', access: result?.sourceUrl }, evidence: result?.evidence || 'climate-scenario', scenario: result?.scenario, note: 'Complete model-year simulation; not a weather forecast or facility effect. Range is model sensitivity, not a confidence interval.' };
 }
 export function summarizeFutureProduct(kind, result, options = {}) {
+  if(kind==='power-projection')return {...powerProjectionYear(result,{year:options.year,scenario:options.powerScenario||'ssp245'}),result};
+  if(kind==='environment-screening'){
+    const row=result?.years?.find(row=>row.year===options.year);
+    return {available:!!row?.metrics?.some(m=>finite(m.value)),year:options.year,metrics:row?.metrics||[],requiredInputs:(result?.requiredInputs||[]).filter(r=>r.year===options.year),result};
+  }
   if (kind === 'climate-projection') {
     const summary = summarizeFutureClimate(result, options);
     return { ...summary, metrics: Object.fromEntries(Object.keys(FUTURE_CLIMATE_METRICS).map((metric) => [metric, summarizeFutureClimate(result, { ...options, metric })])) };
@@ -101,19 +107,20 @@ export function summarizeFutureTrend(result, { year, variable = 'LST_Day' } = {}
   return { ...(variables[variable] || { available: false }), variables, year: Number(year), lastObservedYear: result?.lastObservedYear, note: result?.note || 'Trend continuation through 2035; not a validated forecast.', result };
 }
 
-export function attachFutureData({ site, year = 2025, eventTarget = globalThis.window, onRequest, fetchImpl = globalThis.fetch, dataBase = 'data', group = 'heat' } = {}) {
+export function attachFutureData({ site, year = 2025, eventTarget = globalThis.window, onRequest, fetchImpl = globalThis.fetch, dataBase = 'data', group = 'heat',loadSupplemental=false } = {}) {
   if (!eventTarget) throw new Error('A future-data event target is required.');
-  const cache = new Map(), locations = new Map(), listeners = [], supported = new Set(['climate-projection', 'plume-scenario', 'agriculture', 'climate']);
+  const cache = new Map(), locations = new Map(), listeners = [], supported = new Set(['climate-projection', 'plume-scenario', 'agriculture', 'climate','environment-screening']),supplemental=new Set(['power-projection','regional-evidence','site-audit']);
   let destroyed = false, generation = 0, trendController, requestToken = 0;
-  let current = { site, siteId: site?.id, year, scenario: 'ssp245', metric: 'meanTempC', group, climate: null, plume: null, agriculture: null, dailyClimate: null, trend: null, products: {}, status: '', error: '', pending: false };
+  let current = { site, siteId: site?.id, year, scenario: 'ssp245',powerScenario:'ssp245',climateView:'annual', metric: 'meanTempC', group, climate: null, plume: null, agriculture: null, dailyClimate: null, trend: null, products: {}, status: '', error: '', pending: false };
   const fire = () => eventTarget.dispatchEvent(new CustomEvent('cs:future-state', { detail: { state: current } }));
   const rebuild = () => {
-    const options = { year: current.year, scenario: current.scenario, metric: current.metric }, products = cache.get(current.siteId) || {};
+    const options = { year: current.year, scenario: current.scenario,powerScenario:current.powerScenario, metric: current.metric }, products = cache.get(current.siteId) || {};
     current = { ...current, products: { ...products }, climate: products['climate-projection'] ? summarizeFutureProduct('climate-projection', products['climate-projection'], options) : null, plume: products['plume-scenario'] ? summarizeFutureProduct('plume-scenario', products['plume-scenario'], options) : null, agriculture: products.agriculture ? summarizeFutureProduct('agriculture', products.agriculture, options) : null, dailyClimate: products.climate ? summarizeFutureProduct('climate', products.climate, options) : null, trend: products.trend ? summarizeFutureTrend(products.trend, options) : null };
+    current={...current,power:products['power-projection']?summarizeFutureProduct('power-projection',products['power-projection'],options):null,screening:products['environment-screening']?summarizeFutureProduct('environment-screening',products['environment-screening'],options):null,regional:products['regional-evidence']||null,audit:products['site-audit']||null};
     if (!destroyed) fire();
   };
   function ingest({ siteId, kind, result } = {}) {
-    if (destroyed || !siteId || !result || (!supported.has(kind) && kind !== 'trend')) return false;
+    if (destroyed || !siteId || !result || (!supported.has(kind) && !supplemental.has(kind)&&kind !== 'trend')) return false;
     if (!futureProductMatchesSite(result, locations.get(siteId))) return false;
     const values = cache.get(siteId) || {}; if (values[kind] === result) return true; values[kind] = result; cache.delete(siteId); cache.set(siteId, values);
     while (cache.size > 12) cache.delete(cache.keys().next().value);
@@ -123,25 +130,31 @@ export function attachFutureData({ site, year = 2025, eventTarget = globalThis.w
   async function setSite(next) {
     if (!next?.id) return;
     locations.delete(next.id); locations.set(next.id, next); while (locations.size > 12) locations.delete(locations.keys().next().value);
-    if (current.siteId === next.id && cache.get(next.id)?.trend) { current = { ...current, site: next }; rebuild(); return; }
+    if (current.siteId === next.id && cache.get(next.id)?.trend&&(!loadSupplemental||[...supplemental].every(kind=>cache.get(next.id)?.[kind]))) { current = { ...current, site: next }; rebuild(); return; }
     const token = ++generation; requestToken++; trendController?.abort();
     current = { ...current, site: next, siteId: next.id, status: '', error: '', pending: false }; rebuild();
     if (!fetchImpl || !/^[a-zA-Z0-9_-]{1,80}$/.test(next.id)) return;
     const controller = new AbortController(); trendController = controller;
-    try {
-      const response = await fetchImpl(`${dataBase}/unreal/timeline/${next.id}.json`, { signal: controller.signal });
-      if (!response.ok) return;
-      const result = await response.json();
-      if (!destroyed && generation === token && result.site === next.id && Array.isArray(result.rows)) ingest({ siteId: next.id, kind: 'trend', result });
-    } catch { /* Prepared trend coverage is optional; no invented fallback. */ }
+    const sources=[['trend','unreal/timeline',''],...(loadSupplemental?[['power-projection','power-projections','power-projection/1.0'],['regional-evidence','regional-evidence','regional-evidence/1.0'],['site-audit','site-audit','site-audit/1.0']]:[])];
+    await Promise.allSettled(sources.map(async([kind,path,schema])=>{
+      try{
+        const response=await fetchImpl(`${dataBase}/${path}/${next.id}.json`,{signal:controller.signal});if(!response.ok)return;
+        const result=await response.json();
+        if(!destroyed&&generation===token&&(kind==='trend'?result.site===next.id&&Array.isArray(result.rows):result.schemaVersion===schema))ingest({siteId:next.id,kind,result});
+      }catch{/* Optional source coverage stays missing. */}
+    }));
   }
   function setYear(value) { if (finite(value)) { current = { ...current, year: value }; rebuild(); } }
   function setOptions(options = {}) {
     const next = {};
     if (['ssp245', 'ssp585'].includes(options.scenario)) next.scenario = options.scenario;
+    if(['ssp126','ssp245','ssp370'].includes(options.powerScenario))next.powerScenario=options.powerScenario;
+    if(['annual','period'].includes(options.climateView))next.climateView=options.climateView;
+    if(typeof options.showScreening==='boolean')next.showScreening=options.showScreening;
+    if(['heat','air','water','noise'].includes(options.screeningDomain))next.screeningDomain=options.screeningDomain;
     if (Object.hasOwn(FUTURE_CLIMATE_METRICS, options.metric)) next.metric = options.metric;
     if (['heat', 'water', 'air', 'vegetation'].includes(options.group)) next.group = options.group;
-    if (Object.entries(next).every(([key, value]) => current[key] === value)) return;
+    if (Object.entries(next).every(([key, value]) => current[key] === value)&&options.showScreening!==true) return;
     current = { ...current, ...next }; rebuild();
   }
   async function request(kind, options = {}) {
@@ -164,7 +177,7 @@ export function attachFutureData({ site, year = 2025, eventTarget = globalThis.w
   for (const type of ['cs:site', 'cs:location']) on(type, ({ detail }) => { if (detail?.site) void setSite(detail.site); });
   on('cs:year', ({ detail }) => { if (!detail?.siteId || detail.siteId === current.siteId) setYear(detail?.year); });
   on('cs:future-options', ({ detail }) => setOptions(detail));
-  on('cs:future-view', ({ detail }) => { if (!detail?.siteId || detail.siteId === current.siteId) setOptions(detail); });
+  on('cs:future-view', ({ detail }) => { if (!detail?.siteId || detail.siteId === current.siteId) setOptions({...detail,...(detail?.group!==current.group||detail?.enabled===true?{showScreening:false}:{})}); });
   on('cs:future-request', ({ detail }) => { if (!detail?.siteId || detail.siteId === current.siteId) void request(detail?.kind, detail || {}); });
   if (site) void setSite(site); else fire();
   return { setSite, setYear, setOptions, ingest, request, publish: fire, get state() { return current; }, destroy() { destroyed = true; generation++; requestToken++; trendController?.abort(); for (const [type, fn] of listeners) eventTarget.removeEventListener(type, fn); cache.clear(); locations.clear(); } };

@@ -33,8 +33,8 @@ export function attachEnvironmentMap(viewer,{sites=[]}={}){
   const C=Cesium,products=new Map();let plumeEntity=null,stations=[],selected=window.CloudShadow?.state.site?.id,mapGeneration=0;
   const note=document.createElement('aside');note.id='environmentMapNote';note.className='environment-map-note';note.hidden=true;note.setAttribute('role','status');document.body.append(note);
   function clear(){mapGeneration++;if(plumeEntity)viewer.entities.remove(plumeEntity);plumeEntity=null;stations.forEach(s=>viewer.entities.remove(s));stations=[];note.hidden=true;window.dispatchEvent(new CustomEvent('cs:evidence-texture',{detail:{active:false}}));}
-  function showPlume(result,weather=false){
-    clear();const raster=weather?powerGridRaster(result):plumeRaster(result);if(!raster){note.textContent='No valid spatial grid available.';note.hidden=false;return;}
+  function showPlume(result,weather=false,rasterOverride=null){
+    clear();const raster=rasterOverride||(weather?powerGridRaster(result):plumeRaster(result));if(!raster){note.textContent='No valid spatial grid available.';note.hidden=false;return;}
     const canvas=document.createElement('canvas');canvas.width=raster.width;canvas.height=raster.height;
     const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(raster.width,raster.height);
     // Canvas top is north, typed shader texture bottom is south.
@@ -60,7 +60,7 @@ export function attachEnvironmentMap(viewer,{sites=[]}={}){
     window.CloudShadow?.setMapLayer('none');
     const data=products.get((d.siteId||selected)+':'+(d.layer==='plume'?'plume-scenario':d.layer==='weather'?'grid':'water-quality'));
     const result=d.result||data?.result;
-    if(d.layer==='plume')showPlume(result);else if(d.layer==='weather')showPlume(result,true);else if(d.layer==='water')showStations(result,data?.stations);
+    if(d.layer==='plume')showPlume(result);else if(d.layer==='screening')showPlume(result,false,d.raster);else if(d.layer==='weather')showPlume(result,true);else if(d.layer==='water')showStations(result,data?.stations);
   });
   window.addEventListener('cs:site',({detail})=>{selected=detail?.site?.id;clear();});
   window.addEventListener('cs:location',({detail})=>{selected=detail?.site?.id;clear();});

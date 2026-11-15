@@ -1,0 +1,4273 @@
+{
+  "schemaVersion": "site-audit/1.0",
+  "site": {
+    "id": "abilene",
+    "name": "Stargate Abilene",
+    "lat": 32.5029,
+    "lon": -99.7834,
+    "scope": "study-campus"
+  },
+  "generatedAt": "2026-11-15T07:37:10.302Z",
+  "inventoryCoverage": {
+    "reportingYears": [
+      2008,
+      2011,
+      2014,
+      2017,
+      2020,
+      2023
+    ],
+    "source": "Cached EPA NEI NAICS518210 sector candidates",
+    "latestReportingYear": 2023,
+    "notFacilityCensus": true,
+    "snapshots": [
+      {
+        "reportingYear": 2008,
+        "retrievedAt": "2026-11-14T18:58:32.594Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2008/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "d85d2c3bfd4bf7c26205b4b8121da30fa0e77f79ea165cb50038f353b7bec4f3"
+      },
+      {
+        "reportingYear": 2011,
+        "retrievedAt": "2026-11-14T18:58:45.947Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2011/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "7f624b438dc65067987698738be547f230369504b38a6a96cbc7bce4e587f6f8"
+      },
+      {
+        "reportingYear": 2014,
+        "retrievedAt": "2026-11-14T18:58:57.997Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2014/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "974ecc34117a407aed76e9922b90efaf8a5c67a3f8bdeae643a6e17527919e81"
+      },
+      {
+        "reportingYear": 2017,
+        "retrievedAt": "2026-11-14T18:59:19.298Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2017/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "d51f17a00d743d42218539436243241e1b80f5d572e85ca92bc71d362b2c5cd2"
+      },
+      {
+        "reportingYear": 2020,
+        "retrievedAt": "2026-11-14T18:59:46.280Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2020/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "f484df9d43c823434e0d3374400913cb52edb25db1ed069ba26a418b0b904316"
+      },
+      {
+        "reportingYear": 2023,
+        "retrievedAt": "2026-11-14T19:00:01.923Z",
+        "sourceUrl": "https://data.epa.gov/dmapservice/nei.vw_facility_summaries_2023/naics_code/equals/518210/sort/eis_facility_id:asc,pollutant_code:asc,pollutant_type:asc,uom:asc/1:1000/json",
+        "sha256": "ab13cc8ebe8f39ebbf835dac3dbb824d7bfdca8841ecc84f639b7f0679dad909"
+      }
+    ]
+  },
+  "mappedFacilities": [
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1472056711",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1472056711",
+      "lat": 32.5041519,
+      "lon": -99.7815703,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.22095078232204726,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1472056714",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1472056714",
+      "lat": 32.5041605,
+      "lon": -99.7804657,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.30881085809091813,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1472056710",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1472056710",
+      "lat": 32.505086,
+      "lon": -99.7811392,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.3225410340550176,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1530966377",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1530966377",
+      "lat": 32.4999424,
+      "lon": -99.7835693,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.32925358968016144,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1530966376",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1530966376",
+      "lat": 32.4999555,
+      "lon": -99.7824649,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.33895422779632395,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1472056712",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1472056712",
+      "lat": 32.5060148,
+      "lon": -99.7815952,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.385491048357087,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1530966385",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1530966385",
+      "lat": 32.4999148,
+      "lon": -99.7855378,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.3877845220548265,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1530966374",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1530966374",
+      "lat": 32.4999495,
+      "lon": -99.7804408,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.42970950915468653,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1530966378",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1530966378",
+      "lat": 32.4990197,
+      "lon": -99.7828905,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.43410782999543635,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1472056713",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1472056713",
+      "lat": 32.5060257,
+      "lon": -99.7804961,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.4415385065369797,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1530966384",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1530966384",
+      "lat": 32.499904,
+      "lon": -99.7866369,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.45069741058848983,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1472056706",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1472056706",
+      "lat": 32.5041755,
+      "lon": -99.7788227,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.4520711945288099,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1530966375",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1530966375",
+      "lat": 32.4999604,
+      "lon": -99.7793416,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.5016928215663433,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1530966383",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1530966383",
+      "lat": 32.498975,
+      "lon": -99.7861809,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.5084224268042709,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1530966380",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1530966380",
+      "lat": 32.4980772,
+      "lon": -99.7835282,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.536406383789669,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1530966373",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1530966373",
+      "lat": 32.4990206,
+      "lon": -99.7799848,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.5372688762226386,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1530966379",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1530966379",
+      "lat": 32.4980923,
+      "lon": -99.7824291,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.542291066668947,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1472056707",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1472056707",
+      "lat": 32.505118,
+      "lon": -99.778185,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.5477158864417981,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1472056709",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1472056709",
+      "lat": 32.5060407,
+      "lon": -99.7788638,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.5503788944506199,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    },
+    {
+      "sourceId": "osm",
+      "id": "osm/way/1472056705",
+      "name": null,
+      "operator": null,
+      "sourceUrl": "https://www.openstreetmap.org/way/1472056705",
+      "lat": 32.5041907,
+      "lon": -99.7777236,
+      "address": {
+        "country": null,
+        "city": null,
+        "state": null,
+        "postcode": null,
+        "street": null,
+        "housenumber": null
+      },
+      "distanceKm": 0.5513253321516026,
+      "status": "mapped-contributed",
+      "campusIdentity": "not-deduplicated"
+    }
+  ],
+  "facilityMatches": [],
+  "waterDiscovery": {
+    "status": "downloaded",
+    "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items?f=json&bbox=-100.07983182068926%2C32.2529%2C-99.48696817931074%2C32.7529&agency_code=USGS&site_type_code=ST&limit=500",
+    "retrievedAt": "2026-11-15T07:34:37.506Z",
+    "sha256": "54c744cc031cdb093c330aaba2ad78c8495866e370c4e4c262284520405931a1",
+    "returned": 17,
+    "limit": 500,
+    "truncated": false
+  },
+  "stations": [
+    {
+      "id": "USGS-08083430",
+      "name": "Elm Ck at Abilene, TX",
+      "siteType": "Stream",
+      "lat": 32.507305555555554,
+      "lon": -99.74102777777777,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-08083430/",
+      "coverage": {
+        "status": "source-metadata",
+        "parameters": [
+          {
+            "id": "20d59652f8374f02bf9300d2e49c38cd",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": "2018-02-08T22:00:00+00:00",
+            "end": "2026-11-14T07:00:00+00:00",
+            "statisticId": "00011",
+            "computationPeriod": "Points"
+          },
+          {
+            "id": "2fa08fb636ce43a2a13c2f1847551554",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": "1979-10-01T05:00:00+00:00",
+            "end": "2026-11-13T06:00:00+00:00",
+            "statisticId": "00003",
+            "computationPeriod": "Daily"
+          },
+          {
+            "id": "51bc779865504f9d9338141e6de75121",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": "2026-07-13T00:00:00+00:00",
+            "end": "2026-11-15T06:00:00+00:00",
+            "statisticId": "00011",
+            "computationPeriod": "Points"
+          },
+          {
+            "id": "89b314f667a840e0be2a382a6dcd41bc",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": "1980-05-28T05:00:00+00:00",
+            "end": "2025-06-12T05:00:00+00:00",
+            "statisticId": null,
+            "computationPeriod": "Water Year"
+          },
+          {
+            "id": "a5e8cb61915e4816933c765f973d373e",
+            "parameterCode": "00045",
+            "parameterName": "Precipitation",
+            "unit": "in",
+            "begin": null,
+            "end": null,
+            "statisticId": null,
+            "computationPeriod": "Points"
+          },
+          {
+            "id": "e21d79ca6df849ef93d63d2a9a1f2f69",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": "1980-05-28T05:00:00+00:00",
+            "end": "2025-06-12T05:00:00+00:00",
+            "statisticId": null,
+            "computationPeriod": "Water Year"
+          },
+          {
+            "id": "fe31668019aa404b82e383abfe288f82",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": "2018-02-08T22:00:00+00:00",
+            "end": "2026-11-14T07:00:00+00:00",
+            "statisticId": "00011",
+            "computationPeriod": "Points"
+          }
+        ],
+        "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/time-series-metadata/items?f=json&monitoring_location_id=USGS-08083430&limit=500",
+        "retrievedAt": "2026-11-15T07:34:37.633Z",
+        "sha256": "b6a69bbfd4db5c11429a7a84975ecfdfca424f9a2cd1790d692bb1a8f07b5f25",
+        "note": "Earliest/latest timestamps are not continuous coverage; source gaps may exist. Metadata does not prove observations in a selected period."
+      },
+      "series": [
+        {
+          "id": "00060",
+          "label": "Daily mean discharge",
+          "unit": "ft^3/s",
+          "statisticId": "00003",
+          "timeStandard": "source daily dates; original timestamp retained",
+          "period": {
+            "start": "2025-01-01",
+            "end": "2025-12-31"
+          },
+          "points": [
+            {
+              "date": "2025-01-01",
+              "sourceTime": "2025-01-01",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-02",
+              "sourceTime": "2025-01-02",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-03",
+              "sourceTime": "2025-01-03",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-04",
+              "sourceTime": "2025-01-04",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-05",
+              "sourceTime": "2025-01-05",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-06",
+              "sourceTime": "2025-01-06",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-07",
+              "sourceTime": "2025-01-07",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-08",
+              "sourceTime": "2025-01-08",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-09",
+              "sourceTime": "2025-01-09",
+              "value": 16.3,
+              "rawValue": "16.3",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-10",
+              "sourceTime": "2025-01-10",
+              "value": 5.35,
+              "rawValue": "5.35",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-11",
+              "sourceTime": "2025-01-11",
+              "value": 0.72,
+              "rawValue": "0.72",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-12",
+              "sourceTime": "2025-01-12",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-13",
+              "sourceTime": "2025-01-13",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-14",
+              "sourceTime": "2025-01-14",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-15",
+              "sourceTime": "2025-01-15",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-16",
+              "sourceTime": "2025-01-16",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-17",
+              "sourceTime": "2025-01-17",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": [
+                "ESTIMATED",
+                "ICE"
+              ],
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-18",
+              "sourceTime": "2025-01-18",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": [
+                "ESTIMATED",
+                "ICE"
+              ],
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-19",
+              "sourceTime": "2025-01-19",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": [
+                "ESTIMATED",
+                "ICE"
+              ],
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-20",
+              "sourceTime": "2025-01-20",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": [
+                "ESTIMATED",
+                "ICE"
+              ],
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-21",
+              "sourceTime": "2025-01-21",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": [
+                "ESTIMATED",
+                "ICE"
+              ],
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-22",
+              "sourceTime": "2025-01-22",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": [
+                "ESTIMATED",
+                "ICE"
+              ],
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-23",
+              "sourceTime": "2025-01-23",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-24",
+              "sourceTime": "2025-01-24",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-25",
+              "sourceTime": "2025-01-25",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-26",
+              "sourceTime": "2025-01-26",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-27",
+              "sourceTime": "2025-01-27",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-28",
+              "sourceTime": "2025-01-28",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-29",
+              "sourceTime": "2025-01-29",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-30",
+              "sourceTime": "2025-01-30",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-01-31",
+              "sourceTime": "2025-01-31",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-01",
+              "sourceTime": "2025-02-01",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-02",
+              "sourceTime": "2025-02-02",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-03",
+              "sourceTime": "2025-02-03",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-04",
+              "sourceTime": "2025-02-04",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-05",
+              "sourceTime": "2025-02-05",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-06",
+              "sourceTime": "2025-02-06",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-07",
+              "sourceTime": "2025-02-07",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-08",
+              "sourceTime": "2025-02-08",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-09",
+              "sourceTime": "2025-02-09",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-10",
+              "sourceTime": "2025-02-10",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-11",
+              "sourceTime": "2025-02-11",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-12",
+              "sourceTime": "2025-02-12",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-13",
+              "sourceTime": "2025-02-13",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-14",
+              "sourceTime": "2025-02-14",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-15",
+              "sourceTime": "2025-02-15",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-16",
+              "sourceTime": "2025-02-16",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-17",
+              "sourceTime": "2025-02-17",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-18",
+              "sourceTime": "2025-02-18",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-19",
+              "sourceTime": "2025-02-19",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-20",
+              "sourceTime": "2025-02-20",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-21",
+              "sourceTime": "2025-02-21",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-22",
+              "sourceTime": "2025-02-22",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-23",
+              "sourceTime": "2025-02-23",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-24",
+              "sourceTime": "2025-02-24",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-25",
+              "sourceTime": "2025-02-25",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-26",
+              "sourceTime": "2025-02-26",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-27",
+              "sourceTime": "2025-02-27",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-02-28",
+              "sourceTime": "2025-02-28",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-01",
+              "sourceTime": "2025-03-01",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-02",
+              "sourceTime": "2025-03-02",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-03",
+              "sourceTime": "2025-03-03",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-04",
+              "sourceTime": "2025-03-04",
+              "value": 48.5,
+              "rawValue": "48.5",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-05",
+              "sourceTime": "2025-03-05",
+              "value": 3.27,
+              "rawValue": "3.27",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-06",
+              "sourceTime": "2025-03-06",
+              "value": 0.03,
+              "rawValue": "0.03",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-07",
+              "sourceTime": "2025-03-07",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-08",
+              "sourceTime": "2025-03-08",
+              "value": 5.55,
+              "rawValue": "5.55",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-09",
+              "sourceTime": "2025-03-09",
+              "value": 0.85,
+              "rawValue": "0.85",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-10",
+              "sourceTime": "2025-03-10",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-11",
+              "sourceTime": "2025-03-11",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-12",
+              "sourceTime": "2025-03-12",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-13",
+              "sourceTime": "2025-03-13",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-14",
+              "sourceTime": "2025-03-14",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-15",
+              "sourceTime": "2025-03-15",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-16",
+              "sourceTime": "2025-03-16",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-17",
+              "sourceTime": "2025-03-17",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-18",
+              "sourceTime": "2025-03-18",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-19",
+              "sourceTime": "2025-03-19",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-20",
+              "sourceTime": "2025-03-20",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-21",
+              "sourceTime": "2025-03-21",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-22",
+              "sourceTime": "2025-03-22",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-23",
+              "sourceTime": "2025-03-23",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-24",
+              "sourceTime": "2025-03-24",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-25",
+              "sourceTime": "2025-03-25",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-26",
+              "sourceTime": "2025-03-26",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-27",
+              "sourceTime": "2025-03-27",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-28",
+              "sourceTime": "2025-03-28",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-29",
+              "sourceTime": "2025-03-29",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-30",
+              "sourceTime": "2025-03-30",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-03-31",
+              "sourceTime": "2025-03-31",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-01",
+              "sourceTime": "2025-04-01",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-02",
+              "sourceTime": "2025-04-02",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-03",
+              "sourceTime": "2025-04-03",
+              "value": 0.27,
+              "rawValue": "0.27",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-04",
+              "sourceTime": "2025-04-04",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-05",
+              "sourceTime": "2025-04-05",
+              "value": 139,
+              "rawValue": "139",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-06",
+              "sourceTime": "2025-04-06",
+              "value": 5.96,
+              "rawValue": "5.96",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-07",
+              "sourceTime": "2025-04-07",
+              "value": 1.4,
+              "rawValue": "1.40",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-08",
+              "sourceTime": "2025-04-08",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-09",
+              "sourceTime": "2025-04-09",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-10",
+              "sourceTime": "2025-04-10",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-11",
+              "sourceTime": "2025-04-11",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-12",
+              "sourceTime": "2025-04-12",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-13",
+              "sourceTime": "2025-04-13",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-14",
+              "sourceTime": "2025-04-14",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-15",
+              "sourceTime": "2025-04-15",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-16",
+              "sourceTime": "2025-04-16",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-17",
+              "sourceTime": "2025-04-17",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-18",
+              "sourceTime": "2025-04-18",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-19",
+              "sourceTime": "2025-04-19",
+              "value": 36.4,
+              "rawValue": "36.4",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-20",
+              "sourceTime": "2025-04-20",
+              "value": 655,
+              "rawValue": "655",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-21",
+              "sourceTime": "2025-04-21",
+              "value": 208,
+              "rawValue": "208",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-22",
+              "sourceTime": "2025-04-22",
+              "value": 35.9,
+              "rawValue": "35.9",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-23",
+              "sourceTime": "2025-04-23",
+              "value": 14.1,
+              "rawValue": "14.1",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-24",
+              "sourceTime": "2025-04-24",
+              "value": 8.9,
+              "rawValue": "8.90",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-25",
+              "sourceTime": "2025-04-25",
+              "value": 4.12,
+              "rawValue": "4.12",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-26",
+              "sourceTime": "2025-04-26",
+              "value": 10.1,
+              "rawValue": "10.1",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-27",
+              "sourceTime": "2025-04-27",
+              "value": 6.07,
+              "rawValue": "6.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-28",
+              "sourceTime": "2025-04-28",
+              "value": 1.97,
+              "rawValue": "1.97",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-29",
+              "sourceTime": "2025-04-29",
+              "value": 1.26,
+              "rawValue": "1.26",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-04-30",
+              "sourceTime": "2025-04-30",
+              "value": 49.9,
+              "rawValue": "49.9",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-01",
+              "sourceTime": "2025-05-01",
+              "value": 23.8,
+              "rawValue": "23.8",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-02",
+              "sourceTime": "2025-05-02",
+              "value": 21.6,
+              "rawValue": "21.6",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-03",
+              "sourceTime": "2025-05-03",
+              "value": 13.5,
+              "rawValue": "13.5",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-04",
+              "sourceTime": "2025-05-04",
+              "value": 4.93,
+              "rawValue": "4.93",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-05",
+              "sourceTime": "2025-05-05",
+              "value": 10.9,
+              "rawValue": "10.9",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-06",
+              "sourceTime": "2025-05-06",
+              "value": 76.7,
+              "rawValue": "76.7",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-07",
+              "sourceTime": "2025-05-07",
+              "value": 23.8,
+              "rawValue": "23.8",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-08",
+              "sourceTime": "2025-05-08",
+              "value": 10.7,
+              "rawValue": "10.7",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-09",
+              "sourceTime": "2025-05-09",
+              "value": 4.23,
+              "rawValue": "4.23",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-10",
+              "sourceTime": "2025-05-10",
+              "value": 1.5,
+              "rawValue": "1.50",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-11",
+              "sourceTime": "2025-05-11",
+              "value": 0.49,
+              "rawValue": "0.49",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-12",
+              "sourceTime": "2025-05-12",
+              "value": 0.15,
+              "rawValue": "0.15",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-13",
+              "sourceTime": "2025-05-13",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-14",
+              "sourceTime": "2025-05-14",
+              "value": 0.06,
+              "rawValue": "0.06",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-15",
+              "sourceTime": "2025-05-15",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-16",
+              "sourceTime": "2025-05-16",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-17",
+              "sourceTime": "2025-05-17",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-18",
+              "sourceTime": "2025-05-18",
+              "value": 5.88,
+              "rawValue": "5.88",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-19",
+              "sourceTime": "2025-05-19",
+              "value": 1.79,
+              "rawValue": "1.79",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-20",
+              "sourceTime": "2025-05-20",
+              "value": 0.11,
+              "rawValue": "0.11",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-21",
+              "sourceTime": "2025-05-21",
+              "value": 0.06,
+              "rawValue": "0.06",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-22",
+              "sourceTime": "2025-05-22",
+              "value": 0.42,
+              "rawValue": "0.42",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-23",
+              "sourceTime": "2025-05-23",
+              "value": 0.57,
+              "rawValue": "0.57",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-24",
+              "sourceTime": "2025-05-24",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-25",
+              "sourceTime": "2025-05-25",
+              "value": 3.55,
+              "rawValue": "3.55",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-26",
+              "sourceTime": "2025-05-26",
+              "value": 74.1,
+              "rawValue": "74.1",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-27",
+              "sourceTime": "2025-05-27",
+              "value": 16.1,
+              "rawValue": "16.1",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-28",
+              "sourceTime": "2025-05-28",
+              "value": 4.92,
+              "rawValue": "4.92",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-29",
+              "sourceTime": "2025-05-29",
+              "value": 3.64,
+              "rawValue": "3.64",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-30",
+              "sourceTime": "2025-05-30",
+              "value": 69.1,
+              "rawValue": "69.1",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-05-31",
+              "sourceTime": "2025-05-31",
+              "value": 33.3,
+              "rawValue": "33.3",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-01",
+              "sourceTime": "2025-06-01",
+              "value": 12.6,
+              "rawValue": "12.6",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-02",
+              "sourceTime": "2025-06-02",
+              "value": 5.31,
+              "rawValue": "5.31",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-03",
+              "sourceTime": "2025-06-03",
+              "value": 1.89,
+              "rawValue": "1.89",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-04",
+              "sourceTime": "2025-06-04",
+              "value": 0.36,
+              "rawValue": "0.36",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-05",
+              "sourceTime": "2025-06-05",
+              "value": 0.36,
+              "rawValue": "0.36",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-06",
+              "sourceTime": "2025-06-06",
+              "value": 5.45,
+              "rawValue": "5.45",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-07",
+              "sourceTime": "2025-06-07",
+              "value": 0.33,
+              "rawValue": "0.33",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-08",
+              "sourceTime": "2025-06-08",
+              "value": 30.2,
+              "rawValue": "30.2",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-09",
+              "sourceTime": "2025-06-09",
+              "value": 486,
+              "rawValue": "486",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-10",
+              "sourceTime": "2025-06-10",
+              "value": 341,
+              "rawValue": "341",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-11",
+              "sourceTime": "2025-06-11",
+              "value": 435,
+              "rawValue": "435",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-12",
+              "sourceTime": "2025-06-12",
+              "value": 286,
+              "rawValue": "286",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-13",
+              "sourceTime": "2025-06-13",
+              "value": 43.7,
+              "rawValue": "43.7",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-14",
+              "sourceTime": "2025-06-14",
+              "value": 20.8,
+              "rawValue": "20.8",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-15",
+              "sourceTime": "2025-06-15",
+              "value": 26.4,
+              "rawValue": "26.4",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-16",
+              "sourceTime": "2025-06-16",
+              "value": 12.1,
+              "rawValue": "12.1",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-17",
+              "sourceTime": "2025-06-17",
+              "value": 7.25,
+              "rawValue": "7.25",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-18",
+              "sourceTime": "2025-06-18",
+              "value": 2.1,
+              "rawValue": "2.10",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-19",
+              "sourceTime": "2025-06-19",
+              "value": 1.06,
+              "rawValue": "1.06",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-20",
+              "sourceTime": "2025-06-20",
+              "value": 0.39,
+              "rawValue": "0.39",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-21",
+              "sourceTime": "2025-06-21",
+              "value": 0.13,
+              "rawValue": "0.13",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-22",
+              "sourceTime": "2025-06-22",
+              "value": 0.09,
+              "rawValue": "0.09",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-23",
+              "sourceTime": "2025-06-23",
+              "value": 0.08,
+              "rawValue": "0.08",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-24",
+              "sourceTime": "2025-06-24",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-25",
+              "sourceTime": "2025-06-25",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-26",
+              "sourceTime": "2025-06-26",
+              "value": 0.06,
+              "rawValue": "0.06",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-27",
+              "sourceTime": "2025-06-27",
+              "value": 0.06,
+              "rawValue": "0.06",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-28",
+              "sourceTime": "2025-06-28",
+              "value": 0.06,
+              "rawValue": "0.06",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-29",
+              "sourceTime": "2025-06-29",
+              "value": 0.06,
+              "rawValue": "0.06",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-06-30",
+              "sourceTime": "2025-06-30",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-01",
+              "sourceTime": "2025-07-01",
+              "value": 0.06,
+              "rawValue": "0.06",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-02",
+              "sourceTime": "2025-07-02",
+              "value": 0.48,
+              "rawValue": "0.48",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-03",
+              "sourceTime": "2025-07-03",
+              "value": 43.3,
+              "rawValue": "43.3",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-04",
+              "sourceTime": "2025-07-04",
+              "value": 277,
+              "rawValue": "277",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-05",
+              "sourceTime": "2025-07-05",
+              "value": 32.3,
+              "rawValue": "32.3",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-06",
+              "sourceTime": "2025-07-06",
+              "value": 11.7,
+              "rawValue": "11.7",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-07",
+              "sourceTime": "2025-07-07",
+              "value": 6.76,
+              "rawValue": "6.76",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-08",
+              "sourceTime": "2025-07-08",
+              "value": 3.53,
+              "rawValue": "3.53",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-09",
+              "sourceTime": "2025-07-09",
+              "value": 67.4,
+              "rawValue": "67.4",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-10",
+              "sourceTime": "2025-07-10",
+              "value": 20.8,
+              "rawValue": "20.8",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-11",
+              "sourceTime": "2025-07-11",
+              "value": 8.42,
+              "rawValue": "8.42",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-12",
+              "sourceTime": "2025-07-12",
+              "value": 99.2,
+              "rawValue": "99.2",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-13",
+              "sourceTime": "2025-07-13",
+              "value": 123,
+              "rawValue": "123",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-14",
+              "sourceTime": "2025-07-14",
+              "value": 63.5,
+              "rawValue": "63.5",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-15",
+              "sourceTime": "2025-07-15",
+              "value": 42.8,
+              "rawValue": "42.8",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-16",
+              "sourceTime": "2025-07-16",
+              "value": 15.6,
+              "rawValue": "15.6",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-17",
+              "sourceTime": "2025-07-17",
+              "value": 8.67,
+              "rawValue": "8.67",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-18",
+              "sourceTime": "2025-07-18",
+              "value": 2.32,
+              "rawValue": "2.32",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-19",
+              "sourceTime": "2025-07-19",
+              "value": 1.31,
+              "rawValue": "1.31",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-20",
+              "sourceTime": "2025-07-20",
+              "value": 0.4,
+              "rawValue": "0.40",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-21",
+              "sourceTime": "2025-07-21",
+              "value": 0.19,
+              "rawValue": "0.19",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-22",
+              "sourceTime": "2025-07-22",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-23",
+              "sourceTime": "2025-07-23",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-24",
+              "sourceTime": "2025-07-24",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-25",
+              "sourceTime": "2025-07-25",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-26",
+              "sourceTime": "2025-07-26",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-27",
+              "sourceTime": "2025-07-27",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-28",
+              "sourceTime": "2025-07-28",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-29",
+              "sourceTime": "2025-07-29",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-30",
+              "sourceTime": "2025-07-30",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-07-31",
+              "sourceTime": "2025-07-31",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-01",
+              "sourceTime": "2025-08-01",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-02",
+              "sourceTime": "2025-08-02",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-03",
+              "sourceTime": "2025-08-03",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-04",
+              "sourceTime": "2025-08-04",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-05",
+              "sourceTime": "2025-08-05",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-06",
+              "sourceTime": "2025-08-06",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-07",
+              "sourceTime": "2025-08-07",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-08",
+              "sourceTime": "2025-08-08",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-09",
+              "sourceTime": "2025-08-09",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-10",
+              "sourceTime": "2025-08-10",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-11",
+              "sourceTime": "2025-08-11",
+              "value": 0.03,
+              "rawValue": "0.03",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-12",
+              "sourceTime": "2025-08-12",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-13",
+              "sourceTime": "2025-08-13",
+              "value": 0.03,
+              "rawValue": "0.03",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-14",
+              "sourceTime": "2025-08-14",
+              "value": 0.03,
+              "rawValue": "0.03",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-15",
+              "sourceTime": "2025-08-15",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-16",
+              "sourceTime": "2025-08-16",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-17",
+              "sourceTime": "2025-08-17",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-18",
+              "sourceTime": "2025-08-18",
+              "value": 15.8,
+              "rawValue": "15.8",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-19",
+              "sourceTime": "2025-08-19",
+              "value": 6.76,
+              "rawValue": "6.76",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-20",
+              "sourceTime": "2025-08-20",
+              "value": 41.4,
+              "rawValue": "41.4",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-21",
+              "sourceTime": "2025-08-21",
+              "value": 5.46,
+              "rawValue": "5.46",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-22",
+              "sourceTime": "2025-08-22",
+              "value": 0.1,
+              "rawValue": "0.10",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-23",
+              "sourceTime": "2025-08-23",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-24",
+              "sourceTime": "2025-08-24",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-25",
+              "sourceTime": "2025-08-25",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-26",
+              "sourceTime": "2025-08-26",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-27",
+              "sourceTime": "2025-08-27",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-28",
+              "sourceTime": "2025-08-28",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-29",
+              "sourceTime": "2025-08-29",
+              "value": 0.03,
+              "rawValue": "0.03",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-30",
+              "sourceTime": "2025-08-30",
+              "value": 0.03,
+              "rawValue": "0.03",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-08-31",
+              "sourceTime": "2025-08-31",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-01",
+              "sourceTime": "2025-09-01",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-02",
+              "sourceTime": "2025-09-02",
+              "value": 0.03,
+              "rawValue": "0.03",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-03",
+              "sourceTime": "2025-09-03",
+              "value": 0.03,
+              "rawValue": "0.03",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-04",
+              "sourceTime": "2025-09-04",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-05",
+              "sourceTime": "2025-09-05",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-06",
+              "sourceTime": "2025-09-06",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-07",
+              "sourceTime": "2025-09-07",
+              "value": 0.03,
+              "rawValue": "0.03",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-08",
+              "sourceTime": "2025-09-08",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-09",
+              "sourceTime": "2025-09-09",
+              "value": 0.01,
+              "rawValue": "0.01",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-10",
+              "sourceTime": "2025-09-10",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-11",
+              "sourceTime": "2025-09-11",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-12",
+              "sourceTime": "2025-09-12",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-13",
+              "sourceTime": "2025-09-13",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-14",
+              "sourceTime": "2025-09-14",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-15",
+              "sourceTime": "2025-09-15",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-16",
+              "sourceTime": "2025-09-16",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-17",
+              "sourceTime": "2025-09-17",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-18",
+              "sourceTime": "2025-09-18",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-19",
+              "sourceTime": "2025-09-19",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-20",
+              "sourceTime": "2025-09-20",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-21",
+              "sourceTime": "2025-09-21",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-22",
+              "sourceTime": "2025-09-22",
+              "value": 0,
+              "rawValue": "0.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-23",
+              "sourceTime": "2025-09-23",
+              "value": 5.72,
+              "rawValue": "5.72",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-24",
+              "sourceTime": "2025-09-24",
+              "value": 114,
+              "rawValue": "114",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-25",
+              "sourceTime": "2025-09-25",
+              "value": 6.07,
+              "rawValue": "6.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-26",
+              "sourceTime": "2025-09-26",
+              "value": 0.39,
+              "rawValue": "0.39",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-27",
+              "sourceTime": "2025-09-27",
+              "value": 0.1,
+              "rawValue": "0.10",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-28",
+              "sourceTime": "2025-09-28",
+              "value": 0.08,
+              "rawValue": "0.08",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-29",
+              "sourceTime": "2025-09-29",
+              "value": 0.08,
+              "rawValue": "0.08",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-09-30",
+              "sourceTime": "2025-09-30",
+              "value": 0.08,
+              "rawValue": "0.08",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-01",
+              "sourceTime": "2025-10-01",
+              "value": 0.08,
+              "rawValue": "0.08",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-02",
+              "sourceTime": "2025-10-02",
+              "value": 0.08,
+              "rawValue": "0.08",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-03",
+              "sourceTime": "2025-10-03",
+              "value": 0.08,
+              "rawValue": "0.08",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-04",
+              "sourceTime": "2025-10-04",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-05",
+              "sourceTime": "2025-10-05",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-06",
+              "sourceTime": "2025-10-06",
+              "value": 0.06,
+              "rawValue": "0.06",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-07",
+              "sourceTime": "2025-10-07",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-08",
+              "sourceTime": "2025-10-08",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-09",
+              "sourceTime": "2025-10-09",
+              "value": 0.03,
+              "rawValue": "0.03",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-10",
+              "sourceTime": "2025-10-10",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-11",
+              "sourceTime": "2025-10-11",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-12",
+              "sourceTime": "2025-10-12",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-13",
+              "sourceTime": "2025-10-13",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-14",
+              "sourceTime": "2025-10-14",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-15",
+              "sourceTime": "2025-10-15",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-16",
+              "sourceTime": "2025-10-16",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-17",
+              "sourceTime": "2025-10-17",
+              "value": 0.02,
+              "rawValue": "0.02",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-18",
+              "sourceTime": "2025-10-18",
+              "value": 0.37,
+              "rawValue": "0.37",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-19",
+              "sourceTime": "2025-10-19",
+              "value": 0.08,
+              "rawValue": "0.08",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-20",
+              "sourceTime": "2025-10-20",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-21",
+              "sourceTime": "2025-10-21",
+              "value": 0.06,
+              "rawValue": "0.06",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-22",
+              "sourceTime": "2025-10-22",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-23",
+              "sourceTime": "2025-10-23",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-24",
+              "sourceTime": "2025-10-24",
+              "value": 54.4,
+              "rawValue": "54.4",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-25",
+              "sourceTime": "2025-10-25",
+              "value": 43.5,
+              "rawValue": "43.5",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-26",
+              "sourceTime": "2025-10-26",
+              "value": 2.6,
+              "rawValue": "2.60",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-27",
+              "sourceTime": "2025-10-27",
+              "value": 0.26,
+              "rawValue": "0.26",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-28",
+              "sourceTime": "2025-10-28",
+              "value": 0.1,
+              "rawValue": "0.10",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-29",
+              "sourceTime": "2025-10-29",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-30",
+              "sourceTime": "2025-10-30",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-10-31",
+              "sourceTime": "2025-10-31",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-01",
+              "sourceTime": "2025-11-01",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-02",
+              "sourceTime": "2025-11-02",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-03",
+              "sourceTime": "2025-11-03",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-04",
+              "sourceTime": "2025-11-04",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-05",
+              "sourceTime": "2025-11-05",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-06",
+              "sourceTime": "2025-11-06",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-07",
+              "sourceTime": "2025-11-07",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-08",
+              "sourceTime": "2025-11-08",
+              "value": 0.05,
+              "rawValue": "0.05",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-09",
+              "sourceTime": "2025-11-09",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-10",
+              "sourceTime": "2025-11-10",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-11",
+              "sourceTime": "2025-11-11",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-12",
+              "sourceTime": "2025-11-12",
+              "value": 0.04,
+              "rawValue": "0.04",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-13",
+              "sourceTime": "2025-11-13",
+              "value": 1.67,
+              "rawValue": "1.67",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-14",
+              "sourceTime": "2025-11-14",
+              "value": 6.12,
+              "rawValue": "6.12",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-15",
+              "sourceTime": "2025-11-15",
+              "value": 3.83,
+              "rawValue": "3.83",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-16",
+              "sourceTime": "2025-11-16",
+              "value": 6.62,
+              "rawValue": "6.62",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-17",
+              "sourceTime": "2025-11-17",
+              "value": 4.26,
+              "rawValue": "4.26",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-18",
+              "sourceTime": "2025-11-18",
+              "value": 0.2,
+              "rawValue": "0.20",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-19",
+              "sourceTime": "2025-11-19",
+              "value": 0.06,
+              "rawValue": "0.06",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-20",
+              "sourceTime": "2025-11-20",
+              "value": 21.9,
+              "rawValue": "21.9",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-21",
+              "sourceTime": "2025-11-21",
+              "value": 7.56,
+              "rawValue": "7.56",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-22",
+              "sourceTime": "2025-11-22",
+              "value": 1,
+              "rawValue": "1.00",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-23",
+              "sourceTime": "2025-11-23",
+              "value": 0.25,
+              "rawValue": "0.25",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-24",
+              "sourceTime": "2025-11-24",
+              "value": 232,
+              "rawValue": "232",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-25",
+              "sourceTime": "2025-11-25",
+              "value": 13.4,
+              "rawValue": "13.4",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-26",
+              "sourceTime": "2025-11-26",
+              "value": 4.65,
+              "rawValue": "4.65",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-27",
+              "sourceTime": "2025-11-27",
+              "value": 0.32,
+              "rawValue": "0.32",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-28",
+              "sourceTime": "2025-11-28",
+              "value": 0.13,
+              "rawValue": "0.13",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-29",
+              "sourceTime": "2025-11-29",
+              "value": 0.09,
+              "rawValue": "0.09",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-11-30",
+              "sourceTime": "2025-11-30",
+              "value": 0.08,
+              "rawValue": "0.08",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-01",
+              "sourceTime": "2025-12-01",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-02",
+              "sourceTime": "2025-12-02",
+              "value": 0.72,
+              "rawValue": "0.72",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-03",
+              "sourceTime": "2025-12-03",
+              "value": 2.2,
+              "rawValue": "2.20",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-04",
+              "sourceTime": "2025-12-04",
+              "value": 1.82,
+              "rawValue": "1.82",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-05",
+              "sourceTime": "2025-12-05",
+              "value": 1.6,
+              "rawValue": "1.60",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-06",
+              "sourceTime": "2025-12-06",
+              "value": 0.91,
+              "rawValue": "0.91",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-07",
+              "sourceTime": "2025-12-07",
+              "value": 1.47,
+              "rawValue": "1.47",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-08",
+              "sourceTime": "2025-12-08",
+              "value": 1.51,
+              "rawValue": "1.51",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-09",
+              "sourceTime": "2025-12-09",
+              "value": 0.56,
+              "rawValue": "0.56",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-10",
+              "sourceTime": "2025-12-10",
+              "value": 0.19,
+              "rawValue": "0.19",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-11",
+              "sourceTime": "2025-12-11",
+              "value": 0.12,
+              "rawValue": "0.12",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-12",
+              "sourceTime": "2025-12-12",
+              "value": 0.09,
+              "rawValue": "0.09",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-13",
+              "sourceTime": "2025-12-13",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-14",
+              "sourceTime": "2025-12-14",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-15",
+              "sourceTime": "2025-12-15",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-16",
+              "sourceTime": "2025-12-16",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-17",
+              "sourceTime": "2025-12-17",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-18",
+              "sourceTime": "2025-12-18",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-19",
+              "sourceTime": "2025-12-19",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-20",
+              "sourceTime": "2025-12-20",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-21",
+              "sourceTime": "2025-12-21",
+              "value": 0.08,
+              "rawValue": "0.08",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-22",
+              "sourceTime": "2025-12-22",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-23",
+              "sourceTime": "2025-12-23",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-24",
+              "sourceTime": "2025-12-24",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-25",
+              "sourceTime": "2025-12-25",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-26",
+              "sourceTime": "2025-12-26",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-27",
+              "sourceTime": "2025-12-27",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-28",
+              "sourceTime": "2025-12-28",
+              "value": 0.08,
+              "rawValue": "0.08",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-29",
+              "sourceTime": "2025-12-29",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-30",
+              "sourceTime": "2025-12-30",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            },
+            {
+              "date": "2025-12-31",
+              "sourceTime": "2025-12-31",
+              "value": 0.07,
+              "rawValue": "0.07",
+              "approvalStatus": "Approved",
+              "qualifier": null,
+              "timeSeriesId": "2fa08fb636ce43a2a13c2f1847551554"
+            }
+          ],
+          "evidence": "ground-observation",
+          "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/daily/items?f=json&monitoring_location_id=USGS-08083430&parameter_code=00060&statistic_id=00003&datetime=2025-01-01%2F2025-12-31&limit=400&sortby=time",
+          "retrievedAt": "2026-11-15T07:34:37.750Z",
+          "sha256": "0c862b61a99013bd47de8c299ffcefdeea103a328cf0f317c83daf471d552123",
+          "complete": true,
+          "note": "Discharge measured at this source station; no downstream/campus connection or facility effect has been established."
+        }
+      ],
+      "distanceKm": 4.003566628409897
+    },
+    {
+      "id": "USGS-08083420",
+      "name": "Cat Claw Ck at Abilene, TX",
+      "siteType": "Stream",
+      "lat": 32.4754021890435,
+      "lon": -99.7492556362846,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-08083420/",
+      "coverage": {
+        "status": "source-metadata",
+        "parameters": [
+          {
+            "id": "5a9b14d9dacc422e87fcba0741c61194",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": "1970-10-01T05:00:00+00:00",
+            "end": "2026-11-13T06:00:00+00:00",
+            "statisticId": "00003",
+            "computationPeriod": "Daily"
+          },
+          {
+            "id": "6b78dc6271e241bba829ef9a14913749",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": "2001-06-02T05:00:00+00:00",
+            "end": "2026-11-13T06:00:00+00:00",
+            "statisticId": "00001",
+            "computationPeriod": "Daily"
+          },
+          {
+            "id": "77617157fb2d4199baed33fb17ef5443",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": "2007-10-01T06:00:00+00:00",
+            "end": "2026-11-15T05:30:00+00:00",
+            "statisticId": "00011",
+            "computationPeriod": "Points"
+          },
+          {
+            "id": "805800434f6e4fab847f77aaf6ff9bab",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": "1971-08-26T05:00:00+00:00",
+            "end": "2025-06-12T05:00:00+00:00",
+            "statisticId": null,
+            "computationPeriod": "Water Year"
+          },
+          {
+            "id": "8d3c024ed2c749c69adff2c0745dd2f1",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": "1971-08-26T05:00:00+00:00",
+            "end": "2025-06-12T05:00:00+00:00",
+            "statisticId": null,
+            "computationPeriod": "Water Year"
+          },
+          {
+            "id": "8e4b2e55596847ca940a3c5d6801226b",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": "2000-09-30T05:00:00+00:00",
+            "end": "2026-11-13T06:00:00+00:00",
+            "statisticId": "00003",
+            "computationPeriod": "Daily"
+          },
+          {
+            "id": "eb6474de82b640f2b7c18371f8ae353f",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": "2001-06-02T05:00:00+00:00",
+            "end": "2026-11-15T05:30:00+00:00",
+            "statisticId": "00011",
+            "computationPeriod": "Points"
+          },
+          {
+            "id": "eb94697b266647cb8b3f69b1a1e26329",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": "2001-06-02T05:00:00+00:00",
+            "end": "2026-11-13T06:00:00+00:00",
+            "statisticId": "00002",
+            "computationPeriod": "Daily"
+          }
+        ],
+        "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/time-series-metadata/items?f=json&monitoring_location_id=USGS-08083420&limit=500",
+        "retrievedAt": "2026-11-15T07:34:37.856Z",
+        "sha256": "b48b19c45f7ed96c1ab9bf017d3d7dd303303506a597e44ca9b51bf31ec935ae",
+        "note": "Earliest/latest timestamps are not continuous coverage; source gaps may exist. Metadata does not prove observations in a selected period."
+      },
+      "series": [],
+      "distanceKm": 4.427743591866121
+    },
+    {
+      "id": "USGS-08083410",
+      "name": "Little Elm Ck at Steffens St nr Abilene, TX",
+      "siteType": "Stream",
+      "lat": 32.453158333333334,
+      "lon": -99.80401111111111,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-08083410/",
+      "coverage": {
+        "status": "source-metadata",
+        "parameters": [
+          {
+            "id": "09153819e28a4874b17141f46604fef5",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": null,
+            "end": null,
+            "statisticId": null,
+            "computationPeriod": "Water Year"
+          },
+          {
+            "id": "0bfd612be8934b838eb0d63de654495f",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": null,
+            "end": null,
+            "statisticId": "00011",
+            "computationPeriod": "Points"
+          },
+          {
+            "id": "1eb8d1a99b2741b6a9691f84b8dd2654",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": null,
+            "end": null,
+            "statisticId": "00002",
+            "computationPeriod": "Daily"
+          },
+          {
+            "id": "3c36443729134cf684afa5371b86817e",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": "2024-08-08T05:00:00+00:00",
+            "end": "2025-04-30T05:00:00+00:00",
+            "statisticId": "00001",
+            "computationPeriod": "Daily"
+          },
+          {
+            "id": "485edbb97f8442a8b6b4f159ed011d44",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": null,
+            "end": null,
+            "statisticId": "00001",
+            "computationPeriod": "Daily"
+          },
+          {
+            "id": "5425bd91c9b54a61b48573712095d7d6",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": "2024-08-08T05:00:00+00:00",
+            "end": "2025-04-30T05:00:00+00:00",
+            "statisticId": "00003",
+            "computationPeriod": "Daily"
+          },
+          {
+            "id": "827502f424d44a7595c1d058cf262705",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": "2024-08-08T22:30:00+00:00",
+            "end": "2025-04-30T16:45:00+00:00",
+            "statisticId": "00011",
+            "computationPeriod": "Points"
+          },
+          {
+            "id": "8284ad43e26d4c128cf05ab8209e8aa3",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": null,
+            "end": null,
+            "statisticId": null,
+            "computationPeriod": "Water Year"
+          },
+          {
+            "id": "b86001ab23f54991b6c737f090e0db2d",
+            "parameterCode": "00060",
+            "parameterName": "Discharge",
+            "unit": "ft^3/s",
+            "begin": null,
+            "end": null,
+            "statisticId": "00003",
+            "computationPeriod": "Daily"
+          },
+          {
+            "id": "e5c0b8622b8444a78b5c2f0d82197ad7",
+            "parameterCode": "00065",
+            "parameterName": "Gage height",
+            "unit": "ft",
+            "begin": "2024-08-08T05:00:00+00:00",
+            "end": "2025-04-30T05:00:00+00:00",
+            "statisticId": "00002",
+            "computationPeriod": "Daily"
+          }
+        ],
+        "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/time-series-metadata/items?f=json&monitoring_location_id=USGS-08083410&limit=500",
+        "retrievedAt": "2026-11-15T07:34:37.964Z",
+        "sha256": "2d8af24b8f7413856c2e64638f06ce2dd01b11ff6ae062c6a50573f407e94769",
+        "note": "Earliest/latest timestamps are not continuous coverage; source gaps may exist. Metadata does not prove observations in a selected period."
+      },
+      "series": [],
+      "distanceKm": 5.859208246006516
+    },
+    {
+      "id": "USGS-08083412",
+      "name": "Unm Trib Little Elm Ck at Steffens St, Abilene, TX",
+      "siteType": "Stream",
+      "lat": 32.45365277777778,
+      "lon": -99.81178055555556,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-08083412/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 6.088876185732221
+    },
+    {
+      "id": "USGS-08083480",
+      "name": "Cedar Ck at IH 20, Abilene, TX",
+      "siteType": "Stream",
+      "lat": 32.4866111111111,
+      "lon": -99.7145555555556,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-08083480/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 6.705912870053016
+    },
+    {
+      "id": "USGS-08083245",
+      "name": "Mulberry Ck nr Hawley, TX",
+      "siteType": "Stream",
+      "lat": 32.5678991278602,
+      "lon": -99.79259093336,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-08083245/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 7.278757156801675
+    },
+    {
+      "id": "USGS-08083470",
+      "name": "Cedar Ck at Abilene, TX",
+      "siteType": "Stream",
+      "lat": 32.4490142262394,
+      "lon": -99.7206434775635,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-08083470/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 8.399888648668673
+    },
+    {
+      "id": "USGS-08083405",
+      "name": "Little Elm Ck at Dub Wright Blvd, Abilene, TX",
+      "siteType": "Stream",
+      "lat": 32.42970833333333,
+      "lon": -99.80825277777778,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-08083405/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 8.465953128238283
+    },
+    {
+      "id": "USGS-08083240",
+      "name": "Clear Fk Brazos Rv at Hwy 83 nr Hawley, TX",
+      "siteType": "Stream",
+      "lat": 32.5985,
+      "lon": -99.81455555555556,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-08083240/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 11.024041053348315
+    },
+    {
+      "id": "USGS-323635099495800",
+      "name": "Clear Fk Brazos Rv at CR 509 at Hawley, TX",
+      "siteType": "Stream",
+      "lat": 32.6099527777778,
+      "lon": -99.83285,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-323635099495800/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 12.774121839966398
+    },
+    {
+      "id": "USGS-08083400",
+      "name": "Little Elm Ck nr Abilene, TX",
+      "siteType": "Stream",
+      "lat": 32.391752777777775,
+      "lon": -99.85301944444444,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-08083400/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 13.979375402971705
+    },
+    {
+      "id": "USGS-08083300",
+      "name": "Elm Ck nr Abilene, TX",
+      "siteType": "Stream",
+      "lat": 32.3523500577324,
+      "lon": -99.8078672509463,
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-08083300/",
+      "coverage": {
+        "status": "metadata-not-queried",
+        "parameters": []
+      },
+      "series": [],
+      "distanceKm": 16.897186298343865
+    }
+  ],
+  "gaps": [
+    {
+      "id": "facility-identity",
+      "status": "needs-verification",
+      "label": "Exact campus → regulatory identity",
+      "detail": "Nearby inventory records remain candidates until documentary review links both identities. Operator affiliation alone is not campus identity."
+    },
+    {
+      "id": "inventory-time",
+      "status": "predates-study-start",
+      "label": "Emissions inventory timing",
+      "detail": "Cached reporting years: 2008, 2011, 2014, 2017, 2020, 2023. Study comparison starts 2024-06. Missing or pre-opening reports do not mean zero emissions."
+    },
+    {
+      "id": "water-observations",
+      "status": "dated-station-observations",
+      "label": "Water station observations",
+      "detail": "Station metadata, sampled parameters and actual downloaded dates are separate. Measurements at a nearby station do not establish downstream connection."
+    },
+    {
+      "id": "water-balance",
+      "status": "missing-inputs-and-model",
+      "label": "Facility withdrawals and receiving-water effects",
+      "detail": "Complete sourced withdrawal/consumption/return/discharge records and watershed/aquifer connectivity remain necessary for a facility-impact model."
+    }
+  ],
+  "sources": [
+    {
+      "title": "USGS Water Data OGC API documentation",
+      "url": "https://api.waterdata.usgs.gov/docs/ogcapi/",
+      "publisher": "USGS",
+      "evidence": "primary-documentation"
+    },
+    {
+      "title": "EPA National Emissions Inventory point source identity guidance",
+      "url": "https://www.epa.gov/system/files/documents/2024-04/point-source-best-practices-training_508-.pdf",
+      "publisher": "EPA",
+      "evidence": "primary-documentation"
+    }
+  ],
+  "note": "No automatic facility attribution. Inventory emissions, ambient concentrations, water use, river flow and regional climate remain distinct quantities."
+}

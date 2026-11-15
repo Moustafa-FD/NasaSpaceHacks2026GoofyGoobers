@@ -6,8 +6,9 @@
 //   3. the trend strip - annual local signal in the timeline; projected values are dashed
 //   4. the wind field  - one GEOS-FP analysis trail layer and one wind readout
 //   6. the data layer  - the NASA overlay picked in the top bar follows the year
-// Site trend rows end in2035. Later selections request climate-period summaries,
-// with no invented annual pollution, NDVI, weather or historical imagery.
+// Site trend rows end in2035. Later selections may show supported regional
+// annual climate simulations or named climate-period summaries. Neither adds
+// annual facility-impact predictions or future satellite imagery.
 //
 // Data: data/hls_timeline.json, data/unreal/timeline/<site>.json (rows), produced by scripts/*.
 // Hooks into app.js through window.CloudShadow + "cs:ready" / "cs:site" events.
@@ -15,6 +16,7 @@
 import * as FX from "./fx.js";
 import { attachFlow, resolveWindReadout } from "./flowfield.js";
 import { getMotionSpeed, setMotionSpeed } from "./motion.js";
+import { futureTimelineSummary } from "./future-timeline.js";
 
 const FIRST = 2003, LAST = 2100, LAST_SITE = 2035;
 const TREND_VARS = { LST_Night: "Night heat", NDVI: "Vegetation", NO2_OMI: "NO₂", LST_Day: "Day heat", AOD: "Particles" };
@@ -26,7 +28,7 @@ const T = {
   site: null, rows: new Map(), meta: null, year: 2025, ringVar: "LST_Night",
   layers: [], playing: false, playTimer: null, localScene: false, siteLoad: 0, mapBusy:false,
   plume: null, wind: null,
-  analysedWind:null,
+  analysedWind:null,future:null,
   target: { windDir: 0, windSpeed: 0 },
 };
 
@@ -36,6 +38,13 @@ const num = (v) => (v == null || v === "" ? null : +v);
 const localOf = (row, v) => num(row[`${v}_Local`]);
 const phaseOf = (y) => y>LAST_SITE?'climate':rowFor(y).Phase || (y > lastObservedYear() ? "projected" : "observed");
 const lastObservedYear = () => T.meta?.lastObservedYear ?? 2026;
+const futureSummary=(year=T.year)=>{
+  const shared=window.CloudShadow?.future?.state;
+  // Shared state can advance before cs:year/applyYear or arrive before init.
+  const state=shared?.siteId===T.site?.id&&shared?.year===year?shared:T.future;
+  if(state?.climateView!=='annual'||!state?.power?.available)return null;
+  return futureTimelineSummary(state,{siteId:T.site?.id,year});
+};
 
 function enuAt(lat, lon, h = 0) { return Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(lon, lat, h)); }
 
@@ -184,10 +193,11 @@ function renderTrendStrip() {
     return { year, value: localOf(row, T.ringVar), lo: num(row[`${T.ringVar}_LocalLo`]), hi: num(row[`${T.ringVar}_LocalHi`]), projected: phaseOf(year) === "projected" };
   });
   const values = points.flatMap((p) => [p.value, p.lo, p.hi]).filter(Number.isFinite);
-  const valueText = T.year>LAST_SITE?`${T.year} · climate period, no annual site signal`:`${T.year} · ${fmt(current, v.digits)}${v.unit ? " " + v.unit : ""}`;
+  const annual=futureSummary();
+  const valueText = annual?.trendText||(T.year>LAST_SITE?`${T.year} · climate period, no annual site signal`:`${T.year} · ${fmt(current, v.digits)}${v.unit ? " " + v.unit : ""}`);
   $("#tlTrendValue").textContent = valueText;
-  $("#tlTrendValue").title = `${TREND_VARS[T.ringVar]}: ${valueText}; site minus surroundings`;
-  canvas.setAttribute("aria-label", `${TREND_VARS[T.ringVar]}, annual site minus surroundings. ${valueText}. Solid: observed; dashed: trend extension. Missing years remain gaps.`);
+  $("#tlTrendValue").title = annual?.trendTitle||`${TREND_VARS[T.ringVar]}: ${valueText}; site minus surroundings`;
+  canvas.setAttribute("aria-label", annual?`${TREND_VARS[T.ringVar]}. ${annual.trendTitle} Solid: observed; dashed: trend extension. Missing years remain gaps.`:`${TREND_VARS[T.ringVar]}, annual site minus surroundings. ${valueText}. Solid: observed; dashed: trend extension. Missing years remain gaps.`);
   const w = Math.max(120, Math.round(canvas.getBoundingClientRect().width)), h = 30;
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
@@ -229,13 +239,19 @@ function windMarkup(row,phase){
 }
 function renderWind(){const element=$('#tlWind');if(element)element.outerHTML=windMarkup(rowFor(T.year),phaseOf(T.year));}
 function renderHud(year, r, phase) {
+  const annual=futureSummary(year);
   $("#tlYear").textContent = year;
   $("#tlSlider").value = year;
   const badge = $("#tlPhase");
-  badge.textContent = phase==='climate'?'CLIMATE SCENARIO · PERIOD SUMMARY':phase === "projected" ? "PROJECTED · IF THE TREND CONTINUES" : phase === "present" ? "NOW" : "OBSERVED";
+  badge.textContent = annual?.badge||(phase==='climate'?'CLIMATE SCENARIO · PERIOD SUMMARY':phase === "projected" ? "PROJECTED · IF THE TREND CONTINUES" : phase === "present" ? "NOW" : "OBSERVED");
   badge.className = "tl-phase " + phase;
   document.body.classList.toggle("tl-future", phase === "projected");
-  $('#tlSlider').setAttribute('aria-valuetext',`${year}${phase==='climate'?', climate scenario period summary; annual site signals unavailable':''}`);
+  $('#tlSlider').setAttribute('aria-valuetext',annual?.aria||`${year}${phase==='climate'?', climate scenario period summary; annual site signals unavailable':''}`);
+  const futureZone=document.querySelector('.tl-zones span:last-child');if(futureZone)futureZone.textContent=annual?.zone||'Future · climate scenarios';
+  if(annual){
+    $('#tlChips').innerHTML=annual.chips.map(item=>`<span class="tl-chip climate-model" title="Annual regional climate simulation · ${annual.pathway}; not an observation or facility effect">${item.label} <b>${item.value.toLocaleString('en-US',{maximumFractionDigits:item.digits})}</b> ${item.unit}</span>`).join('')+windMarkup(r,phase);
+    return;
+  }
   const no2 = localOf(r, "NO2") ?? null;
   $("#tlChips").innerHTML =
     chip("Night heat", localOf(r, "LST_Night"), 2, "°C", true, "Site minus surroundings, MODIS night land-surface temperature") +
@@ -273,7 +289,7 @@ function togglePlay() {
 function wireUi() {
   const s = $("#tlSlider");
   s.min = FIRST; s.max = LAST; s.value = T.year;
-  const futureZone=document.querySelector('.tl-zones span:last-child');if(futureZone)futureZone.textContent='Future · climate periods after 2035';
+  const futureZone=document.querySelector('.tl-zones span:last-child');if(futureZone)futureZone.textContent='Future · climate scenarios';
   const tint=$('#tlFutureTint');if(tint)tint.hidden=true;
   const nowPct = ((lastObservedYear() - FIRST) / (LAST - FIRST)) * 100;
   $("#tlTrack").style.setProperty("--now", nowPct + "%");
@@ -317,6 +333,13 @@ function wireUi() {
 
 async function init(cs) {
   CS = cs; viewer = cs.viewer;
+  T.future=cs.future?.state||window.CloudShadow?.future?.state||null;
+  window.addEventListener('cs:future-state',({detail})=>{
+    const next=detail?.state;if(!next||CS.state?.site?.id&&next.siteId!==CS.state.site.id)return;
+    T.future=next;
+    if(next.siteId!==T.site?.id||next.year!==T.year)return;
+    renderHud(T.year,rowFor(T.year),phaseOf(T.year));renderTrendStrip();
+  });
   FX.init(viewer);
   viewer.scene.preRender.addEventListener(syncGroundVisibility);
   FLOW = attachFlow(viewer,{quality:FX.quality()});

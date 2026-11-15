@@ -491,7 +491,11 @@ function init(context) {
     if (active) { viewer.scene.highDynamicRange = false; viewer.scene.postProcessStages.bloom.enabled = false; }
   });
   if (cs.state.site) prepare(cs.state.site);
-  window.CloudShadowNeighborhood = { enter, exit, get active(){return active;},get pending(){return pending||!!uploadingPatch||streamer.pending;},get streamState(){return streamer.state;},get center(){return sceneData?.center;} };
+  window.CloudShadowNeighborhood = { enter, exit, groundHeightAt(lon,lat){
+    if(!active||!sceneData?.center||!Number.isFinite(lon)||!Number.isFinite(lat))return null;
+    const x=(lon-sceneData.center.lon)*111320*Math.cos(sceneData.center.lat*Math.PI/180),y=(lat-sceneData.center.lat)*111320,elevation=sampleElevation(sceneData.elevation,x,y);
+    return elevation===null?null:elevation+4;
+  }, get active(){return active;},get pending(){return pending||!!uploadingPatch||streamer.pending;},get streamState(){return streamer.state;},get center(){return sceneData?.center;} };
 }
 // Register before viewer readiness too: an already-selected raster must survive
 // the first patch upload. No map choice changes the camera or exits 3D mode.
