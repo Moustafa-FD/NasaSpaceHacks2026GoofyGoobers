@@ -228,10 +228,14 @@ export function attachFluid(viewer, site, opts = {}) {
     gpu: true,
     setVisible(value) { visible = !!value; entity.show = visible; upper.show = visible && local; lastTime=Cesium.JulianDate.clone(viewer.clock.currentTime,lastTime); },
     // Close-up: switch domain size and sit on the low-poly ground (sampled from the rendered scene).
+    // Idempotent: called on every year change. Re-assigning the rectangle rebuilds Cesium's primitive, whose
+    // texture shows white for a frame while it re-uploads (the per-year white flash), so only act on a real change.
     setLocal(on) {
-      local = !!on; halfSizeM = local ? localHalfM : globeHalfM;
-      groundH = local ? sceneGround(viewer, site.lat, site.lon) ?? 0 : 0;
-      run(P.clear, dye.write, { tex: dye.read, value: 0 }, dyeTexel); dye.swap();
+      const nextLocal = !!on, nextGround = nextLocal ? sceneGround(viewer, site.lat, site.lon) ?? 0 : 0;
+      const modeChanged = nextLocal !== local;
+      if (!modeChanged && Math.abs(nextGround - groundH) < 1) return;
+      local = nextLocal; halfSizeM = local ? localHalfM : globeHalfM; groundH = nextGround;
+      if (modeChanged) { run(P.clear, dye.write, { tex: dye.read, value: 0 }, dyeTexel); dye.swap(); }
       placeSheets();
     },
     setWeather({ windTowardDeg, windSpeed, heat, pollution, moisture, projected }) {
